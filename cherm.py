@@ -1,9 +1,3 @@
-"""
-Supported languages:
-  Python, JavaScript, TypeScript, Java, C, C++, Go, Rust,
-  Ruby, PHP, Kotlin, Swift, Bash/Shell, PowerShell, Perl,
-  R, HTML, CSS, JSON, YAML, Markdown, SQL
-"""
 
 import curses
 import subprocess
@@ -21,34 +15,33 @@ import ast as _ast_mod
 import threading
 import random
 
-# Timestamps used by the companion to decide when the user is idle or erroring.
 LAST_INTERACTION_TIME = time.time()
 LAST_ERROR_TIME = 0.0
 
-# Companion state -- read by the drawing thread, written by companion_thread().
 CURRENT_EMOTION = "neutral"
 CURRENT_SUGGESTION = ""
 COMPANION_RUNNING = True
 
-# The main curses screen, set in main() so companion can draw on it.
 GLOBAL_STDSCR = None
 
+# Block until a key is pressed, redrawing the companion face each second
 def smart_getch(win):
-    """Block until a key is pressed, redrawing the companion face each second."""
-    win.timeout(1000)  # Wake up every 1s even without input (for live clock + face updates)
+    win.timeout(1000)
     while True:
         if GLOBAL_STDSCR:
             draw_companion_face(GLOBAL_STDSCR)
             GLOBAL_STDSCR.refresh()
         win.refresh()
         k = win.getch()
-        if k != -1:  # -1 means timeout, not a real keypress
+        if k != -1:
             record_interaction()
             return k
+# record interaction
 def record_interaction():
     global LAST_INTERACTION_TIME
     LAST_INTERACTION_TIME = time.time()
 
+# record error
 def record_error():
     global LAST_ERROR_TIME
     LAST_ERROR_TIME = time.time()
@@ -56,55 +49,43 @@ def record_error():
 LAST_EMOTION_TRIGGER_TIME = 0.0
 EMOTION_TIMEOUT = 0.0
 
+# Override the companion's emotion for a fixed duration, then let it revert naturally
 def trigger_emotion(emo, duration=5.0, suggestion=""):
-    """Override the companion's emotion for a fixed duration, then let it revert naturally."""
     global CURRENT_EMOTION, CURRENT_SUGGESTION, LAST_EMOTION_TRIGGER_TIME, EMOTION_TIMEOUT
     CURRENT_EMOTION = emo
     CURRENT_SUGGESTION = suggestion
     LAST_EMOTION_TRIGGER_TIME = time.time()
-    EMOTION_TIMEOUT = duration  # companion_thread() will stop overriding after this many seconds
+    EMOTION_TIMEOUT = duration
 
+# Background thread that manages the companion's emotional state
 def companion_thread():
-    """Background thread that manages the companion's emotional state.
-    
-    Priority order:
-      1. Error (recent subprocess failure) -- always wins
-      2. Triggered emotion (e.g. scan result) -- holds for its duration
-      3. Idle heuristic -- happy / sad / tired based on inactivity time
-    """
     global CURRENT_EMOTION, CURRENT_SUGGESTION, COMPANION_RUNNING
-    
+
     while COMPANION_RUNNING:
         now = time.time()
-        
-        # 1. Error state overrides all -- something just went wrong.
+
         if now - LAST_ERROR_TIME < 5.0:
             CURRENT_EMOTION = "error"
             CURRENT_SUGGESTION = "Whoops! An error occurred! Fixing it up..."
-            
-        # 2. A feature triggered a specific emotion (e.g. scan results).
+
         elif now - LAST_EMOTION_TRIGGER_TIME < EMOTION_TIMEOUT:
-            pass  # Keep CURRENT_EMOTION and CURRENT_SUGGESTION as-is
-            
-        # 3. Fall back to idle-time heuristic.
+            pass
+
         else:
             idle_time = now - LAST_INTERACTION_TIME
-            if idle_time > 1800:   # 30 mins -- user probably stepped away
+            if idle_time > 1800:
                 CURRENT_EMOTION = "tired"
                 CURRENT_SUGGESTION = "Zzz... take a break... or write code..."
-            elif idle_time > 600:  # 10 mins -- starting to wonder where the user went
+            elif idle_time > 600:
                 CURRENT_EMOTION = "sad"
                 CURRENT_SUGGESTION = "I'm bored... are you still there?"
             else:
                 CURRENT_EMOTION = "happy"
                 CURRENT_SUGGESTION = ""
-                    
+
         time.sleep(1.0)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  GLOBAL CONSTANTS
-# ─────────────────────────────────────────────────────────────────────────────
 
 IS_WIN = os.name == "nt"
 BOOKMARKS_FILE = os.path.join(
@@ -113,10 +94,8 @@ BOOKMARKS_FILE = os.path.join(
 START_TIME = time.time()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  BOOKMARK PERSISTENCE
-# ─────────────────────────────────────────────────────────────────────────────
 
+# load bookmarks
 def load_bookmarks() -> list:
     try:
         if os.path.exists(BOOKMARKS_FILE):
@@ -128,6 +107,7 @@ def load_bookmarks() -> list:
     return []
 
 
+# save bookmarks
 def save_bookmarks(bookmarks: list) -> None:
     try:
         with open(BOOKMARKS_FILE, "w", encoding="utf-8") as f:
@@ -136,41 +116,36 @@ def save_bookmarks(bookmarks: list) -> None:
         pass
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  PLATFORM UTILITIES
-# ─────────────────────────────────────────────────────────────────────────────
 
+# shell cmd
 def shell_cmd(cmd: str) -> str:
     if IS_WIN:
         return f'cmd /c "{cmd}"'
     return cmd
 
 
+# exe
 def exe(base: str) -> str:
     return f"{base}.exe" if IS_WIN else base
 
 
+# null dev
 def null_dev() -> str:
     return "NUL" if IS_WIN else "/dev/null"
 
 
+# run prefix
 def run_prefix(name: str) -> str:
     return f".\\{name}" if IS_WIN else f"./{name}"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  CURSES DRAWING HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Write text at (y, x), silently clipping or skipping if out of bounds
 def safe_addstr(stdscr, y: int, x: int, text: str, attr=curses.A_NORMAL):
-    """Write text at (y, x), silently clipping or skipping if out of bounds.
-    Curses raises an exception when writing to the last cell, so we always
-    leave a 1-character margin on the right.
-    """
     height, width = stdscr.getmaxyx()
     if y < 0 or y >= height or x < 0 or x >= width:
         return
-    max_len = width - x - 1  # leave last column untouched
+    max_len = width - x - 1
     if max_len <= 0:
         return
     try:
@@ -179,6 +154,7 @@ def safe_addstr(stdscr, y: int, x: int, text: str, attr=curses.A_NORMAL):
         pass
 
 
+# draw centered
 def draw_centered(stdscr, y: int, text: str, attr=curses.A_NORMAL):
     height, width = stdscr.getmaxyx()
     if y < 0 or y >= height:
@@ -187,6 +163,7 @@ def draw_centered(stdscr, y: int, text: str, attr=curses.A_NORMAL):
     safe_addstr(stdscr, y, x, text, attr)
 
 
+# draw hline
 def draw_hline(stdscr, y: int, char: str = "-"):
     height, width = stdscr.getmaxyx()
     if y < 0 or y >= height:
@@ -198,17 +175,15 @@ def draw_hline(stdscr, y: int, char: str = "-"):
 
 
 
+# Return the curses color pair attribute, or A_BOLD as a monochrome fallback
 def color(pair_num: int) -> int:
-    """Return the curses color pair attribute, or A_BOLD as a monochrome fallback."""
     if curses.has_colors():
         return curses.color_pair(pair_num)
     return curses.A_BOLD
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  FILE BROWSER  (bookmarks + optional multi-select)
-# ─────────────────────────────────────────────────────────────────────────────
 
+# file icon
 def _file_icon(filename: str) -> str:
     ext = os.path.splitext(filename)[1].lower()
     icons = {
@@ -223,22 +198,16 @@ def _file_icon(filename: str) -> str:
     return icons.get(ext, "[file]")
 
 
+# File browser with bookmark support and optional multi-select
 def select_target_file(stdscr, multi_select: bool = False):
-    """
-    File browser with bookmark support and optional multi-select.
-    Returns a single filepath str (or None) when multi_select=False.
-    Returns a list of filepaths (possibly empty) when multi_select=True.
-    Keys: up/down Navigate, Enter Open, Left/BS Back, B Bookmark,
-          SPACE Multi-select, ? Help, ESC Cancel
-    """
     current_dir = os.path.abspath(".")
-    history_back: list = []    # breadcrumb stack for Left/Backspace navigation
-    history_forward: list = [] # re-do stack for Right arrow navigation
+    history_back: list = []
+    history_forward: list = []
     current_row = 0
     bookmarks = load_bookmarks()
-    selected_files: list = []  # accumulates selections in multi-select mode
-    _SEP = "__sep__"           # sentinel value meaning "this row is a visual separator"
-    stdscr.timeout(1000)       # non-blocking getch so the companion face can refresh
+    selected_files: list = []
+    _SEP = "__sep__"
+    stdscr.timeout(1000)
     while True:
         stdscr.clear()
         height, width = stdscr.getmaxyx()
@@ -251,7 +220,6 @@ def select_target_file(stdscr, multi_select: bool = False):
         dirs  = sorted([f for f in raw_items if os.path.isdir(os.path.join(current_dir, f))])
         files = sorted([f for f in raw_items if os.path.isfile(os.path.join(current_dir, f))])
 
-        # Build bookmark section
         bm_display, bm_actual = [], []
         for bp in bookmarks:
             short  = os.path.basename(bp)
@@ -282,7 +250,6 @@ def select_target_file(stdscr, multi_select: bool = False):
             actual_items.append(None)
 
 
-        # Header
         mode_label = ("MULTI-SELECT FILES  [SPACE=toggle  Enter=confirm]"
                       if multi_select else "BROWSE FILES")
         if height > 5:
@@ -311,11 +278,10 @@ def select_target_file(stdscr, multi_select: bool = False):
         if current_row >= len(display_items):
             current_row = max(0, len(display_items) - 1)
 
-        # Keep the selection roughly centred in the visible window.
         start_idx = max(0, min(current_row - visible_items // 2,
                                len(display_items) - visible_items))
         end_idx = start_idx + visible_items
-        start_y = 5  # first row of the scrollable listing
+        start_y = 5
 
         for i in range(start_idx, end_idx):
             y = start_y + (i - start_idx)
@@ -345,7 +311,6 @@ def select_target_file(stdscr, multi_select: bool = False):
 
             draw_centered(stdscr, y, row_text, attr)
 
-        # Scroll indicator
         if len(display_items) > max_visible:
             pct = int((current_row / max(1, len(display_items) - 1)) * 100)
             safe_addstr(stdscr, height - 3, width - 8, f"[{pct:3d}%]", color(6))
@@ -355,7 +320,7 @@ def select_target_file(stdscr, multi_select: bool = False):
 
         if key == -1:
             continue
-            
+
 
         if key == curses.KEY_UP and current_row > 0:
             current_row -= 1
@@ -453,22 +418,16 @@ def select_target_file(stdscr, multi_select: bool = False):
 
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  LANGUAGE COMMAND ROUTER
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Return a list of menu-entry dicts for the given file's language
 def get_commands_for_file(filepath: str) -> list:
-    """Return a list of menu-entry dicts for the given file's language.
-    Each dict has at minimum: name, action, cmd.
-    Extra keys (e.g. 'file') are forwarded to the action dispatcher in main().
-    """
     ext      = os.path.splitext(filepath)[1].lower()
     filename = os.path.basename(filepath)
     file_dir = os.path.dirname(os.path.abspath(filepath))
     cmds: list = []
 
+    # Build a single menu-entry dict, forwarding any extra keyword args
     def entry(name, action, cmd, **kw):
-        """Build a single menu-entry dict, forwarding any extra keyword args."""
         return {"name": name, "action": action, "cmd": cmd, **kw}
 
     if ext == ".py":
@@ -631,10 +590,8 @@ def get_commands_for_file(filepath: str) -> list:
     return cmds
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  MULTI-LANGUAGE STRUCTURE SCANNER
-# ─────────────────────────────────────────────────────────────────────────────
 
+# scan functions
 def scan_functions(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -737,112 +694,14 @@ def scan_functions(stdscr, filepath: str):
     show_results(stdscr, True, "Structure Scanner", "DONE", "\n".join(out_lines))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  PYTHON AUTO-FUZZER
-# ─────────────────────────────────────────────────────────────────────────────
 
+# auto fuzz functions
 def auto_fuzz_functions(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     draw_centered(stdscr, height // 2, "Generating AST Pre-Scanner & Mocks...", color(5) | curses.A_BOLD)
     stdscr.refresh()
 
-    fuzzer_code = r"""
-import importlib.util, inspect, sys, os, threading, ast, builtins
-from unittest.mock import MagicMock
-
-filepath = sys.argv[1]
-raw_name = os.path.splitext(os.path.basename(filepath))[0]
-mod_name = __import__('re').sub(r'\W', '_', raw_name)
-
-try:
-    with open(filepath, 'r', encoding='utf-8') as f:
-        source = f.read()
-    tree = ast.parse(source)
-    funcs_exist = any(isinstance(n, ast.FunctionDef) or isinstance(n, ast.AsyncFunctionDef)
-                      for n in ast.walk(tree))
-    if not funcs_exist:
-        print("[ OK ] No custom functions found in this file.")
-        sys.exit(0)
-except SyntaxError as e:
-    print(f"[FAIL] Syntax Error: {e}")
-    sys.exit(1)
-except Exception as e:
-    print(f"[FAIL] CRITICAL ERROR: {e}")
-    sys.exit(1)
-
-builtins.input = lambda prompt="": "mock_input"
-sys.modules['curses'] = MagicMock()
-sys.modules['pygame'] = MagicMock()
-sys.modules['tkinter'] = MagicMock()
-
-try:
-    spec = importlib.util.spec_from_file_location(mod_name, filepath)
-    mod  = importlib.util.module_from_spec(spec)
-    os.environ['TERM'] = 'unknown'
-    spec.loader.exec_module(mod)
-except SystemExit:
-    pass
-except Exception as e:
-    print(f"[FAIL] CRITICAL ERROR: Failed to load file -> {e}")
-    sys.exit(1)
-
-funcs = [
-    (fname, func)
-    for fname, func in inspect.getmembers(mod, inspect.isfunction)
-    if inspect.getfile(func) == os.path.abspath(filepath)
-]
-
-print(f"Found {len(funcs)} functions. Injecting Smart Mocks...")
-print("-" * 50)
-
-_SKIP_FUNCS = {'main', 'play_game', 'run', 'start', 'loop', 'game_loop'}
-
-def run_with_timeout(func, args, timeout=0.3):
-    exc = [None]
-    def worker():
-        try:
-            func(*args)
-        except Exception as e:
-            exc[0] = e
-    t = threading.Thread(target=worker, daemon=True)
-    t.start()
-    t.join(timeout)
-    if t.is_alive():
-        raise TimeoutError("Infinite loop or blocking call detected.")
-    if exc[0]:
-        raise exc[0]
-
-all_passed = True
-for fname, func in funcs:
-    if fname in _SKIP_FUNCS:
-        print(f"[SKIP] {fname}() skipped (entry-point / terminal guard).")
-        continue
-    try:
-        sig  = inspect.signature(func)
-        args = []
-        for p in sig.parameters.values():
-            if p.name == 'stdscr':
-                m = MagicMock()
-                m.getmaxyx.return_value = (24, 80)
-                m.getstr.return_value   = b'mock_input'
-                m.getch.return_value    = 27
-                args.append(m)
-            elif p.default is not inspect.Parameter.empty:
-                args.append(p.default)
-            else:
-                args.append(MagicMock())
-        run_with_timeout(func, args, 0.3)
-        print(f"[ OK ] {fname}() survived mock injection.")
-    except TimeoutError:
-        print(f"[WARN] {fname}() timed out (loop / blocking call detected).")
-    except Exception as e:
-        print(f"[FAIL] {fname}() crashed -> {type(e).__name__}: {e}")
-        all_passed = False
-
-if not all_passed:
-    sys.exit(1)
-"""
 
     temp_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_temp_fuzzer.py")
     try:
@@ -866,10 +725,8 @@ if not all_passed:
     show_results(stdscr, success, "Auto-Fuzzer", "DONE", output_text)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  SPEED & COMPLEXITY ANALYSIS
-# ─────────────────────────────────────────────────────────────────────────────
 
+# run complexity analysis
 def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -891,8 +748,6 @@ def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
         lines    = code.count("\n") + 1
         score    = 1 + ifs + elifs + fors + whiles + switches
 
-        # ── Big-O Heuristics (Time & Space) ────────────────────────────────
-        # Estimate loop nesting depth by tracking indentation level changes.
         max_loop_depth = 0
         curr_depth = 0
         last_ind = -1
@@ -900,25 +755,22 @@ def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
             sline = line.strip()
             if sline.startswith("for ") or sline.startswith("while ") or sline.startswith("for(") or sline.startswith("while("):
                 ind = len(line) - len(line.lstrip())
-                if ind > last_ind:   # going deeper into a nested loop
+                if ind > last_ind:
                     curr_depth += 1
-                else:                # same or outer level -- reset depth counter
+                else:
                     curr_depth = 1
                 last_ind = ind
                 if curr_depth > max_loop_depth:
                     max_loop_depth = curr_depth
 
-        # Map max nesting depth to a Big-O label.
         time_c = "O(1) - Constant Time"
         if max_loop_depth == 1: time_c = "O(N) - Linear Time"
         elif max_loop_depth == 2: time_c = "O(N²) - Quadratic Time (Nested loops)"
         elif max_loop_depth > 2: time_c = f"O(N^{max_loop_depth}) - Polynomial Time (Deeply nested)"
 
-        # Space complexity: look for dynamic allocation patterns.
         space_c = "O(1) - Constant Space"
         if any(x in code for x in ["append(", "push(", "malloc", "new Array", "new List", "[]", "{}"]):
             space_c = "O(N) - Linear Space (Dynamic allocations detected)"
-        # Naïve recursion check -- same function name appearing in its own body.
         if funcs > 0 and re.search(r'\b(\w+)\s*\(.*?\).*?\1\s*\(', code, re.DOTALL):
             space_c = "O(N) - Linear Space (Recursion detected)"
 
@@ -951,8 +803,6 @@ def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
 
     try:
         actual_run = run_cmd_str
-        # Compiled languages (e.g. C, Java) use "compile && run" -- split and
-        # run the compile step first (untimed) then time only the execution.
         if "&&" in run_cmd_str:
             steps = run_cmd_str.rsplit("&&", 1)
             compile_part = steps[0].strip()
@@ -968,7 +818,6 @@ def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
             out.append("[ OK ] Compiled successfully.")
             actual_run = run_part
 
-        # Feed dummy numeric input so programs waiting for stdin don't hang.
         stdin_data = ("1\n" * 50).encode("utf-8")
         start = time.perf_counter()
         result = subprocess.run(
@@ -1009,6 +858,7 @@ def run_complexity_analysis(stdscr, filepath: str, run_cmd_str: str):
     show_results(stdscr, True, "Speed & Quality Test", "DONE", "\n".join(out))
 
 
+# execute command
 def execute_command(stdscr, cmd: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -1033,6 +883,7 @@ def execute_command(stdscr, cmd: str):
     show_results(stdscr, success, cmd[:60], exit_code, output_text)
 
 
+# auto check apis
 def auto_check_apis(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -1083,6 +934,7 @@ def auto_check_apis(stdscr, filepath: str):
                  "\n".join(header + out))
 
 
+# show file stats
 def show_file_stats(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -1132,6 +984,7 @@ def show_file_stats(stdscr, filepath: str):
         show_results(stdscr, False, "File Statistics", "ERR", str(e))
 
 
+# view raw file
 def view_raw_file(stdscr, filepath: str):
     try:
         with open(filepath, "r", encoding="utf-8", errors="replace") as f:
@@ -1184,6 +1037,7 @@ def view_raw_file(stdscr, filepath: str):
             scroll = max(0, len(lines) - max_vis)
 
 
+# search in file
 def search_in_file(stdscr, filepath: str):
     curses.echo()
     curses.curs_set(1)
@@ -1229,6 +1083,7 @@ def search_in_file(stdscr, filepath: str):
     show_results(stdscr, True, f"Search '{query}'", "DONE", "\n".join(out))
 
 
+# copy path to clipboard
 def copy_path_to_clipboard(stdscr, filepath: str):
     abs_path = os.path.abspath(filepath)
     success = False
@@ -1255,13 +1110,9 @@ def copy_path_to_clipboard(stdscr, filepath: str):
     show_results(stdscr, success, "Copy Path", "DONE", out)
 
 
-# =============================================================================
-#  NEW v2.0 FEATURES
-# =============================================================================
 
-# ─────────────────────────────────────────────────────────────────────────────
+# Show an input prompt inside the TUI and return the user's text
 def _git_prompt(stdscr, prompt_text: str, max_len: int = 120) -> str:
-    """Show an input prompt inside the TUI and return the user's text."""
     curses.echo()
     curses.curs_set(1)
     stdscr.clear()
@@ -1282,8 +1133,8 @@ def _git_prompt(stdscr, prompt_text: str, max_len: int = 120) -> str:
     return result
 
 
+# Run a git command. Returns (output_str, success_bool)
 def _git_run(cwd: str, *args, timeout: int = 30) -> tuple:
-    """Run a git command. Returns (output_str, success_bool)."""
     try:
         r = subprocess.run(
             ["git"] + list(args),
@@ -1299,24 +1150,11 @@ def _git_run(cwd: str, *args, timeout: int = 30) -> tuple:
         return str(e), False
 
 
+# Interactive Git Command Center
 def git_command_center(stdscr, filepath: str):
-    """
-    Interactive Git Command Center.
-    A categorized, scrollable menu of 40+ git commands.
-    Commands that need input show a prompt.
-    Works on the repository containing `filepath`.
-
-    cmd_args encoding conventions used in the catalog below:
-      list            -- fixed git args, run directly
-      "COMMIT_MSG"    -- special: prompt for a commit message
-      "AMEND"         -- special: prompt for amended message (blank = --no-edit)
-      "PROMPT:<text>" -- prompt the user for one argument, then dispatch via arg_map
-      "CONFIRM:<q>:[args]" -- show a confirmation dialog before running destructive cmds
-    """
     file_dir  = os.path.dirname(os.path.abspath(filepath))
     file_name = os.path.basename(filepath)
 
-    # ── Check git availability first ─────────────────────────────────────────
     _, ok = _git_run(file_dir, "--version")
     if not ok:
         show_results(stdscr, False, "Git Command Center", "ERR",
@@ -1326,14 +1164,8 @@ def git_command_center(stdscr, filepath: str):
 
     _, in_repo = _git_run(file_dir, "rev-parse", "--is-inside-work-tree")
 
-    # ── Command catalog ───────────────────────────────────────────────────────
-    # Each entry: (category_label, display_name, args_or_callable)
-    # args_or_callable:
-    #   list  -> run git with those fixed args
-    #   str   -> the string is used as a key for special handling
-    SEP = None  # separator row
+    SEP = None
     cmds = [
-        # ── STATUS & INFO ──────────────────────────────────────────────────
         ("── STATUS & INFO ─────────────────────",  SEP,  None),
         ("git status",                              "status",             ["status", "-sb"]),
         ("git log  (last 15 commits)",              "log",                ["log", "--oneline", "-15"]),
@@ -1348,7 +1180,6 @@ def git_command_center(stdscr, filepath: str):
         ("git blame <this file>",                   "blame",              ["blame", "-l", "--", file_name]),
         ("git reflog  (recovery history)",          "reflog",             ["reflog", "--oneline", "-20"]),
         ("git shortlog -s  (commit leaderboard)",   "shortlog",           ["shortlog", "-s", "-n", "HEAD"]),
-        # ── STAGING ───────────────────────────────────────────────────────
         ("── STAGING ───────────────────────────",  SEP,  None),
         ("git add .  (stage ALL changes)",          "add_all",            ["add", "."]),
         ("git add <this file>",                     "add_file",           ["add", "--", file_name]),
@@ -1361,7 +1192,6 @@ def git_command_center(stdscr, filepath: str):
         ("git stash pop  (restore last stash)",     "stash_pop",          ["stash", "pop"]),
         ("git stash list",                          "stash_list",         ["stash", "list"]),
         ("git stash drop  (delete top stash)",      "stash_drop",         "CONFIRM:Delete the top stash entry?:[stash, drop]"),
-        # ── COMMITTING ────────────────────────────────────────────────────
         ("── COMMITTING ────────────────────────",  SEP,  None),
         ("git commit -m <message>  (prompt)",       "commit",             "COMMIT_MSG"),
         ("git commit --amend  (edit last commit)",  "amend",              "AMEND"),
@@ -1370,7 +1200,6 @@ def git_command_center(stdscr, filepath: str):
         ("git reset --hard HEAD~1  (DANGER: discard commit)","reset_hard","CONFIRM:DANGER -- permanently discard last commit?:[reset, --hard, HEAD~1]"),
         ("git tag <name>  (prompt)",                "tag",                "PROMPT:Tag name (e.g. v1.0.0):"),
         ("git tag --list",                          "tag_list",           ["tag", "--list", "--sort=-version:refname"]),
-        # ── BRANCHING ─────────────────────────────────────────────────────
         ("── BRANCHING ─────────────────────────",  SEP,  None),
         ("git branch  (list local branches)",       "branch_list",        ["branch", "-vv"]),
         ("git branch -a  (list ALL branches)",      "branch_all",         ["branch", "-a"]),
@@ -1380,7 +1209,6 @@ def git_command_center(stdscr, filepath: str):
         ("git rebase <branch>  (prompt)",           "rebase",             "PROMPT:Branch to rebase onto:"),
         ("git branch -d <branch>  (safe delete, prompt)","branch_del",    "PROMPT:Branch name to delete (safe):"),
         ("git branch -D <branch>  (FORCE delete, prompt)","branch_del_f", "PROMPT:Branch name to FORCE delete:"),
-        # ── REMOTE ────────────────────────────────────────────────────────
         ("── REMOTE ────────────────────────────",  SEP,  None),
         ("git remote -v  (show remotes)",           "remote_v",           ["remote", "-v"]),
         ("git fetch  (download changes, no merge)", "fetch",              ["fetch", "--all", "--prune"]),
@@ -1390,7 +1218,6 @@ def git_command_center(stdscr, filepath: str):
         ("git push -u origin <branch>  (prompt)",   "push_branch",        "PROMPT:Branch name to push:"),
         ("git push --tags",                         "push_tags",          ["push", "--tags"]),
         ("git clone <url>  (prompt)",               "clone",              "PROMPT:Repository URL to clone:"),
-        # ── REPO SETUP ────────────────────────────────────────────────────
         ("── REPO SETUP ────────────────────────",  SEP,  None),
         ("git init  (initialise repo here)",        "init",               ["init"]),
         ("git config --list  (show all config)",    "config_list",        ["config", "--list"]),
@@ -1400,13 +1227,11 @@ def git_command_center(stdscr, filepath: str):
         ("git remote remove origin",                "remote_rm",          "CONFIRM:Remove origin remote?:[remote, remove, origin]"),
         ("git clean -fd  (delete untracked files)", "clean",              "CONFIRM:DANGER -- delete all untracked files and dirs?:[clean, -fd]"),
         ("git gc  (garbage collect / optimise)",    "gc",                 ["gc", "--auto"]),
-        # ── NAVIGATION ────────────────────────────────────────────────────
         ("── ──────────────────────────────────",   SEP,  None),
         ("Back to main menu",                       "back",               None),
     ]
 
     current_row = 0
-    # Move to first non-separator
     for i, (_, key, _) in enumerate(cmds):
         if key is not None:
             current_row = i
@@ -1416,11 +1241,9 @@ def git_command_center(stdscr, filepath: str):
         stdscr.clear()
         height, width = stdscr.getmaxyx()
 
-        # Header
         draw_centered(stdscr, 0, " GIT COMMAND CENTER ", color(5) | curses.A_BOLD)
         draw_hline(stdscr, 1)
 
-        # Repo info bar
         branch_out, _ = _git_run(file_dir, "rev-parse", "--abbrev-ref", "HEAD")
         status_out, _ = _git_run(file_dir, "status", "--short")
         changed       = len([l for l in status_out.splitlines() if l.strip()])
@@ -1430,16 +1253,13 @@ def git_command_center(stdscr, filepath: str):
         safe_addstr(stdscr, 2, 2, repo_bar[:width - 4], color(4) | curses.A_BOLD)
         draw_hline(stdscr, 3)
 
-        # Footer
         draw_hline(stdscr, height - 3)
         safe_addstr(stdscr, height - 2, 2,
                     "Up/Down:Navigate  Enter:Run  Q:Back  ESC:Exit", color(6))
 
         max_vis = max(1, height - 8)
-        # Find selectable rows
         selectable = [i for i, (_, k, _) in enumerate(cmds) if k is not None]
 
-        # Scroll window
         vis_start = max(0, min(current_row - max_vis // 2, len(cmds) - max_vis))
         vis_end   = vis_start + max_vis
         start_y   = 4
@@ -1450,7 +1270,7 @@ def git_command_center(stdscr, filepath: str):
             if y >= height - 3:
                 break
 
-            if key is None:  # separator / category header
+            if key is None:
                 safe_addstr(stdscr, y, 2, label[:width - 4], color(5) | curses.A_BOLD)
             elif i == current_row:
                 draw_centered(stdscr, y, f"  {label}  ", color(1) | curses.A_BOLD)
@@ -1490,13 +1310,10 @@ def git_command_center(stdscr, filepath: str):
             if cmd_key == "back" or cmd_args is None:
                 break
 
-            # ── Determine final git args ──────────────────────────────────
             final_args = None
             title = label.strip()
 
             if isinstance(cmd_args, list):
-                # Most commands are plain lists -- pass them straight to git.
-                # file_name substitution handles cases like ["blame", file_name].
                 final_args = [file_name if a == file_name else a for a in cmd_args]
 
             elif isinstance(cmd_args, str):
@@ -1518,7 +1335,6 @@ def git_command_center(stdscr, filepath: str):
                     user_input  = _git_prompt(stdscr, prompt_text)
                     if not user_input:
                         continue
-                    # Build args from cmd_key
                     arg_map = {
                         "show_commit":  ["show", user_input, "--stat"],
                         "diff_branch":  ["diff", user_input],
@@ -1544,13 +1360,10 @@ def git_command_center(stdscr, filepath: str):
                     rest       = cmd_args[len("CONFIRM:"):]
                     question   = rest[:rest.rfind(":")]
                     args_str   = rest[rest.rfind(":") + 1:]
-                    # Parse the list-like args string
                     parsed = [a.strip().strip("'\"") for a in
                               args_str.strip("[]").split(",") if a.strip()]
-                    # Substitute file_name literal
                     parsed = [file_name if a == "file_name" else a for a in parsed]
 
-                    # Confirm dialog
                     stdscr.clear()
                     height2, width2 = stdscr.getmaxyx()
                     draw_centered(stdscr, height2 // 2 - 2, "CONFIRM", color(3) | curses.A_BOLD)
@@ -1569,7 +1382,6 @@ def git_command_center(stdscr, filepath: str):
             if final_args is None:
                 continue
 
-            # ── Run the command ───────────────────────────────────────────
             stdscr.clear()
             height2, width2 = stdscr.getmaxyx()
             cmd_display = "git " + " ".join(final_args)
@@ -1583,7 +1395,6 @@ def git_command_center(stdscr, filepath: str):
             if not out:
                 out = "[ OK ] Command completed with no output."
 
-            # Pretty-print: prefix each line
             pretty: list = [f"=== {title} ===", ""]
             for line in out.splitlines():
                 stripped = line.rstrip()
@@ -1593,7 +1404,7 @@ def git_command_center(stdscr, filepath: str):
                     pretty.append(f"[FAIL] {stripped}")
                 elif stripped.startswith(("warning", "WARN")):
                     pretty.append(f"[WARN] {stripped}")
-                elif stripped.startswith("|") or stripped.startswith("*") or stripped.startswith("\\\\"): # graph
+                elif stripped.startswith("|") or stripped.startswith("*") or stripped.startswith("\\\\"):
                     pretty.append(f"       {stripped}")
                 else:
                     pretty.append(f"[ OK ] {stripped}")
@@ -1603,12 +1414,7 @@ def git_command_center(stdscr, filepath: str):
 
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] HARDCODED SECRET SCANNER
-# ─────────────────────────────────────────────────────────────────────────────
 
-# Each tuple: (regex pattern, human-readable label, severity level)
-# Matched line-by-line; first match on a line wins (break after first hit).
 _SECRET_PATTERNS = [
     (r'(?i)(password|passwd|pwd)\s*=\s*["\'][^"\']{3,}["\']',         "Hardcoded Password",    "CRITICAL"),
     (r'(?i)(api_key|apikey|api_secret)\s*=\s*["\'][^"\']{6,}["\']',   "API Key",               "CRITICAL"),
@@ -1633,6 +1439,7 @@ _SECRET_PATTERNS = [
 ]
 
 
+# scan secrets
 def scan_secrets(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -1650,15 +1457,13 @@ def scan_secrets(stdscr, filepath: str):
     findings: list = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # Skip comment lines -- they often contain example keys in documentation.
         if stripped.startswith(("#", "//", "/*", "*", "<!--")):
             continue
         for pattern, secret_type, severity in _SECRET_PATTERNS:
             if re.search(pattern, line):
-                # Redact the actual value before displaying so we don't leak it in the UI.
                 redacted = re.sub(r'["\'][^"\']{3,}["\']', '"[REDACTED]"', stripped)
                 findings.append((i, secret_type, severity, redacted[:72]))
-                break  # one finding per line is enough
+                break
 
     out: list = ["=== HARDCODED SECRET SCANNER ===", ""]
     sev_tag = {"CRITICAL": "[FAIL]", "HIGH": "[WARN]", "MEDIUM": "[WARN]"}
@@ -1684,10 +1489,8 @@ def scan_secrets(stdscr, filepath: str):
     show_results(stdscr, len(findings) == 0, "Secret Scanner", "DONE", "\n".join(out))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] MAGIC NUMBER DETECTOR
-# ─────────────────────────────────────────────────────────────────────────────
 
+# detect magic numbers
 def detect_magic_numbers(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -1701,17 +1504,14 @@ def detect_magic_numbers(stdscr, filepath: str):
         show_results(stdscr, False, "Magic Number Detector", "ERR", str(e))
         return
 
-    # Common numeric literals that are universally understood and do not need naming.
     ALLOWED = {"0", "1", "2", "-1", "0.0", "1.0", "100", "255", "0x0", "0xFF",
                "0.5", "3.14", "360", "365", "24", "60", "1000"}
 
     findings: list = []
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # Skip comment lines and string-only lines to reduce noise.
         if stripped.startswith(("#", "//", "/*", "*", "<!--", "--", "%", '"', "'")):
             continue
-        # Blank out string literals first so numbers inside strings aren't flagged.
         cleaned = re.sub(r'["\'].*?["\']', '""', stripped)
         numbers = re.findall(r'(?<![.\w])(-?\d+(?:\.\d+)?)(?![.\w])', cleaned)
         for num in numbers:
@@ -1739,10 +1539,8 @@ def detect_magic_numbers(stdscr, filepath: str):
     show_results(stdscr, len(findings) == 0, "Magic Number Detector", "DONE", "\n".join(out))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] HELP PANEL
-# ─────────────────────────────────────────────────────────────────────────────
 
+# show help panel
 def show_help_panel(stdscr):
     help_lines = [
         "=== CHERM v2.0 -- KEYBOARD SHORTCUTS ===",
@@ -1857,10 +1655,8 @@ def show_help_panel(stdscr):
             scroll = max(0, len(help_lines) - max_vis)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] LINE DIFF VIEWER
-# ─────────────────────────────────────────────────────────────────────────────
 
+# show diff screen
 def _show_diff_screen(stdscr, diff_lines: list, title: str):
     scroll = 0
     while True:
@@ -1918,6 +1714,7 @@ def _show_diff_screen(stdscr, diff_lines: list, title: str):
             scroll = max(0, total - max_vis)
 
 
+# diff vs git
 def _diff_vs_git(stdscr, filepath: str):
     file_dir  = os.path.dirname(os.path.abspath(filepath))
     file_name = os.path.basename(filepath)
@@ -1962,6 +1759,7 @@ def _diff_vs_git(stdscr, filepath: str):
     _show_diff_screen(stdscr, diff, f"Diff: {file_name}  HEAD <> Working Tree")
 
 
+# diff two files
 def _diff_two_files(stdscr, file_a: str, file_b: str):
     try:
         with open(file_a, "r", encoding="utf-8", errors="replace") as f:
@@ -1987,6 +1785,7 @@ def _diff_two_files(stdscr, file_a: str, file_b: str):
                       f"Diff: {os.path.basename(file_a)}  <vs>  {os.path.basename(file_b)}")
 
 
+# diff viewer
 def diff_viewer(stdscr, filepath: str):
     options = [
         ("Diff vs Git HEAD",     "git"),
@@ -2030,10 +1829,8 @@ def diff_viewer(stdscr, filepath: str):
             break
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] DEAD CODE DETECTOR
-# ─────────────────────────────────────────────────────────────────────────────
 
+# dead code detector
 def dead_code_detector(stdscr, filepath: str):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -2077,7 +1874,6 @@ def dead_code_detector(stdscr, filepath: str):
             if isinstance(node, _ast_mod.Constant) and isinstance(node.value, str):
                 called.add(node.value)
 
-        # These names are used by frameworks/runtimes implicitly -- never flag them.
         ALWAYS_LIVE = {
             "main", "__init__", "__str__", "__repr__", "__len__", "__eq__",
             "__hash__", "__enter__", "__exit__", "__iter__", "__next__",
@@ -2085,7 +1881,7 @@ def dead_code_detector(stdscr, filepath: str):
             "setUp", "tearDown", "setUpClass", "tearDownClass",
             "run", "start", "handle", "execute",
         }
-        called |= ALWAYS_LIVE  # treat them as always-called to avoid false positives
+        called |= ALWAYS_LIVE
 
         dead = [(name, lineno) for name, lineno in defined.items()
                 if name not in called]
@@ -2157,12 +1953,7 @@ def dead_code_detector(stdscr, filepath: str):
     show_results(stdscr, True, "Dead Code Detector", "DONE", "\n".join(out))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] OWASP SECURITY VULNERABILITY SCANNER
-# ─────────────────────────────────────────────────────────────────────────────
 
-# Each tuple: (human-readable vuln name, regex pattern, severity)
-# Patterns are matched line-by-line; comment lines are skipped before matching.
 _VULN_PATTERNS = [
     ("SQL Injection (f-string in query)",
      r'(?i)(execute|cursor\.execute|query)\s*\(\s*f["\'].*\b(SELECT|INSERT|UPDATE|DELETE|DROP)\b.*?\{',
@@ -2266,8 +2057,8 @@ _VULN_PATTERNS = [
 ]
 
 
+# OWASP Top-10 style static security vulnerability scanner
 def security_scan(stdscr, filepath: str):
-    """OWASP Top-10 style static security vulnerability scanner."""
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     draw_centered(stdscr, height // 2,
@@ -2340,27 +2131,14 @@ def security_scan(stdscr, filepath: str):
                  "DONE", "\n".join(out))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  [NEW] MULTI-FILE PICKER AND BATCH CHECKER
-# ─────────────────────────────────────────────────────────────────────────────
-# NOTE: multi_file_checker is defined below (after _run_multi_file_check)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  RESULTS DISPLAY
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Paginated results viewer with syntax-colored output prefixes
 def show_results(stdscr, success: bool, target: str, status_code, output_text: str):
-    """Paginated results viewer with syntax-colored output prefixes.
-    
-    Prefixes rendered with color:
-      [ OK ]  -- green    [FAIL] / [ERR ]  -- red
-      [WARN] / [SKIP] / [...] -- yellow    === section headers -- cyan
-    """
-    # Informational tools (stats, search, view) don't warrant a success/failure emotion.
     neutral_targets = ["File Statistics", "Search", "File Viewer", "Structure Scanner", "Copy Path", "Diff", "Read File Error"]
     is_neutral = any(target.startswith(n) for n in neutral_targets)
-    
+
     if is_neutral:
         trigger_emotion("neutral", duration=4.0, suggestion="Here you go.")
     elif success:
@@ -2446,17 +2224,14 @@ def show_results(stdscr, success: bool, target: str, status_code, output_text: s
             pass
 
 
-# =============================================================================
-#  [NEW] FULL PENTEST ENGINE  (Bandit + Semgrep + Safety + Built-in scanner)
-# =============================================================================
 
+# Return True if a CLI tool is on PATH
 def _tool_available(name: str) -> bool:
-    """Return True if a CLI tool is on PATH."""
     return shutil.which(name) is not None
 
 
+# Install a pip package if not present. Returns True on success
 def _pip_install(stdscr, package: str, check_cmd: str) -> bool:
-    """Install a pip package if not present. Returns True on success."""
     height, width = stdscr.getmaxyx()
     draw_centered(stdscr, height // 2,
                   f"Installing {package} via pip...",
@@ -2472,11 +2247,8 @@ def _pip_install(stdscr, package: str, check_cmd: str) -> bool:
         return False
 
 
+# Run bandit on filepath. Returns (critical, high, medium, low, output_lines)
 def _run_bandit(stdscr, filepath: str) -> tuple:
-    """
-    Run bandit on filepath. Returns (critical, high, medium, low, output_lines).
-    Auto-installs bandit if not present.
-    """
     out: list = []
     if not _tool_available("bandit"):
         draw_centered(stdscr, stdscr.getmaxyx()[0] // 2,
@@ -2501,7 +2273,6 @@ def _run_bandit(stdscr, filepath: str) -> tuple:
     except Exception as e:
         return 0, 0, 0, 0, [f"[WARN] bandit: {e}"]
 
-    # Parse bandit output
     critical = high = medium = low = 0
     for line in raw.splitlines():
         ll = line.lower()
@@ -2517,7 +2288,6 @@ def _run_bandit(stdscr, filepath: str) -> tuple:
         if medium: out.append(f"[WARN] bandit: {medium} MEDIUM severity issue(s)")
         if low:    out.append(f"[ OK ] bandit: {low} LOW severity issue(s)")
         out.append("")
-        # Show first 30 lines of bandit output
         for line in raw.splitlines()[:30]:
             if line.strip():
                 if "severity: high" in line.lower():
@@ -2532,11 +2302,8 @@ def _run_bandit(stdscr, filepath: str) -> tuple:
     return critical, high, medium, low, out
 
 
+# Run semgrep on filepath with auto ruleset. Returns (critical, high, medium, low, output_lines)
 def _run_semgrep(stdscr, filepath: str) -> tuple:
-    """
-    Run semgrep on filepath with auto ruleset. Returns (critical, high, medium, low, output_lines).
-    Auto-installs semgrep if not present.
-    """
     out: list = []
     if not _tool_available("semgrep"):
         draw_centered(stdscr, stdscr.getmaxyx()[0] // 2,
@@ -2560,7 +2327,6 @@ def _run_semgrep(stdscr, filepath: str) -> tuple:
     except subprocess.TimeoutExpired:
         return 0, 0, 0, 0, ["[WARN] semgrep: timed out after 120s."]
     except FileNotFoundError:
-        # Try python -m semgrep
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "semgrep", "--config=p/security-audit",
@@ -2573,13 +2339,11 @@ def _run_semgrep(stdscr, filepath: str) -> tuple:
     except Exception as e:
         return 0, 0, 0, 0, [f"[WARN] semgrep: {e}"]
 
-    # Count findings
     finding_lines = [l for l in raw.splitlines() if filepath.replace("\\", "/") in l or ">" in l]
     total_findings = len([l for l in raw.splitlines() if l.strip().startswith(">")])
-    high   = total_findings  # semgrep doesn't always classify, treat all as high
+    high   = total_findings
     medium = low = critical = 0
 
-    # Check if it actually found issues
     has_issues = ("findings" in raw.lower() and "0 findings" not in raw.lower()) \
                   or total_findings > 0
 
@@ -2600,15 +2364,11 @@ def _run_semgrep(stdscr, filepath: str) -> tuple:
     return critical, high, medium, low, out
 
 
+# Run safety check on requirements.txt / pyproject.toml in the same directory
 def _run_safety(stdscr, filepath: str) -> tuple:
-    """
-    Run safety check on requirements.txt / pyproject.toml in the same directory.
-    Auto-installs safety if not present.
-    """
     out: list = []
     file_dir = os.path.dirname(os.path.abspath(filepath))
 
-    # Look for requirements file
     req_candidates = [
         os.path.join(file_dir, "requirements.txt"),
         os.path.join(file_dir, "requirements-dev.txt"),
@@ -2666,19 +2426,11 @@ def _run_safety(stdscr, filepath: str) -> tuple:
     return 0, vuln_count, 0, 0, out
 
 
+# Full penetration test pipeline:
 def run_pentest(stdscr, filepath: str):
-    """
-    Full penetration test pipeline:
-      1. Built-in OWASP scanner (always runs)
-      2. Bandit  -- deep Python AST security analysis  (auto-installed)
-      3. Semgrep -- multi-language rule-based scanning  (auto-installed)
-      4. Safety  -- checks dependencies for CVEs        (auto-installed)
-    Gives a final HACKPROOF / VULNERABLE verdict.
-    """
     ext = os.path.splitext(filepath)[1].lower()
     is_python = ext == ".py"
 
-    # ── Phase 0: Splash ───────────────────────────────────────────────────────
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     draw_centered(stdscr, height // 2 - 2,
@@ -2699,7 +2451,6 @@ def run_pentest(stdscr, filepath: str):
 
     total_critical = total_high = total_medium = total_low = 0
 
-    # ── Phase 1: Built-in OWASP scanner ──────────────────────────────────────
     stdscr.clear()
     draw_centered(stdscr, height // 2, "Phase 1/4 -- Built-in OWASP scan...", color(5) | curses.A_BOLD)
     stdscr.refresh()
@@ -2746,7 +2497,6 @@ def run_pentest(stdscr, filepath: str):
             all_out.append(f"[WARN] ... and {len(owasp_findings) - 20} more issues.")
     all_out.append("")
 
-    # ── Phase 2: Bandit (Python only) ─────────────────────────────────────────
     all_out.append("=== Phase 2: Bandit (Python Deep Scan) ===")
     if is_python:
         stdscr.clear()
@@ -2763,7 +2513,6 @@ def run_pentest(stdscr, filepath: str):
         all_out.append(f"[WARN] Bandit only supports Python files. Skipped for {ext}.")
     all_out.append("")
 
-    # ── Phase 3: Semgrep (all languages) ─────────────────────────────────────
     all_out.append("=== Phase 3: Semgrep (Multi-Language Rules) ===")
     stdscr.clear()
     draw_centered(stdscr, height // 2,
@@ -2777,7 +2526,6 @@ def run_pentest(stdscr, filepath: str):
     all_out.extend(s_out)
     all_out.append("")
 
-    # ── Phase 4: Safety (dependency CVEs) ────────────────────────────────────
     all_out.append("=== Phase 4: Safety (Dependency CVE Check) ===")
     if is_python:
         stdscr.clear()
@@ -2792,7 +2540,6 @@ def run_pentest(stdscr, filepath: str):
         all_out.append(f"[WARN] Safety checks Python dependencies only. Skipped for {ext}.")
     all_out.append("")
 
-    # ── Final Verdict ─────────────────────────────────────────────────────────
     all_out.append("=" * 50)
     all_out.append("=== FINAL VERDICT ===")
     all_out.append("=" * 50)
@@ -2856,14 +2603,12 @@ def run_pentest(stdscr, filepath: str):
                  "\n".join(all_out))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  COMPANION FACE
-# ─────────────────────────────────────────────────────────────────────────────
 
+# draw companion face
 def draw_companion_face(stdscr):
     height, width = stdscr.getmaxyx()
-    if height < 20: return  # Not enough space
-    
+    if height < 20: return
+
     faces = {
         "happy": [
             " (\_/) ",
@@ -2906,43 +2651,36 @@ def draw_companion_face(stdscr):
             " >   < "
         ]
     }
-    
+
     emo = CURRENT_EMOTION.lower()
     if emo in ['fear', 'disgust']: emo = 'sad'
     if emo not in faces: emo = 'unknown'
-    
-    # Blink logic: 1.5s open (happy), 0.5s closed (neutral)
+
     now = time.time()
     if emo == 'happy' and (int(now * 10) % 20) < 5:
         face_art = faces["neutral"]
     else:
         face_art = faces[emo]
-        
+
     for j in range(1, 6):
         safe_addstr(stdscr, j, 0, " " * (width - 1))
-        
+
     for i, line in enumerate(face_art):
         draw_centered(stdscr, 1 + i, line, color(5) | curses.A_BOLD)
-        
+
     draw_centered(stdscr, 5, " " * (width - 1))
     if CURRENT_SUGGESTION:
         draw_centered(stdscr, 5, f"[{CURRENT_SUGGESTION}]", color(4) | curses.A_BOLD)
     draw_hline(stdscr, 6)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  MENU BUILDER
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Construct the three-panel main menu for the given file (or batch list)
 def build_menu(filepath) -> list:
-    """Construct the three-panel main menu for the given file (or batch list).
-    Returns a list of menu-entry dicts that the main loop renders and dispatches.
-    """
-    # When a list of files is passed (multi-select mode), only the batch action makes sense.
     if isinstance(filepath, list):
         lang_items = [{"name": f"Run Universal Syntax & Connection Check", "action": "multibatch", "cmd": None}]
     else:
-        lang_items = get_commands_for_file(filepath)  # language-specific commands
+        lang_items = get_commands_for_file(filepath)
     if lang_items:
         lang_items.append({"name": "-" * 32, "action": "separator", "cmd": None})
     lang_items.append({"name": "<-- Back to Main Menu", "action": "back", "cmd": None})
@@ -2982,26 +2720,25 @@ def build_menu(filepath) -> list:
     return main_menu
 
 
+# analyze file integrity
 def _analyze_file_integrity(filepath: str) -> tuple:
     ext = os.path.splitext(filepath)[1].lower()
     base_dir = os.path.dirname(filepath)
-    
+
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception:
-        return True, ""  # Skip binary or unreadable files
+        return True, ""
 
     errors = []
-    
-    # 1. Syntax checks for specific formats
+
     if ext == ".json":
         try:
             json.loads(content)
         except json.JSONDecodeError as e:
             return False, f"JSON Error"
-            
-    # 2. Connection (link/import) checks
+
     links_to_check = []
     if ext in (".html", ".htm"):
         links_to_check.extend(re.findall(r'(?:src|href)\s*=\s*["\']([^"\'>]+)["\']', content, re.IGNORECASE))
@@ -3015,25 +2752,26 @@ def _analyze_file_integrity(filepath: str) -> tuple:
     for link in links_to_check:
         if link.startswith("http://") or link.startswith("https://") or link.startswith("data:") or link.startswith("#"):
             continue
-        
+
         clean_link = link.split("?")[0].split("#")[0]
         if not clean_link:
             continue
-            
+
         target_path = os.path.join(base_dir, clean_link)
         if ext in (".js", ".ts", ".jsx", ".tsx") and not os.path.exists(target_path):
             if os.path.exists(target_path + ".js") or os.path.exists(target_path + ".ts"):
                 continue
-                
+
         if not os.path.exists(target_path):
             errors.append(clean_link)
 
     if errors:
         return False, f"Broken links: {', '.join(errors[:2])}" + ("..." if len(errors)>2 else "")
-        
+
     return True, ""
 
 
+# run multi file check
 def _run_multi_file_check(stdscr, files):
     stdscr.clear()
     height, width = stdscr.getmaxyx()
@@ -3051,10 +2789,10 @@ def _run_multi_file_check(stdscr, files):
             cmd = f'node --check "{f}"'
         elif ext == ".php":
             cmd = f'php -l "{f}"'
-        
+
         file_ok = True
         err_msg = ""
-        
+
         if cmd:
             try:
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
@@ -3064,13 +2802,13 @@ def _run_multi_file_check(stdscr, files):
             except Exception:
                 file_ok = False
                 err_msg = "Command failed"
-                
+
         if file_ok:
             conn_ok, conn_err = _analyze_file_integrity(f)
             if not conn_ok:
                 file_ok = False
                 err_msg = conn_err
-                
+
         if file_ok:
             results.append(f"[ OK ] {os.path.basename(f)}")
         else:
@@ -3078,9 +2816,10 @@ def _run_multi_file_check(stdscr, files):
             all_success = False
 
     summary = "\n".join(results)
-    show_results(stdscr, all_success, f"Batch Checked {len(files)} files", 
+    show_results(stdscr, all_success, f"Batch Checked {len(files)} files",
                  0 if all_success else 1, summary)
 
+# multi file checker
 def multi_file_checker(stdscr):
     files = select_target_file(stdscr, multi_select=True)
     if not files:
@@ -3090,30 +2829,19 @@ def multi_file_checker(stdscr):
     _run_multi_file_check(stdscr, files)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  MAIN  -- live clock, bookmarks, new action dispatcher
-# ─────────────────────────────────────────────────────────────────────────────
 
+# main
 def main(stdscr):
     global GLOBAL_STDSCR
     GLOBAL_STDSCR = stdscr
-    
+
     height, width = stdscr.getmaxyx()
-    # app_win occupies the bottom portion; top 7 rows are reserved for the companion face.
     app_win = stdscr.subwin(max(1, height - 7), width, 7, 0)
     app_win.keypad(True)
 
-    # Colour pair layout (referenced via color() helper throughout the code):
-    #   1 = selected row highlight (black on white)
-    #   2 = green  ( OK / success )
-    #   3 = red    ( FAIL / error )
-    #   4 = yellow ( WARN / info )
-    #   5 = cyan   ( headers / accents )
-    #   6 = blue   ( secondary / dim hints )
-    #   7 = magenta( security / danger alerts )
     if curses.has_colors():
         curses.start_color()
-        curses.use_default_colors()           # -1 means terminal's default background
+        curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_BLACK,   curses.COLOR_WHITE)
         curses.init_pair(2, curses.COLOR_GREEN,   -1)
         curses.init_pair(3, curses.COLOR_RED,     -1)
@@ -3122,11 +2850,10 @@ def main(stdscr):
         curses.init_pair(6, curses.COLOR_BLUE,    -1)
         curses.init_pair(7, curses.COLOR_MAGENTA, -1)
 
-    curses.curs_set(0)        # hide the blinking cursor
+    curses.curs_set(0)
     app_win.keypad(True)
-    app_win.timeout(1000)     # wake up every second so the live clock keeps ticking
+    app_win.timeout(1000)
 
-    # Allow passing a file path as a CLI argument to skip the browser step.
     target_filepath = None
     if len(sys.argv) > 1:
         arg = os.path.abspath(sys.argv[1])
@@ -3136,7 +2863,7 @@ def main(stdscr):
     while True:
         if not target_filepath:
             target_filepath = select_target_file(app_win)
-            
+
         if not target_filepath:
             return
 
@@ -3154,11 +2881,9 @@ def main(stdscr):
         height, width = app_win.getmaxyx()
 
 
-        # Header
         banner = "TERMINAL CLOCK -- "
         draw_centered(app_win, 1, banner, color(5) | curses.A_BOLD)
 
-        # Live clock -- top-right corner
         clock_str = datetime.datetime.now().strftime("__%H:%M:%S")
         safe_addstr(app_win, 1, width - len(clock_str) - 2, clock_str, color(4) | curses.A_BOLD)
 
@@ -3185,7 +2910,6 @@ def main(stdscr):
                     "Up/Down:Nav  Enter:Run  B:Bookmark  ?:Help  Q:Back  ESC:Exit", color(6))
         draw_hline(app_win, height - 3)
 
-        # Menu rendering
         selectable = [i for i, m in enumerate(menu) if m["action"] != "separator"]
         if current_row not in selectable and selectable:
             current_row = selectable[0]
@@ -3221,7 +2945,7 @@ def main(stdscr):
         key = smart_getch(app_win)
 
         if key == -1:
-            continue  # timeout with no keypress -- just redraw for the live clock
+            continue
 
 
         if key == curses.KEY_UP:
@@ -3247,7 +2971,7 @@ def main(stdscr):
 
         elif key == 27:
             sys.exit(0)
-            
+
         elif key in (ord('q'), ord('Q')):
             if len(menu_stack) > 1:
                 menu_stack.pop()
@@ -3289,10 +3013,9 @@ def main(stdscr):
                     bookmarks = load_bookmarks()
             elif action == "help":
                 show_help_panel(app_win)
-            # Dispatch the selected menu action to the appropriate handler.
             cmd = item.get("cmd")
+            # Map an action string to the right feature function
             def _execute_action(scmd, sfile):
-                """Map an action string to the right feature function."""
                 if action == "api": auto_check_apis(app_win, scmd)
                 elif action == "fuzz": auto_fuzz_functions(app_win, scmd)
                 elif action == "scan": scan_functions(app_win, scmd)
@@ -3310,13 +3033,10 @@ def main(stdscr):
                 elif action == "security": security_scan(app_win, scmd)
                 elif action == "pentest": run_pentest(app_win, scmd)
                 elif action == "multibatch":
-                    # If already in batch mode, reuse the existing file list;
-                    # otherwise open the multi-select file picker.
                     if isinstance(target_filepath, list): _run_multi_file_check(app_win, target_filepath)
                     else: multi_file_checker(app_win)
 
             if isinstance(cmd, list):
-                # Batch mode: run the action once per file in the list.
                 for f in cmd:
                     _execute_action(f, f)
             else:
@@ -3324,20 +3044,15 @@ def main(stdscr):
                 _execute_action(cmd, sfile)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  ENTRY POINT
-# ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Launch the companion emotion thread as a daemon so it dies when the main
-    # process exits (no explicit cleanup needed).
     t = threading.Thread(target=companion_thread)
     t.daemon = True
     t.start()
     try:
-        curses.wrapper(main)   # curses.wrapper handles terminal setup/teardown
+        curses.wrapper(main)
     except KeyboardInterrupt:
-        pass                   # Ctrl+C is a clean exit, not an error
+        pass
     except Exception as e:
         print(f"\n[cherm] Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
