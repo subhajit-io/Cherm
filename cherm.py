@@ -994,6 +994,7 @@ def view_raw_file(stdscr, filepath: str):
         return
 
     scroll = 0
+    h_scroll = 0
     while True:
         stdscr.clear()
         height, width = stdscr.getmaxyx()
@@ -1008,13 +1009,15 @@ def view_raw_file(stdscr, filepath: str):
             if lnum >= len(lines):
                 break
             raw = lines[lnum].rstrip("\n\r")
+            if h_scroll > 0:
+                raw = raw[h_scroll:] if len(raw) > h_scroll else ""
             num_str = f"{lnum + 1:>4} | "
             safe_addstr(stdscr, 2 + i, 0, num_str, color(6))
             safe_addstr(stdscr, 2 + i, len(num_str), raw[:max(0, width - len(num_str) - 1)])
 
         draw_hline(stdscr, height - 2)
         pct = int(scroll / max(1, len(lines) - max_vis) * 100) if len(lines) > max_vis else 100
-        safe_addstr(stdscr, height - 1, 2, "Up/Down/PgUp/PgDn:Scroll  Q:Back  ESC:Exit", color(6))
+        safe_addstr(stdscr, height - 1, 2, "Up/Dn/PgUp/PgDn:Vert  L/R:Horiz  L:Goto Line  Q:Back", color(6))
         safe_addstr(stdscr, height - 1, width - 8, f"[{pct:3d}%]", color(6))
         stdscr.refresh()
 
@@ -1027,6 +1030,10 @@ def view_raw_file(stdscr, filepath: str):
             scroll -= 1
         elif key == curses.KEY_DOWN and scroll < max(0, len(lines) - max_vis):
             scroll += 1
+        elif key == curses.KEY_LEFT and h_scroll > 0:
+            h_scroll = max(0, h_scroll - 4)
+        elif key == curses.KEY_RIGHT:
+            h_scroll += 4
         elif key == curses.KEY_PPAGE:
             scroll = max(0, scroll - max_vis)
         elif key == curses.KEY_NPAGE:
@@ -1035,6 +1042,25 @@ def view_raw_file(stdscr, filepath: str):
             scroll = 0
         elif key in (curses.KEY_END, ord("G")):
             scroll = max(0, len(lines) - max_vis)
+        elif key in (ord("l"), ord("L")):
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, height - 1, 2, " " * (width - 15))
+            safe_addstr(stdscr, height - 1, 2, "Goto line: ", color(6) | curses.A_BOLD)
+            stdscr.refresh()
+            stdscr.timeout(-1)
+            try:
+                line_bytes = stdscr.getstr(height - 1, 13, 10)
+                line_str = line_bytes.decode("utf-8", errors="replace").strip()
+                if line_str.isdigit():
+                    l = int(line_str) - 1
+                    scroll = max(0, min(l, len(lines) - max_vis))
+            except Exception:
+                pass
+            finally:
+                stdscr.timeout(1000)
+                curses.noecho()
+                curses.curs_set(0)
 
 
 # search in file
@@ -1047,12 +1073,14 @@ def search_in_file(stdscr, filepath: str):
     safe_addstr(stdscr, 4, 2, "Enter search term (case-insensitive): ")
     stdscr.refresh()
 
+    stdscr.timeout(-1)
     try:
         query_bytes = stdscr.getstr(4, 40, width - 42)
         query = query_bytes.decode("utf-8", errors="replace").strip()
     except Exception:
         query = ""
     finally:
+        stdscr.timeout(1000)
         curses.noecho()
         curses.curs_set(0)
 
@@ -1122,12 +1150,14 @@ def _git_prompt(stdscr, prompt_text: str, max_len: int = 120) -> str:
     safe_addstr(stdscr, height // 2 + 1, 4, prompt_text, color(4) | curses.A_BOLD)
     safe_addstr(stdscr, height // 2 + 3, 4, "> ")
     stdscr.refresh()
+    stdscr.timeout(-1)
     try:
         raw = stdscr.getstr(height // 2 + 3, 6, min(max_len, width - 8))
         result = raw.decode("utf-8", errors="replace").strip()
     except Exception:
         result = ""
     finally:
+        stdscr.timeout(1000)
         curses.noecho()
         curses.curs_set(0)
     return result
@@ -1573,7 +1603,9 @@ def show_help_panel(stdscr):
         "  Enter / ESC  Go back to menu",
         "",
         "[ FILE VIEWER (Raw) ]",
-        "  Up / Down    Scroll lines",
+        "  Up / Down    Scroll vertically (lines)",
+        "  Left / Right Scroll horizontally",
+        "  L / l        Goto specific line",
         "  PgUp / PgDn  Scroll pages",
         "  G / End      Jump to bottom",
         "  g / Home     Jump to top",
@@ -2611,42 +2643,42 @@ def draw_companion_face(stdscr):
 
     faces = {
         "happy": [
-            " (\_/) ",
+            r" (\_/) ",
             " (^.^) ",
             " >   < "
         ],
         "sad": [
-            " (\_/) ",
+            r" (\_/) ",
             " (T.T) ",
             " >   < "
         ],
         "angry": [
-            " (\__/) ",
+            r" (\__/) ",
             " (◣_◢) ",
             "  >  <  "
         ],
         "neutral": [
-            " (\_/) ",
+            r" (\_/) ",
             " (-.-) ",
             " >   < "
         ],
         "surprise": [
-            " (\_/) ",
+            r" (\_/) ",
             " (o.o) ",
             " >   < "
         ],
         "tired": [
-            " (\_/) ",
+            r" (\_/) ",
             " (-.-) ",
             " >   < "
         ],
         "error": [
-            " (\_/) ",
+            r" (\_/) ",
             " (x_x) ",
             " >   < "
         ],
         "unknown": [
-            " (\_/) ",
+            r" (\_/) ",
             " (?.?) ",
             " >   < "
         ]
