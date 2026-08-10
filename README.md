@@ -1,80 +1,69 @@
-**A `curses`-based interactive Text User Interface (TUI) for real-time code analysis, security pentesting, and developer joy—complete with a virtual terminal companion.**
+# (|-|[-|~|\/|; Cherm
 
-Cherm is a powerful, entirely local static analysis and security toolkit designed to catch bugs, vulnerabilities, and messy code before you ever commit. It runs directly in your terminal and features a live virtual pet that reacts to your code's health and your activity.
+> **A terminal-based code inspection suite built for developers who want real analysis, fast — without loading a graphical IDE.**
+
+Cherm is a powerful, entirely local static analysis and security toolkit designed to catch bugs, vulnerabilities, and messy code before you ever commit. It runs directly in your terminal using the `curses` library and features a live virtual companion that reacts to your code's health and your activity.
+
+**Note on Development:** I am actively working on and updating this project. While the deepest analysis features (like the AST-based CrossCheckV200 and Bandit) are heavily optimized for Python right now, the application is built to support structural scanning, execution, and syntax checking for many other languages too.
 
 ---
 
-## Key Features
+## The Cherm Philosophy
 
-### Full Penetration Test Engine & Security
-*   **OWASP Vulnerability Scanner:** Built-in detection for SQL Injection, Command Injection, XSS, SSRF, Path Traversal, and more.
-*   **Hardcoded Secret Scanner:** Scans for over 20 types of exposed secrets, including AWS Keys, GitHub PATs, Stripe keys, and DB passwords.
-*   **Automated Integration:** Automatically installs and runs `bandit` (Python deep scan), `semgrep` (Multi-language rules), and `safety` (Dependency CVEs).
+Cherm is built to answer a specific frustration: *"I have a file I'm about to commit. Is it safe? Is it efficient? Does it have dead code?"* You can answer all of those questions in under 60 seconds without leaving your terminal workflow. 
+
+**CRITICAL NOTE: No Artificial Intelligence.** 
+Every analysis engine inside Cherm operates using **Abstract Syntax Tree (AST) parsing**, **Regular Expressions (Regex)**, or **rigid algorithmic heuristics**. Cherm is a static inspector—it does not use AI to read your code. Always apply your own developer judgment, as rigid rules can occasionally produce false positives or false negatives.
+
+---
+
+## Core Features
+
+### Full Penetration Test & Security
+*   **Full Security Pentest:** Automatically orchestrates `bandit` (Python deep scan), `semgrep` (Multi-language rules), and `safety` (Dependency CVEs) for a comprehensive sweep.
+*   **Security Audit (OWASP):** A zero-dependency regex audit for critical web vulnerabilities like SQL Injection, Command Injection, XSS, and SSRF.
+*   **Scan for Secrets:** Detects over 20 types of hardcoded API keys, passwords, and credentials (e.g., AWS Keys, GitHub PATs, Stripe keys) using structural patterns and Shannon Entropy analysis.
 
 ### Code Quality & Performance
-*   **Speed & Complexity Analysis:** Calculates Cyclomatic Complexity score and estimates Big-O Time & Space complexity.
-*   **Dead Code Detector:** Uses Python AST (and regex for other languages) to find unused functions and methods.
-*   **Magic Number Detector:** Flags bare numeric literals that should be replaced with named constants.
-*   **Python Auto-Fuzzer:** Automatically injects mock arguments into Python functions to test for crashes and infinite loops.
+*   **CrossCheckV200 Engine:** Automated function-level fuzz testing. It dynamically injects mock arguments into your Python functions to find edge-case crashes without writing a single test case.
+*   **Speed & Complexity Analysis:** Calculates a Messiness Score and estimates Big-O Time & Space complexity via AST structural analysis, combined with a real runtime execution benchmark.
+*   **Dead Code Detector:** Uses Python AST (and regex for other languages) to detect assigned-but-unused variables, unreachable logic, and uncalled functions.
+*   **Magic Number Detector:** Flags bare numeric literals that lack domain context and should be extracted into named constants.
 
 ### Developer Utilities
-*   **Advanced File Viewer & Line Targeting:** View massive files without terminal cut-offs. Seamlessly paginate through code or jump directly to specific lines for precise debugging.
-*   **Interactive Git Command Center:** A scrollable menu of over 40 Git commands to check status, stage, commit, diff, and branch directly from the TUI.
-*   **API Health Monitor:** Automatically detects HTTP/HTTPS URLs in your code and pings them to check connection status and latency.
-*   **Diff Viewer:** Unified visual diff viewer to compare your working tree against Git `HEAD` or against another file.
+*   **Shadow Copy Architecture:** *Your original files are never locked or corrupted.* Cherm silently duplicates your file into a temporary `%TEMP%` directory and runs all analysis tools on the copy.
+*   **Interactive Git Command Center:** Stage files, restore changes, and write commit messages directly from the file browser without opening a separate terminal pane.
+*   **API Health Monitor:** Extracts all HTTP/HTTPS URLs from your code and fires concurrent health checks to verify which endpoints are alive and responsive.
+*   **Diff & Raw Viewers:** Review your working tree against Git `HEAD`, or use the integrated terminal pager to read files instantly.
 *   **Multi-File Batch Checker:** Run universal syntax and connection checks across multiple selected files simultaneously.
 
 ### The Virtual Companion
-*   **Reactive Emotions:** The built-in companion face changes emotions based on your actions.
-*   **State Management:** Becomes "happy" on success, "angry" or "sad" when finding issues, "error" when processes fail, and "tired" (Zzz) if you leave the terminal idle for 30 minutes.
+Cherm features a reactive ASCII companion face in the header. It becomes "happy" on success, "angry" or "sad" when finding vulnerabilities, "error" when processes fail, and "tired" (Zzz) if you leave the terminal idle for 30 minutes.
 
 ---
 
 ## Supported Languages
 
 Cherm supports syntax checking, structure scanning, and analysis for a massive array of languages:
-*   Python, JavaScript, TypeScript, Java, C, C++, Go, Rust, Ruby, PHP, Kotlin, Swift, Bash/Shell, PowerShell, Perl, R, HTML, CSS, JSON, YAML, Markdown, SQL.
+**Python, JavaScript, TypeScript, Java, C, C++, Go, Rust, Ruby, PHP, Kotlin, Swift, Bash/Shell, PowerShell, Perl, R, HTML, CSS, JSON, YAML, Markdown, SQL**.
 
 ---
 
 ## Installation & Usage
 
+### Option 1: Standalone Executable (Windows) - Easiest
+No Python installation or terminal setup is required to run the standalone executable.
+
+1. Navigate to the **Releases** section on the right side of this GitHub repository.
+2. Download the `Cherm.zip` file attached to the latest release.
+3. Extract the `.zip` file to your computer.
+4. Double-click `cherm.exe` to run the application.
+5. **Note for Windows Users:** Because this is an indie open-source project, Windows SmartScreen may flag the `.exe` as an unrecognized app. If you see a blue "Windows protected your PC" screen, simply click **More info** and then **Run anyway** to launch Cherm.
+
+### Option 2: Run via Python (Development / IDE)
 **Prerequisites:** Python 3.x installed on your system.
 
-1.  Clone the repository and navigate to the folder.
-2.  Run the application:
-    ```bash
-    python cherm.py
-    ```
-    *(Alternatively, you can pass a specific file directly: `python cherm.py my_script.py`)*
-
----
-
-# Keyboard Shortcuts
-
-Cherm is designed for fast, mouse-free navigation.
-
-| Key | Action |
-| :--- | :--- |
-| **Up / Down Arrow** | Navigate menus, files, or scroll through file/output lines |
-| **PgUp / PgDn** | Scroll through large files and outputs quickly |
-| **L** | Jump to a specific line number (in File Viewer) |
-| **Enter** | Open file or run selected action |
-| **Left / Backspace** | Go to parent directory |
-| **Space** | Toggle multi-select (in multi-picker mode) |
-| **B** | Toggle bookmark for the selected file |
-| **?** | Open the Help panel |
-| **Q / ESC** | Go back, cancel, or exit |
-
----
-
-# File Browser & Bookmarks
-
-*   **Bookmarks:** Press `B` on any file to bookmark it for quick access later. Bookmarks are saved persistently to `cherm_bookmarks.json`.
-*   **Multi-Select:** Press `M` or `Space` to select multiple files to run batch security and syntax checks across your project.
-
----
-
-## Development Process & Architecture
-
-Cherm was built using a modern AI-assisted workflow ("vibe coding"). I acted as the system architect—designing the TUI layout, defining the security logic, and structuring the state management—while leveraging AI to accelerate the boilerplate syntax and implementation. All features were manually tested and verified for production-ready local use.
+1. Clone the repository and navigate to the folder.
+2. Run the application via your terminal or IDE (like VS Code):
+   ```bash
+   python cherm.py
