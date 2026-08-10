@@ -1,4 +1,9 @@
-# (|-|[-|~|\/|; Cherm
+<div align="center">
+  <div style="background-color: #000000; padding: 25px 50px; border-radius: 8px; display: inline-block; margin-bottom: 10px;">
+    <span style="color: #00FF00; font-family: monospace; font-size: 22px; font-weight: 900; letter-spacing: 3px; text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;">( | - | [ - | ~ | \ / | ;</span>
+  </div>
+  <h1>Cherm</h1>
+</div>
 
 > **A terminal-based code inspection suite built for developers who want real analysis, fast — without loading a graphical IDE.**
 
@@ -64,6 +69,6 @@ No Python installation or terminal setup is required to run the standalone execu
 **Prerequisites:** Python 3.x installed on your system.
 
 1. Clone the repository and navigate to the folder.
-2. Run the application via your terminal or IDE (like VS Code):
+2. Run the application via your terminal or IDE:
    ```bash
    python cherm.py
