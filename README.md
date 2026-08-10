@@ -72,3 +72,5 @@ No Python installation or terminal setup is required to run the standalone execu
 2. Run the application via your terminal or IDE:
    ```bash
    python cherm.py
+
+For further information about this, go through the Cherm documentation page: [Cherm Documentation](https://cherm-documentation.vercel.app/)
