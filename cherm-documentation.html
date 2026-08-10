@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherm Documentation - The Definitive Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #111;
+            line-height: 1.9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        .sidebar {
+            width: 300px;
+            height: 100vh;
+            background-color: #f7f7f7;
+            border-right: 1px solid #e0e0e0;
+            padding: 3rem 1rem 2rem 1rem;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .sidebar h1 {
+            font-size: 1.4rem;
+            margin: 0 0 0.3rem;
+        }
+
+        .sidebar .sub {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0 0 1.2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .nav-cat {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #999;
+            margin: 1.2rem 0 0.4rem 0.4rem;
+        }
+
+        .sidebar label {
+            display: block;
+            padding: 0.45rem 0.8rem;
+            color: #0366d6;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 0.1rem;
+        }
+
+        .sidebar label:hover {
+            background: #e8f0fe;
+        }
+
+        #p-home:checked~.sidebar label[for="p-home"],
+        #p-shadow:checked~.sidebar label[for="p-shadow"],
+        #p-speed:checked~.sidebar label[for="p-speed"],
+        #p-crosscheck:checked~.sidebar label[for="p-crosscheck"],
+        #p-deadcode:checked~.sidebar label[for="p-deadcode"],
+        #p-magic:checked~.sidebar label[for="p-magic"],
+        #p-stats:checked~.sidebar label[for="p-stats"],
+        #p-pentest:checked~.sidebar label[for="p-pentest"],
+        #p-owasp:checked~.sidebar label[for="p-owasp"],
+        #p-secrets:checked~.sidebar label[for="p-secrets"],
+        #p-exec:checked~.sidebar label[for="p-exec"],
+        #p-api:checked~.sidebar label[for="p-api"],
+        #p-view:checked~.sidebar label[for="p-view"],
+        #p-copy:checked~.sidebar label[for="p-copy"],
+        #p-gitcmd:checked~.sidebar label[for="p-gitcmd"],
+        #p-diff:checked~.sidebar label[for="p-diff"] {
+            background: #0366d6;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 5rem 5rem 3rem 5rem;
+            overflow-y: auto;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .page {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 10rem;
+        }
+
+        #p-home:checked~.content #pg-home,
+        #p-shadow:checked~.content #pg-shadow,
+        #p-speed:checked~.content #pg-speed,
+        #p-crosscheck:checked~.content #pg-crosscheck,
+        #p-deadcode:checked~.content #pg-deadcode,
+        #p-magic:checked~.content #pg-magic,
+        #p-stats:checked~.content #pg-stats,
+        #p-pentest:checked~.content #pg-pentest,
+        #p-owasp:checked~.content #pg-owasp,
+        #p-secrets:checked~.content #pg-secrets,
+        #p-exec:checked~.content #pg-exec,
+        #p-api:checked~.content #pg-api,
+        #p-view:checked~.content #pg-view,
+        #p-copy:checked~.content #pg-copy,
+        #p-gitcmd:checked~.content #pg-gitcmd,
+        #p-diff:checked~.content #pg-diff {
+            display: block;
+        }
+
+        .page h2 {
+            font-size: 2.6rem;
+            border-bottom: 3px solid #f0f0f0;
+            padding-bottom: 0.8rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .page .tagline {
+            font-size: 1.15rem;
+            color: #666;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid #f4f4f4;
+            padding-bottom: 2rem;
+        }
+
+        .page h3 {
+            font-size: 1.55rem;
+            margin-top: 3.5rem;
+            margin-bottom: 1rem;
+            color: #111;
+            border-left: 4px solid #0366d6;
+            padding-left: 1rem;
+        }
+
+        .page h4 {
+            font-size: 1.2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 0.6rem;
+            color: #222;
+            font-weight: 700;
+        }
+
+        .page h5 {
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.4rem;
+            color: #444;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .page p {
+            font-size: 1.1rem;
+            margin-bottom: 1.6rem;
+            color: #333;
+        }
+
+        .page ul,
+        .page ol {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 2rem;
+            padding-left: 2rem;
+        }
+
+        .page li {
+            margin-bottom: 0.8rem;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+
+        pre {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.93em;
+            line-height: 1.6;
+            margin: 0 0 2rem;
+            color: #24292e;
+        }
+
+        .terminal {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem 2rem;
+            font-family: monospace;
+            font-size: 0.93rem;
+            line-height: 1.7;
+            margin: 0 0 2.5rem;
+            white-space: pre-wrap;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .terminal .ok {
+            color: #4ec9b0;
+        }
+
+        .terminal .warn {
+            color: #dcdcaa;
+        }
+
+        .terminal .fail {
+            color: #f44747;
+        }
+
+        .terminal .info {
+            color: #569cd6;
+        }
+
+        .terminal .dim {
+            color: #888;
+        }
+
+        .terminal .green {
+            color: #6a9955;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+        }
+
+        .alert-warn {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 5px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-danger {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-left: 5px solid #e11d48;
+            color: #881337;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 5px solid #2563eb;
+            color: #1e3a5f;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #16a34a;
+            color: #14532d;
+        }
+
+        .alert strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prereq-box {
+            background: #f0f4ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .prereq-box h4 {
+            color: #3730a3;
+            margin-top: 0;
+            font-size: 1.15rem;
+        }
+
+        .prereq-box ul {
+            margin-bottom: 0;
+        }
+
+        .tip-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 1.2rem 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .tip-box strong {
+            color: #15803d;
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+        }
+
+        .compare-table th {
+            background: #f0f4ff;
+            color: #3730a3;
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border: 1px solid #c7d2fe;
+            font-size: 0.95rem;
+        }
+
+        .compare-table td {
+            padding: 0.8rem 1rem;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .compare-table tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        .step-list {
+            counter-reset: steps;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-list li {
+            counter-increment: steps;
+            padding: 1rem 1rem 1rem 3.5rem;
+            position: relative;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1.05rem;
+        }
+
+        .step-list li::before {
+            content: counter(steps);
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            width: 1.6rem;
+            height: 1.6rem;
+            background: #0366d6;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .faq-q {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #111;
+            margin-top: 2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .faq-a {
+            font-size: 1.05rem;
+            color: #444;
+            padding-left: 1rem;
+            border-left: 3px solid #e0e0e0;
+            margin-bottom: 1.5rem;
+        }
+
+        .divider {
+            border: none;
+            border-top: 2px solid #f0f0f0;
+            margin: 3rem 0;
+        }
+
+        .label {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-new {
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.1rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+
+        .quote-block {
+            border-left: 4px solid #0366d6;
+            padding: 1rem 1.5rem;
+            background: #f8faff;
+            margin-bottom: 2rem;
+            font-style: italic;
+            font-size: 1.05rem;
+            color: #444;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Dark Mode Toggle Styles */
+        #theme-toggle {
+            display: none;
+        }
+
+        .theme-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1000;
+            user-select: none;
+            background: #f0f0f0;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #theme-toggle:checked~.theme-btn {
+            background: #2a2a35;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #theme-toggle:checked~.sidebar {
+            background-color: #181825;
+            border-right-color: #313244;
+        }
+
+        #theme-toggle:checked~.sidebar h1 {
+            color: #cdd6f4;
+        }
+
+        #theme-toggle:checked~.sidebar .sub {
+            color: #a6adc8;
+            border-bottom-color: #313244;
+        }
+
+        #theme-toggle:checked~.sidebar .nav-cat {
+            color: #6c7086;
+        }
+
+        #theme-toggle:checked~.sidebar label {
+            color: #89b4fa;
+        }
+
+        #theme-toggle:checked~.sidebar label:hover {
+            background: #313244;
+        }
+
+        #theme-toggle:checked~.content {
+            background-color: #0f111a;
+            color: #e4e4e7;
+        }
+
+        #theme-toggle:checked~.content .page h2,
+        #theme-toggle:checked~.content .page h3,
+        #theme-toggle:checked~.content .page h4,
+        #theme-toggle:checked~.content .page h5,
+        #theme-toggle:checked~.content .faq-q {
+            color: #cdd6f4;
+        }
+
+        #theme-toggle:checked~.content .page p,
+        #theme-toggle:checked~.content .page li,
+        #theme-toggle:checked~.content .page .tagline,
+        #theme-toggle:checked~.content .faq-a {
+            color: #a6adc8;
+        }
+
+        #theme-toggle:checked~.content .page h2,
+        #theme-toggle:checked~.content .page .tagline {
+            border-bottom-color: #313244;
+        }
+
+        #theme-toggle:checked~.content .divider {
+            border-top-color: #313244;
+        }
+
+        #theme-toggle:checked~.content code {
+            background: #313244;
+            color: #f38ba8;
+        }
+
+        #theme-toggle:checked~.content pre {
+            background: #11111b;
+            border-color: #313244;
+            color: #cdd6f4;
+        }
+
+        #theme-toggle:checked~.content .prereq-box {
+            background: #1e1e2e;
+            border-color: #89b4fa;
+        }
+
+        #theme-toggle:checked~.content .prereq-box h4 {
+            color: #89b4fa;
+        }
+
+        #theme-toggle:checked~.content .tip-box {
+            background: #182e23;
+            border-color: #a6e3a1;
+        }
+
+        #theme-toggle:checked~.content .tip-box strong {
+            color: #a6e3a1;
+        }
+
+        #theme-toggle:checked~.content .alert-warn {
+            background: #332701;
+            border-color: #f9e2af;
+            color: #f9e2af;
+        }
+
+        #theme-toggle:checked~.content .alert-danger {
+            background: #3a151b;
+            border-color: #f38ba8;
+            color: #f38ba8;
+        }
+
+        #theme-toggle:checked~.content .alert-info {
+            background: #111b3d;
+            border-color: #89b4fa;
+            color: #89b4fa;
+        }
+
+        #theme-toggle:checked~.content .alert-success {
+            background: #182e23;
+            border-color: #a6e3a1;
+            color: #a6e3a1;
+        }
+
+        #theme-toggle:checked~.content .compare-table th {
+            background: #1e1e2e;
+            color: #89b4fa;
+            border-color: #313244;
+        }
+
+        #theme-toggle:checked~.content .compare-table td {
+            border-color: #313244;
+        }
+
+        #theme-toggle:checked~.content .compare-table tr:nth-child(even) td {
+            background: #181825;
+        }
+
+        #theme-toggle:checked~.content .step-list li {
+            border-color: #313244;
+        }
+
+        #theme-toggle:checked~.content .label {
+            background: #1e1e2e;
+            color: #89b4fa;
+        }
+
+        #theme-toggle:checked~.content .quote-block {
+            background: #1e1e2e;
+            color: #a6adc8;
+            border-color: #89b4fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <input type="checkbox" id="theme-toggle">
+    <label for="theme-toggle" class="theme-btn" title="Toggle Dark Mode">🌓</label>
+
+    <input type="radio" name="nav" id="p-home" checked>
+    <input type="radio" name="nav" id="p-shadow">
+    <input type="radio" name="nav" id="p-speed">
+    <input type="radio" name="nav" id="p-crosscheck">
+    <input type="radio" name="nav" id="p-deadcode">
+    <input type="radio" name="nav" id="p-magic">
+    <input type="radio" name="nav" id="p-stats">
+    <input type="radio" name="nav" id="p-pentest">
+    <input type="radio" name="nav" id="p-owasp">
+    <input type="radio" name="nav" id="p-secrets">
+    <input type="radio" name="nav" id="p-exec">
+    <input type="radio" name="nav" id="p-api">
+    <input type="radio" name="nav" id="p-view">
+    <input type="radio" name="nav" id="p-copy">
+    <input type="radio" name="nav" id="p-gitcmd">
+    <input type="radio" name="nav" id="p-diff">
+
+    <div class="sidebar">
+        <div style="background: #000; padding: 15px 0; border-radius: 6px; text-align: center; margin-bottom: 12px;">
+            <span
+                style="color: #0f0; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 4px #0f0, 0 0 8px #0f0;">(
+                | - | [ - | ~ | \ / | ;</span>
+        </div>
+        <h1>Cherm</h1>
+        <p class="sub">The Definitive Documentation</p>
+        <label for="p-home">Introduction &amp; Warnings</label>
+        <label for="p-shadow">Shadow Copy Architecture</label>
+        <p class="nav-cat">Code Analysis</p>
+        <label for="p-speed">Speed &amp; Complexity Test</label>
+        <label for="p-crosscheck">CrossCheckV200 Engine</label>
+        <label for="p-deadcode">Find Dead Code</label>
+        <label for="p-magic">Detect Magic Numbers</label>
+        <label for="p-stats">View File Statistics</label>
+        <p class="nav-cat">Security</p>
+        <label for="p-pentest">Full Security Pentest</label>
+        <label for="p-owasp">Security Audit (OWASP)</label>
+        <label for="p-secrets">Scan for Secrets</label>
+        <p class="nav-cat">Utilities</p>
+        <label for="p-exec">Execute File / Run</label>
+        <label for="p-api">API Status Scanner</label>
+        <label for="p-view">View Raw File</label>
+        <label for="p-copy">Copy Path to Clipboard</label>
+        <p class="nav-cat">Git Integration</p>
+        <label for="p-gitcmd">Git Command Center</label>
+        <label for="p-diff">File Diff Viewer</label>
+    </div>
+
+    <div class="content">
+
+        <!-- ================================================================
+         HOME / INTRODUCTION
+    ================================================================ -->
+        <div id="pg-home" class="page">
+            <h2>Welcome to Cherm</h2>
+            <p class="tagline">A terminal-based code inspection suite built for developers who want real analysis, fast
+                — without loading a graphical IDE.</p>
+
+            <p>Cherm is a terminal application written in Python that runs entirely inside a standard terminal window
+                using the <code>curses</code> library. It gives you a navigable filesystem browser and, for any file you
+                hover over, an instant menu of powerful developer operations ranging from static analysis and security
+                pentesting to Git integration and direct execution.</p>
+            <p>The philosophy behind Cherm is simple: <strong>you should be able to understand the quality, security,
+                    and behavior of your code without leaving the command line.</strong> Traditional code analysis
+                involves installing heavy IDEs, writing separate test files, configuring linters manually, or relying on
+                expensive paid SaaS tools. Cherm removes that friction entirely and puts a comprehensive analysis
+                toolkit directly into your terminal workflow.</p>
+            <p>Cherm was built to answer a specific frustration: "I have a Python file I'm about to commit. Is it safe?
+                Is it efficient? Does it have dead code? Did I leave a hardcoded password in there?" You can answer all
+                of those questions in under 60 seconds using Cherm, without ever opening a browser, an IDE, or writing
+                any configuration files.</p>
+
+            <h3>Who is Cherm built for?</h3>
+            <p>Cherm is built for intermediate to advanced software developers who are comfortable with the command
+                line, understand fundamental Python programming concepts, and want a rapid inspection layer between
+                writing code and committing it. It is not a replacement for a full IDE such as VS Code, PyCharm, or
+                IntelliJ. It is a dedicated inspection and analysis augmentation tool — think of it as a linter, a
+                security scanner, and a test runner bundled together with a minimal terminal UI.</p>
+            <p>It is equally useful for:</p>
+            <ul>
+                <li><strong>Solo developers</strong> who work fast and want automated quality checks as a second pair of
+                    eyes before committing.</li>
+                <li><strong>Team leads and code reviewers</strong> who want a quick structural overview of an unfamiliar
+                    file before diving into a code review.</li>
+                <li><strong>Students learning to code</strong> who want instant, machine-generated feedback on the
+                    quality and correctness robustness of their functions.</li>
+                <li><strong>Security-conscious developers</strong> who want a last-chance pre-commit sweep for hardcoded
+                    credentials and injection vulnerabilities.</li>
+                <li><strong>Developers on remote servers</strong> via SSH who don't have a graphical interface and need
+                    terminal-native analysis tools.</li>
+            </ul>
+
+            <hr class="divider">
+
+            <div class="alert alert-danger">
+                <strong>⚠️ CRITICAL: CHERM HAS NO ARTIFICIAL INTELLIGENCE — READ THIS BEFORE ANYTHING ELSE</strong>
+                This is the single most important concept to understand before using Cherm. Every single analysis engine
+                inside Cherm — security scanning, complexity analysis, dead code detection, fuzzing — operates using one
+                of three mechanisms: <strong>Abstract Syntax Tree (AST) parsing</strong>, <strong>Regular Expressions
+                    (Regex)</strong>, or <strong>rigid algorithmic heuristics</strong>. None of these are Artificial
+                Intelligence. None of them understand your code the way a human does.
+                <br><br>
+                Cherm is a static code inspector. It reads the text and structure of your code and applies fixed rules.
+                It has no concept of what your application is <em>supposed</em> to do. It cannot reason about business
+                logic, intent, runtime context, or the broader system your code operates in.
+                <br><br>
+                <strong>False Positives:</strong> Cherm will sometimes flag safe, correct, intentional code as a
+                problem. A randomly generated UUID might be flagged as a "secret key." A function called dynamically via
+                <code>getattr()</code> might be flagged as "dead code." A loop that always runs exactly 3 times
+                regardless of input size might be flagged as O(N²) complexity. <strong>Do not blindly delete or change
+                    code because Cherm flagged it.</strong>
+                <br><br>
+                <strong>False Negatives:</strong> Cherm will sometimes completely miss real bugs, real security
+                vulnerabilities, and real performance problems. A creatively constructed SQL injection that doesn't
+                match the regex pattern will sail through undetected. A function that crashes only under a very specific
+                combination of three runtime conditions may pass all 202 fuzz tests. A real secret key that uses a
+                variable name Cherm doesn't recognize (like <code>ak</code> instead of <code>api_key</code>) will not be
+                flagged.
+                <br><br>
+                <strong>Always use your own developer judgement. Cherm narrows your search — it does not replace your
+                    thinking.</strong> Basic to intermediate coding knowledge is an absolute requirement for
+                interpreting Cherm's output responsibly.
+            </div>
+
+            <h3>Prerequisite Knowledge — What you must know before using Cherm</h3>
+            <p>Cherm's output is written for an audience that already understands software development fundamentals.
+                Before relying on Cherm's results, you should be comfortable with all of the following:</p>
+
+            <div class="prereq-box">
+                <h4>Core Prerequisites</h4>
+                <ul>
+                    <li><strong>Python fundamentals:</strong> You can read and understand Python code including
+                        functions, classes, exceptions, modules, decorators, and list/dictionary comprehensions. You can
+                        read a full Python traceback and identify which line caused the error and why.</li>
+                    <li><strong>Big-O Notation:</strong> You understand what O(1), O(log N), O(N), O(N log N), O(N²)
+                        mean intuitively and can reason about how algorithm performance scales with input size.</li>
+                    <li><strong>Exception handling:</strong> You understand what <code>ZeroDivisionError</code>,
+                        <code>AttributeError</code>, <code>TypeError</code>, <code>IndexError</code>,
+                        <code>ValueError</code>, and <code>KeyError</code> mean and what coding mistake typically causes
+                        each one.</li>
+                    <li><strong>Security basics:</strong> You know what SQL Injection, Command Injection, and hardcoded
+                        secrets are, why they are dangerous, and what the correct alternatives are (parameterized
+                        queries, environment variables).</li>
+                    <li><strong>Git version control:</strong> You understand staging, committing, HEAD, branching at a
+                        conceptual level, and what <code>git restore</code> does destructively.</li>
+                    <li><strong>Terminal/command line:</strong> You are comfortable running programs in a terminal,
+                        understanding exit codes, and reading command output including errors written to stderr.</li>
+                    <li><strong>Abstract Syntax Trees (AST) conceptually:</strong> You understand that source code can
+                        be parsed into a tree structure representing its grammar without executing it, and that static
+                        analysis tools use this to inspect code without running it.</li>
+                </ul>
+            </div>
+
+            <h3>Full Keyboard Navigation Reference</h3>
+            <p>Cherm is 100% keyboard-driven. No mouse interaction is supported. Here is the complete keyboard reference
+                for every context within Cherm:</p>
+
+            <h4>In the File Browser</h4>
+            <ul>
+                <li><strong>↑ / ↓ Arrow Keys:</strong> Move the highlight cursor up and down through the file and
+                    directory list.</li>
+                <li><strong>ENTER:</strong> If the highlighted item is a directory, navigate into it. If it is a file,
+                    open the Action Menu for that file.</li>
+                <li><strong>← Arrow / Backspace:</strong> Navigate up to the parent directory.</li>
+                <li><strong>B:</strong> Bookmark or un-bookmark the currently highlighted file. Bookmarked files appear
+                    pinned at the top of the browser in a dedicated section with a [*] indicator.</li>
+                <li><strong>SPACE:</strong> Toggle multi-select mode. Pressing SPACE marks the highlighted file with a
+                    [v] checkbox indicator. You can continue navigating and pressing SPACE to collect multiple files for
+                    batch operations.</li>
+                <li><strong>M:</strong> Switch from multi-select mode back to single-file mode.</li>
+                <li><strong>ESC:</strong> Exit Cherm cleanly, triggering the shadow file cleanup before returning to the
+                    normal terminal prompt.</li>
+            </ul>
+
+            <h4>In the Action Menu</h4>
+            <ul>
+                <li><strong>↑ / ↓ Arrow Keys:</strong> Move through the list of available actions for the selected file.
+                </li>
+                <li><strong>ENTER:</strong> Execute the highlighted action.</li>
+                <li><strong>Q:</strong> Go back to the file browser without executing any action.</li>
+            </ul>
+
+            <h4>In Results Screens</h4>
+            <ul>
+                <li><strong>↑ / ↓ Arrow Keys:</strong> Scroll through long result output.</li>
+                <li><strong>Q or ENTER:</strong> Exit the result screen and return to the file's Action Menu.</li>
+            </ul>
+
+            <h3>Recommended Workflow</h3>
+            <p>Here is the workflow that extracts maximum value from Cherm in a typical development session:</p>
+
+            <ol class="step-list">
+                <li>Open Cherm in a second terminal pane alongside your code editor. Navigate to your project's source
+                    directory.</li>
+                <li>Write code in your editor. Save the file.</li>
+                <li>Switch to Cherm, navigate to the file you just edited, and open its Action Menu.</li>
+                <li>Run <strong>Scan Functions</strong> first to verify the file's structure looks as you expect.</li>
+                <li>Run <strong>CrossCheckV200</strong> to fuzz-test all functions for edge-case crashes. Fix any
+                    crashes it finds.</li>
+                <li>Run <strong>Security Audit (OWASP)</strong> for a fast sanity check on security patterns.</li>
+                <li>Run <strong>Scan for Secrets</strong> to verify no credentials are in the file before committing.
+                </li>
+                <li>Open the <strong>Diff Viewer</strong> to review exactly what changed compared to HEAD.</li>
+                <li>Use the <strong>Git Command Center</strong> to stage and commit the file directly from Cherm.</li>
+            </ol>
+
+            <h3>Common Mistakes When Using Cherm</h3>
+
+            <div class="faq-q">Mistake 1: Treating every Cherm finding as a confirmed bug</div>
+            <div class="faq-a">Cherm uses rigid rules. Some findings are false positives. Always read the finding,
+                understand what code it flagged, and make a human judgement about whether the finding represents a real
+                problem in your specific context before acting on it.</div>
+
+            <div class="faq-q">Mistake 2: Running Cherm on the wrong file</div>
+            <div class="faq-a">Make sure you are inspecting the file you just edited, not an old version or a different
+                file with a similar name. Check the "Last Modified" timestamp shown in File Statistics to confirm you
+                are looking at the right version.</div>
+
+            <div class="faq-q">Mistake 3: Using Cherm as the only security gate</div>
+            <div class="faq-a">Cherm's security tools are fast sanity checks, not a replacement for a professional
+                security audit. For applications that handle real user data, payment information, or authentication, you
+                should additionally engage professional code review, penetration testing, and tools like SonarQube or
+                Snyk in your CI/CD pipeline.</div>
+
+            <div class="faq-q">Mistake 4: Assuming CrossCheckV200 passing means the code is correct</div>
+            <div class="faq-a">CrossCheckV200 only verifies that your functions don't <em>crash</em>. It does not verify
+                they return the <em>correct</em> result. A function that always returns <code>None</code> regardless of
+                input will pass every CrossCheckV200 test case. Correctness testing requires you to write explicit
+                assertions.</div>
+
+            <h3>Frequently Asked Questions</h3>
+
+            <div class="faq-q">Does Cherm modify my source files?</div>
+            <div class="faq-a">No. All analysis tools operate on shadow copies of your files. Your originals are never
+                touched. The only operations that interact with your originals are: Execute (reads it), Git operations
+                (reads/modifies via Git), and Open in Editor. See the Shadow Copy Architecture page for full details.
+            </div>
+
+            <div class="faq-q">Does Cherm require an internet connection?</div>
+            <div class="faq-a">No, except for the API Status Scanner (which is the entire point of that tool) and Safety
+                in the Full Pentest (which checks vulnerabilities against an online database). Every other feature in
+                Cherm is fully offline.</div>
+
+            <div class="faq-q">Can Cherm analyze files in languages other than Python?</div>
+            <div class="faq-a">Partially. File Statistics, View Raw File, Scan for Secrets, and the OWASP audit work on
+                any text file. CrossCheckV200 has a stdin/stdout mode for compiled languages. Scan Functions only works
+                on Python files. Complexity analysis is Python-optimized but produces approximate results on other
+                C-style languages.</div>
+
+            <div class="faq-q">Why does Cherm use curses instead of a regular GUI?</div>
+            <div class="faq-a">Curses allows Cherm to run in any terminal environment — local, SSH, screen/tmux
+                sessions, Docker containers, and CI environments — without requiring a display server, graphics driver,
+                or window manager. This makes Cherm accessible in environments where no graphical interface exists.
+            </div>
+        </div>
+
+        <!-- ================================================================
+         SHADOW COPY ARCHITECTURE
+    ================================================================ -->
+        <div id="pg-shadow" class="page">
+            <h2>Shadow Copy Architecture</h2>
+            <p class="tagline">How Cherm silently protects your original source code during every analysis operation.
+            </p>
+
+            <h3>The Problem: Why Analysis Tools Need Isolation</h3>
+            <p>When you run any external analysis tool on a file, you are trusting that tool to be perfectly
+                well-behaved. In practice, many analysis tools — especially security scanners, fuzzers, and
+                instrumentation frameworks — can exhibit problematic behaviors:</p>
+            <ul>
+                <li><strong>File locking:</strong> Some tools open the target file with an exclusive lock, preventing
+                    your code editor from auto-saving while the tool runs.</li>
+                <li><strong>Write-back side effects:</strong> Some tools write coverage data, instrumentation patches,
+                    or cache files next to the target or even inside the target file.</li>
+                <li><strong>Crash corruption:</strong> If a scanner tool crashes mid-execution while it has the file
+                    open for writing, it can leave the file in an inconsistent state.</li>
+                <li><strong>Parallel access conflicts:</strong> If you are running multiple Cherm analysis operations
+                    simultaneously (which the UI doesn't prevent you from doing across different terminal sessions), two
+                    tools accessing the same file simultaneously can produce corrupted results.</li>
+            </ul>
+            <p>The Shadow Copy System eliminates all of these concerns by ensuring that <strong>every analysis tool
+                    operates exclusively on a temporary copy</strong> of your file, completely isolated from the
+                original.</p>
+
+            <h3>Step-by-Step: How a Shadow Copy is Created</h3>
+            <p>The moment you trigger any analysis action in Cherm, the following sequence happens invisibly in the
+                background before the tool is initialized:</p>
+
+            <ol class="step-list">
+                <li><strong>Path Resolution:</strong> Cherm calls <code>os.path.abspath(filepath)</code> to resolve the
+                    file's canonical absolute path. This handles cases where the path might be specified as a relative
+                    path or contain symbolic links.</li>
+                <li><strong>Path Hashing:</strong> The canonical path string is encoded to bytes and passed through
+                    SHA-256 using <code>hashlib.sha256(path.encode()).hexdigest()[:8]</code>. The first 8 hex characters
+                    are taken. This gives a stable, short unique identifier for the file's location.</li>
+                <li><strong>Shadow Name Construction:</strong> The shadow filename is built as
+                    <code>{original_stem}_{8char_hash}{original_extension}</code>. For example, <code>main.py</code> at
+                    path <code>C:\ProjectA\</code> might become <code>main_a3f9c021.py</code>.</li>
+                <li><strong>Shadow Directory Preparation:</strong> <code>os.makedirs(shadow_dir, exist_ok=True)</code>
+                    ensures the <code>cherm_shadow</code> directory in <code>%TEMP%</code> exists.</li>
+                <li><strong>File Copy:</strong> <code>shutil.copy2(original_path, shadow_path)</code> copies the file
+                    including metadata. If this step fails for any reason (permissions error, disk full), Cherm falls
+                    back silently to using the original path and prints no error to the user — the tool will still run,
+                    just without isolation.</li>
+                <li><strong>Registry Update:</strong> The <code>original → shadow</code> path mapping is stored in a
+                    session-level dictionary <code>_SHADOW_REGISTRY</code>.</li>
+                <li><strong>Tool Invocation:</strong> The analysis tool receives the shadow path, not the original. From
+                    the tool's perspective, it is reading a regular file — it has no knowledge that it is operating on a
+                    copy.</li>
+            </ol>
+
+            <div class="terminal">
+                <span class="dim"># What happens silently when you press ENTER on "Security Scan"</span>
+
+                <span class="info">1. Resolving path... C:\Projects\MyApp\auth.py</span>
+                <span class="info">2. Computing hash... sha256("C:\Projects\MyApp\auth.py") = a3f9c021...</span>
+                <span class="info">3. Shadow name... auth_a3f9c021.py</span>
+                <span class="info">4. Copying file... shutil.copy2(auth.py →
+                    %TEMP%\cherm_shadow\auth_a3f9c021.py)</span>
+                <span class="ok">5. Shadow ready. Running OWASP scanner on shadow...</span>
+
+                <span class="dim"># Your original auth.py is now completely free. You can edit and save it
+                    # in your editor at any moment during this scan without any conflict.</span>
+            </div>
+
+            <h3>Why the 8-Character SHA-256 Hash?</h3>
+            <p>The hash exists to solve a specific problem: naming collisions. If you are a developer working across
+                multiple projects, you might have a dozen files all named <code>main.py</code>, <code>utils.py</code>,
+                or <code>config.py</code> in different directories. Without the hash, the shadow for
+                <code>C:\ProjectA\main.py</code> and <code>C:\ProjectB\main.py</code> would both be named
+                <code>main.py</code> in the temp folder and would overwrite each other.</p>
+            <p>The SHA-256 hash of the <em>full absolute path</em> ensures that the shadow name is unique for each
+                unique path, even if the filename itself is identical. The hash is also deterministic — running the same
+                file path through SHA-256 always produces the same hash — so the shadow file for a given original always
+                ends up in the same temp location, making the registry lookups efficient.</p>
+
+            <h3>The Self-Refreshing Nature of Shadows</h3>
+            <p>This is a critical design decision: the shadow copy is recreated from scratch at the beginning of each
+                action — not once per Cherm session. This means Cherm's shadow is always perfectly synchronized with the
+                current state of your original file at the moment you triggered the action.</p>
+            <p>The practical consequence is powerful: you can have Cherm open all day, running scan after scan. Each
+                time you run a scan, it picks up the absolute latest version of your file. There is no need to "refresh"
+                Cherm or restart it when you make edits. Edit in your IDE → switch to Cherm → hit ENTER → Cherm scans
+                the version with your latest changes. This is the core of Cherm's rapid-iteration workflow.</p>
+
+            <h3>Automatic Cleanup via atexit</h3>
+            <p>When Cherm starts up, it registers a cleanup function using Python's
+                <code>atexit.register(_cleanup_shadows)</code>. The <code>atexit</code> module guarantees that
+                registered functions are called when the Python interpreter exits normally — whether via the ESC key,
+                closing the terminal, or any unhandled exception that terminates the process. The cleanup function
+                deletes the entire <code>cherm_shadow</code> folder and all its contents using
+                <code>shutil.rmtree()</code>.</p>
+            <p>This guarantees that Cherm leaves zero footprint on your machine after a session. The temp copies of your
+                source code do not accumulate over time. If Cherm is killed forcefully (like <code>SIGKILL</code> on
+                Linux or "End Task" on Windows), atexit does not fire, and the shadow folder may persist until your next
+                Cherm session which will clean it up at startup, or until your OS's normal temp directory cleanup cycle.
+            </p>
+
+            <h3>What Operations Bypass the Shadow System</h3>
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Uses Shadow?</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Security Scan (OWASP)</td>
+                        <td>✅ Yes</td>
+                        <td>Read-only analysis. Shadow protects original.</td>
+                    </tr>
+                    <tr>
+                        <td>Full Security Pentest</td>
+                        <td>✅ Yes</td>
+                        <td>External tools (Bandit etc.) run on shadow path.</td>
+                    </tr>
+                    <tr>
+                        <td>CrossCheckV200</td>
+                        <td>✅ Yes</td>
+                        <td>Dynamic import runs on shadow to avoid locking original.</td>
+                    </tr>
+                    <tr>
+                        <td>Speed &amp; Complexity</td>
+                        <td>✅ Yes</td>
+                        <td>AST parsing on shadow. Runtime test also uses shadow path.</td>
+                    </tr>
+                    <tr>
+                        <td>Dead Code Detector</td>
+                        <td>✅ Yes</td>
+                        <td>AST parsing only, shadow used.</td>
+                    </tr>
+                    <tr>
+                        <td>Scan Functions</td>
+                        <td>✅ Yes</td>
+                        <td>AST parsing only, shadow used.</td>
+                    </tr>
+                    <tr>
+                        <td>Scan for Secrets</td>
+                        <td>✅ Yes</td>
+                        <td>Text scan on shadow.</td>
+                    </tr>
+                    <tr>
+                        <td>API Status Scanner</td>
+                        <td>✅ Yes</td>
+                        <td>Text scan on shadow.</td>
+                    </tr>
+                    <tr>
+                        <td>View Raw File</td>
+                        <td>❌ No</td>
+                        <td>Read-only display of original. No risk.</td>
+                    </tr>
+                    <tr>
+                        <td>File Statistics</td>
+                        <td>✅ Yes</td>
+                        <td>Line counting on shadow.</td>
+                    </tr>
+                    <tr>
+                        <td>Execute File</td>
+                        <td>❌ No</td>
+                        <td>Must run the real file. Relative imports and data files need original's location.</td>
+                    </tr>
+                    <tr>
+                        <td>Git Operations</td>
+                        <td>❌ No</td>
+                        <td>Git tracks the real path. Operating on shadow would corrupt the repo.</td>
+                    </tr>
+                    <tr>
+                        <td>File Diff Viewer</td>
+                        <td>❌ No</td>
+                        <td>Git comparison needs the real path for <code>git show HEAD:[path]</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>Copy Path to Clipboard</td>
+                        <td>❌ No</td>
+                        <td>You want the real path on your clipboard, not the temp path.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================================================================
+         SPEED & COMPLEXITY
+    ================================================================ -->
+        <div id="pg-speed" class="page">
+            <h2>Speed &amp; Complexity Test</h2>
+            <p class="tagline">A two-phase analysis estimating algorithmic Big-O complexity through AST analysis,
+                combined with a real runtime execution benchmark.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>Big-O notation: what O(1), O(log N), O(N), O(N log N), O(N²), O(2ⁿ) mean and how they affect
+                        scaling with large inputs.</li>
+                    <li>What "nested loops" are and why they typically imply quadratic time complexity.</li>
+                    <li>The difference between Time Complexity (number of operations) and Space Complexity (amount of
+                        memory used) — both matter for production systems.</li>
+                    <li>Why algorithmic complexity matters: an O(N²) algorithm processing 1,000 items takes 1,000,000
+                        operations. Processing 100,000 items takes 10,000,000,000 operations — a 10 billion operation
+                        jump for a 100x input size increase.</li>
+                    <li>What a subprocess is: a separate OS process spawned by the parent program to run independently.
+                    </li>
+                </ul>
+            </div>
+
+            <h3>Why algorithmic complexity analysis matters in practice</h3>
+            <p>The classic software development trap is writing code that works perfectly in development and falls apart
+                in production. The root cause, in an enormous number of cases, is writing an algorithm that works fine
+                for small datasets but scales catastrophically to production load. Developers routinely make the
+                following mistakes without realizing it:</p>
+            <ul>
+                <li>Using a nested loop to check for duplicates in a list instead of a hash set lookup — O(N²) instead
+                    of O(N).</li>
+                <li>Sorting inside a loop that runs N times — making the total complexity O(N² log N) instead of sorting
+                    once outside the loop for O(N log N).</li>
+                <li>Calling a database query inside a loop — producing N database round-trips instead of one batch
+                    query.</li>
+                <li>Using linear search (<code>if x in list</code>) repeatedly instead of converting to a set first for
+                    O(1) lookups.</li>
+            </ul>
+            <p>The Speed and Complexity Test helps catch these patterns early — at the code writing stage — when they
+                are cheap to fix, rather than after they have caused a production outage.</p>
+
+            <h3>Understanding the Big-O Complexity Scale</h3>
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Complexity</th>
+                        <th>Name</th>
+                        <th>N=100</th>
+                        <th>N=10,000</th>
+                        <th>N=1,000,000</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>O(1)</td>
+                        <td>Constant</td>
+                        <td>1 op</td>
+                        <td>1 op</td>
+                        <td>1 op</td>
+                        <td>Dict lookup, array index</td>
+                    </tr>
+                    <tr>
+                        <td>O(log N)</td>
+                        <td>Logarithmic</td>
+                        <td>7 ops</td>
+                        <td>13 ops</td>
+                        <td>20 ops</td>
+                        <td>Binary search</td>
+                    </tr>
+                    <tr>
+                        <td>O(N)</td>
+                        <td>Linear</td>
+                        <td>100 ops</td>
+                        <td>10,000 ops</td>
+                        <td>1,000,000 ops</td>
+                        <td>Single loop through list</td>
+                    </tr>
+                    <tr>
+                        <td>O(N log N)</td>
+                        <td>Linearithmic</td>
+                        <td>700 ops</td>
+                        <td>130,000 ops</td>
+                        <td>20,000,000 ops</td>
+                        <td>Merge sort, heap sort</td>
+                    </tr>
+                    <tr>
+                        <td>O(N²)</td>
+                        <td>Quadratic</td>
+                        <td>10,000 ops</td>
+                        <td>100,000,000 ops</td>
+                        <td>10¹² ops</td>
+                        <td>Nested loop comparison</td>
+                    </tr>
+                    <tr>
+                        <td>O(2ⁿ)</td>
+                        <td>Exponential</td>
+                        <td>~10³⁰ ops</td>
+                        <td>impossible</td>
+                        <td>impossible</td>
+                        <td>Recursive tree search (no memo)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Phase 1: Static Big-O Estimation via AST Traversal</h3>
+            <p>Cherm calculates theoretical algorithmic complexity by transforming your code into an Abstract Syntax
+                Tree (AST) using Python's <code>ast</code> module. Rather than executing the code, it uses structural
+                analysis based on established computer science theory to map code patterns to Big-O classes.</p>
+
+            <h4>The Theoretical Basis (How to Verify the Output Yourself)</h4>
+            <p>To verify Cherm's output manually, you must apply the same theoretical counting rules that Cherm uses
+                under the hood. You can read your own code and look for these exact structures:</p>
+            <ol>
+                <li><strong>Base Time:</strong> Every function starts at <strong>O(1)</strong> (Constant Time). Linear
+                    blocks of statements without loops or recursion are always O(1) because they take the same amount of
+                    time regardless of input size.</li>
+                <li><strong>Linear Time O(N):</strong> When Cherm detects an <code>ast.For</code>,
+                    <code>ast.While</code>, or a list comprehension (<code>ast.ListComp</code>), it assumes the loop
+                    iterates <i>N</i> times, where <i>N</i> is proportional to the input size. The complexity becomes
+                    O(N).</li>
+                <li><strong>Quadratic Time O(N²):</strong> The core theory of nested loops states that an inner loop
+                    executes its full cycle for every single iteration of the outer loop. If an <code>ast.For</code>
+                    node is found <i>inside</i> the body of another <code>ast.For</code> node, Cherm multiplies the
+                    complexity: O(N) × O(N) = O(N²). You can verify this by counting your indentation levels for loops.
+                </li>
+                <li><strong>Exponential Time O(2ⁿ):</strong> If Cherm finds a function that calls itself (an
+                    <code>ast.Call</code> whose name matches the <code>ast.FunctionDef</code>), it flags a recursive
+                    pattern. Without memoization, naive recursive functions (like a Fibonacci calculator) spawn two
+                    branches per call, leading to O(2ⁿ) time complexity.</li>
+                <li><strong>Space Complexity:</strong> Cherm tracks theoretical memory scaling. It looks for
+                    <code>ast.Call</code> nodes involving <code>.append()</code>, <code>.extend()</code>, or dictionary
+                    insertions happening <i>inside</i> loops. If a list grows dynamically inside an O(N) loop, the
+                    theoretical space complexity is marked as O(N).</li>
+            </ol>
+
+            <p>This theoretical approach allows Cherm to instantly classify scaling behavior. However, because it is
+                purely structural, you must be aware of its limitations. If you write <code>for i in range(3):</code>,
+                the loop bound is constant. Theoretically, this is O(1) time. But because Cherm only sees the
+                <code>ast.For</code> structure, it conservatively grades it as O(N). You must use your own developer
+                judgement to confirm if the <i>N</i> is truly variable.</p>
+
+            <div class="label">Example: Quadratic Time Complexity</div>
+            <pre>def find_duplicates_slow(arr):
+    # Two nested for-loops = O(N²) time
+    duplicates = []
+    for i in range(len(arr)):
+        for j in range(i + 1, len(arr)):
+            if arr[i] == arr[j] and arr[i] not in duplicates:
+                duplicates.append(arr[i])
+    return duplicates</pre>
+
+            <div class="label">Example: Linear Time Complexity (Optimized)</div>
+            <pre>def find_duplicates_fast(arr):
+    # Single loop + hash set = O(N) time, O(N) space
+    seen = set()
+    duplicates = set()
+    for item in arr:
+        if item in seen:
+            duplicates.add(item)
+        seen.add(item)
+    return list(duplicates)</pre>
+
+            <div class="terminal">
+                <span class="info">=== COMPLEXITY ANALYSIS: find_duplicates_slow ===</span>
+                <span class="fail">[!!] Time Complexity : O(N²) — Quadratic (max loop nesting depth = 2)</span>
+                <span class="warn">[>>] Space Complexity : O(N) — Linear (dynamic list)</span>
+                <span class="warn">[>>] Messiness Score : 8/20</span>
+                <span class="fail">Verdict: Consider refactoring. O(N²) won't scale for large inputs.</span>
+
+                <span class="info">=== COMPLEXITY ANALYSIS: find_duplicates_fast ===</span>
+                <span class="ok">[ OK ] Time Complexity : O(N) — Linear (single loop)</span>
+                <span class="ok">[ OK ] Space Complexity : O(N) — Linear (set usage)</span>
+                <span class="ok">[ OK ] Messiness Score : 3/20</span>
+                <span class="ok">Verdict: Excellent! Clean, scalable implementation.</span>
+            </div>
+
+            <h3>Phase 2: Runtime Execution Benchmark</h3>
+            <p>After static analysis, Cherm spawns a subprocess to actually execute the script. It pipes a long stream
+                of sequential numbers (1, 2, 3... up to several thousand) into the process's standard input. This
+                prevents any <code>input()</code> calls in your script from blocking the benchmark. It records the total
+                wall-clock time from process spawn to process exit using <code>time.time()</code> before and after
+                <code>subprocess.run()</code>.</p>
+            <p>Timing grades are as follows:</p>
+            <ul>
+                <li><strong>Under 0.1 seconds:</strong> Blazing Fast</li>
+                <li><strong>0.1 – 0.5 seconds:</strong> Fast</li>
+                <li><strong>0.5 – 3 seconds:</strong> Acceptable</li>
+                <li><strong>3 – 15 seconds:</strong> Slow — investigate</li>
+                <li><strong>Over 15 seconds:</strong> Timeout — process killed. Likely infinite loop or severe
+                    performance issue.</li>
+            </ul>
+
+            <h3>The Messiness Score Explained</h3>
+            <p>The Messiness Score is a composite quality metric calculated from the following factors:</p>
+            <ul>
+                <li>+2 points per level of loop nesting beyond depth 1</li>
+                <li>+1 point per decision statement (<code>if</code>, <code>elif</code>, <code>try</code>)</li>
+                <li>+1 point per function defined (large files with many functions score higher)</li>
+                <li>+1 point per 50 lines of code (length penalty)</li>
+            </ul>
+            <p>A score of 0–5 is clean. 6–10 is getting complex but acceptable for sophisticated logic. Over 10 is a
+                signal that the file or function should be split into smaller, more focused units. Cognitive complexity
+                matters because developers can only hold a limited amount of code context in their working memory while
+                debugging — simpler code is faster to debug and safer to modify.</p>
+
+            <div class="alert alert-warn">
+                <strong>⚠️ Key Limitation: Only Worst-Case Structural Depth is Measured</strong>
+                Cherm counts loop nesting depth by AST structure. It does not analyze what the loop bound evaluates to
+                at runtime. A nested loop where the inner loop runs exactly 3 times regardless of input size will still
+                be flagged as O(N²) because structurally it has 2 levels of nesting. You must apply your own reasoning
+                to determine whether a flagged complexity is a real concern for your input sizes.
+            </div>
+
+            <h3>Optimization Strategies (What to do when you get a bad score)</h3>
+            <h4>Replacing O(N²) nested loops with O(N) hash lookups</h4>
+            <p>The most common performance issue Cherm flags is a nested loop used for lookup. Whenever you find
+                yourself writing code like <code>for item in list1: if item in list2:</code>, the <code>in</code> check
+                on a list is O(N). Convert <code>list2</code> to a <code>set</code> first, and the lookup becomes O(1),
+                making the total algorithm O(N) instead of O(N²).</p>
+            <h4>Moving sort operations outside loops</h4>
+            <p>If you need a sorted version of a collection, sort it once before any loops rather than inside a loop.
+                Sorting inside a loop that runs N times makes your total complexity O(N² log N).</p>
+            <h4>Using generators for large data processing</h4>
+            <p>If you are processing large files or datasets, using Python generators (functions with
+                <code>yield</code>) instead of building lists in memory can dramatically reduce peak memory usage,
+                keeping space complexity O(1) instead of O(N).</p>
+        </div>
+
+        <!-- ================================================================
+         CROSSCHECK V200
+    ================================================================ -->
+        <div id="pg-crosscheck" class="page">
+            <h2>CrossCheckV200 Test Engine</h2>
+            <p class="tagline">Automated function-level fuzz testing — finds edge-case crashes in your Python functions
+                without you writing a single test case.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What a Python function is, what parameters and type hints are, and how to read a function
+                        signature like <code>def process(data: str, limit: int = 100) -&gt; list</code>.</li>
+                    <li>What exceptions are and what causes them: <code>ZeroDivisionError</code> (dividing by zero),
+                        <code>AttributeError</code> (calling a method on None or wrong type), <code>TypeError</code>
+                        (wrong argument type), <code>IndexError</code> (accessing an index beyond list bounds),
+                        <code>KeyError</code> (accessing a dict with a non-existent key), <code>ValueError</code>
+                        (correct type but invalid value).</li>
+                    <li>What "edge cases" and "boundary conditions" are: inputs at the extreme edges of a function's
+                        expected range — zero, negative, empty, very large, None.</li>
+                    <li>What "fuzzing" means: the practice of feeding random, unexpected, and boundary inputs to a
+                        program to discover crashes not covered by normal use.</li>
+                    <li>Why defensive programming matters: the idea that functions should handle unexpected inputs
+                        gracefully rather than crashing.</li>
+                </ul>
+            </div>
+
+            <h3>The Problem CrossCheckV200 Solves</h3>
+            <p>Most developers test their code by running it with the inputs they can think of — the happy path. A
+                function that calculates a discount is tested with typical price and discount values. But what happens
+                when the price is zero? What happens when the discount is negative? What happens when the price is
+                <code>None</code> because a database returned a null? These edge cases are not exotic — they happen
+                regularly in production when real users interact with real systems in unexpected ways.</p>
+            <p>CrossCheckV200 takes a probabilistic approach: rather than asking "what could go wrong?", it
+                systematically feeds every function every type of edge-case data it can generate, and watches to see
+                which functions crash. This is fuzz testing applied at the function level — a technique borrowed from
+                professional security research and automated testing.</p>
+
+            <h3>How CrossCheckV200 Works for Python Files (Detailed)</h3>
+
+            <h4>Step 1: Safe Module Import via Shadow</h4>
+            <p>CrossCheckV200 uses the shadow copy of your file. It calls
+                <code>importlib.util.spec_from_file_location("target_module", shadow_path)</code> and
+                <code>importlib.util.module_from_spec(spec)</code> to load your script as a Python module without
+                actually importing it into the main process namespace. Before loading, it patches several built-in
+                functions at the module level to prevent blocking:</p>
+            <ul>
+                <li><code>builtins.input</code> is replaced with a lambda that returns an empty string.</li>
+                <li><code>time.sleep</code> is replaced with a no-op lambda.</li>
+                <li>Any <code>curses</code> operations are wrapped in a mock screen object that silently absorbs all
+                    draw calls.</li>
+            </ul>
+
+            <h4>Step 2: Function Extraction via inspect</h4>
+            <p>Using Python's <code>inspect.getmembers(module, inspect.isfunction)</code>, Cherm gets a list of all
+                callable functions defined in the module. It filters to only include functions whose source file matches
+                the target (to exclude functions imported from standard libraries). It also applies exclusions for
+                dunder methods like <code>__init__</code> that have special calling conventions.</p>
+
+            <h4>Step 3: Type-Aware Test Case Generation</h4>
+            <p>For each function, <code>inspect.get_annotations(func)</code> reads the type hints. The fuzzer generates
+                test inputs tailored to each parameter's declared type:</p>
+            <ul>
+                <li><strong>int:</strong> Generates <code>0, 1, -1, 2, 100, -100, 999999, -999999</code></li>
+                <li><strong>float:</strong> Generates
+                    <code>0.0, 1.0, -1.0, 0.001, 1e10, float('inf'), float('nan')</code></li>
+                <li><strong>str:</strong> Generates
+                    <code>"", "a", "hello", " ", "\n", "\t", "x" * 10000, None (to test missing check)</code></li>
+                <li><strong>list:</strong> Generates <code>[], [1], [None], [1, 2, 3], [[]], list(range(1000))</code>
+                </li>
+                <li><strong>dict:</strong> Generates <code>{}, {"key": "value"}, {"key": None}</code></li>
+                <li><strong>No annotation:</strong> Generates a mixed pool of all the above types.</li>
+            </ul>
+            <p>Each combination of test inputs is run independently. For a function with 2 parameters, Cherm generates
+                approximately 100 test cases per parameter, producing ~10,000 combinations, then samples 202 of them for
+                the actual test run (to keep the test suite fast).</p>
+
+            <h4>Step 4: Timeout-Protected Execution</h4>
+            <p>Each function call is wrapped in a background thread with a hard timeout. If a function hangs
+                indefinitely (infinite loop inside the function, blocking I/O that wasn't mocked), the thread is
+                abandoned after a few seconds and the test case is marked as "timed out" rather than "crashed." The
+                testing continues with the next function.</p>
+
+            <div class="label">Example Source Code with Multiple Bugs</div>
+            <pre>def calculate_average(numbers: list) -> float:
+    # Bug 1: Crashes if numbers is empty (ZeroDivisionError)
+    return sum(numbers) / len(numbers)
+
+def get_initials(name: str) -> str:
+    # Bug 2: Crashes if name is None (AttributeError)
+    # Bug 3: Crashes if name is empty string (IndexError)
+    parts = name.split()
+    return ".".join(p[0].upper() for p in parts)
+
+def parse_age(text: str) -> int:
+    # Bug 4: Crashes on non-numeric strings (ValueError)
+    return int(text)</pre>
+
+            <div class="terminal">
+                <span class="info">═══════════════════════════════════════════════
+                    CrossCheckV200 — DYNAMIC FUNCTION FUZZER
+                    ═══════════════════════════════════════════════</span>
+
+                <span class="dim">Loading module from shadow: utils_a4b82c11.py</span>
+                <span class="ok">[ OK ] Module imported successfully.</span>
+                <span class="ok">[ OK ] Found 3 function(s) to test.</span>
+                <span class="ok">[ OK ] Generating 202 test combinations per function. (606 total)</span>
+
+                <span class="info">────────────────────────────────────────────
+                    Testing: calculate_average
+                    ────────────────────────────────────────────</span>
+                <span class="fail">[FAIL] Round 1 | args: numbers=[] | ZeroDivisionError: division by zero</span>
+                <span class="ok">[ OK ] 201/202 test cases passed.</span>
+
+                <span class="info">────────────────────────────────────────────
+                    Testing: get_initials
+                    ────────────────────────────────────────────</span>
+                <span class="fail">[FAIL] Round 1 | args: name=None | AttributeError: 'NoneType' object has no attribute
+                    'split'</span>
+                <span class="fail">[FAIL] Round 2 | args: name="" | IndexError: (during generator expression: string
+                    index out of range)</span>
+                <span class="ok">[ OK ] 200/202 test cases passed.</span>
+
+                <span class="info">────────────────────────────────────────────
+                    Testing: parse_age
+                    ────────────────────────────────────────────</span>
+                <span class="fail">[FAIL] Round 3 | args: text="hello" | ValueError: invalid literal for int() with base
+                    10: 'hello'</span>
+                <span class="fail">[FAIL] Round 4 | args: text="" | ValueError: invalid literal for int() with base 10:
+                    ''</span>
+                <span class="ok">[ OK ] 200/202 test cases passed.</span>
+
+                <span class="fail">══════════════════════════════════════════════
+                    RESULT: 5 crashes found across 3 functions.
+                    ══════════════════════════════════════════════</span>
+            </div>
+
+            <h3>Reading the Output and Fixing Crashes</h3>
+            <p>Each line in the FAIL output tells you exactly what input caused the crash and which exception was
+                raised. This is everything you need to fix it:</p>
+            <ul>
+                <li><code>calculate_average([])</code> → <strong>Fix:</strong> <code>if not numbers: return 0.0</code>
+                </li>
+                <li><code>get_initials(None)</code> → <strong>Fix:</strong> <code>if name is None: return ""</code></li>
+                <li><code>get_initials("")</code> → <strong>Fix:</strong> <code>if not name.strip(): return ""</code>
+                </li>
+                <li><code>parse_age("hello")</code> → <strong>Fix:</strong> Wrap in
+                    <code>try/except ValueError: return None</code></li>
+            </ul>
+
+            <h3>For Compiled/Non-Python Languages: stdin/stdout Testing</h3>
+            <p>CrossCheckV200 supports compiled programs (C, C++, Java binaries) through a standard input/output testing
+                approach used in competitive programming and algorithm challenges. Create a <code>tests/</code>
+                directory next to your source file with paired input and expected output files:</p>
+            <ul>
+                <li><code>tests/in1.txt</code> → Input piped via stdin to your program</li>
+                <li><code>tests/out1.txt</code> → Expected output matched against your program's stdout</li>
+                <li><code>tests/in2.txt</code>, <code>tests/out2.txt</code> → Second test case, and so on.</li>
+            </ul>
+
+            <div class="alert alert-warn">
+                <strong>⚠️ Critical Limitation: Crash Detection, Not Correctness</strong>
+                CrossCheckV200 verifies that your functions don't <em>crash</em>. It does NOT verify they return
+                <em>correct</em> results. A function that always returns <code>42</code> regardless of input will pass
+                all 202 test cases because it never raises an exception. A sorting function that sorts in reverse order
+                will pass because sorting in the wrong direction is not a crash. Testing for correctness requires you to
+                write explicit assertions — CrossCheckV200 is a crash finder, not a logic verifier.
+            </div>
+
+            <h3>The Mini-Game During Testing</h3>
+            <p>CrossCheckV200 runs the test suite in a background thread. While it runs, Cherm displays the "Meteor
+                Dodge" mini-game to keep you engaged rather than staring at a frozen screen. Use the arrow keys to dodge
+                falling meteor characters. The test results appear automatically as soon as the background thread
+                finishes — the mini-game exits and the results screen appears without you needing to press anything.</p>
+
+            <h3>Deep Dive: Coverage-Guided vs Generative Fuzzing</h3>
+            <p>CrossCheckV200 utilizes a technique known as <strong>Generative Type-Aware Fuzzing</strong>. By looking
+                at the type hints (e.g., <code>def process(items: list):</code>), it generates an aggressive but
+                strictly bounded set of test inputs that historically cause edge-case crashes (like empty lists, lists
+                containing None, or massive lists). This is fast and deterministic, making it suitable for a rapid IDE
+                plugin.</p>
+            <p>In contrast, enterprise security teams use <strong>Coverage-Guided Fuzzing</strong> (like Google's
+                OSS-Fuzz or the AFL fuzzer). Coverage-guided fuzzers instrument the binary at compile time. They send a
+                completely random mutation of bytes into the function and observe which specific lines of assembly code
+                were executed. If a specific mutated input causes a new, previously unseen code branch to execute (like
+                bypassing an <code>if size < 100</code> check), the fuzzer saves that input and mutates it further. Over
+                millions of iterations, a coverage-guided fuzzer "learns" the internal structure of your code and can
+                automatically solve complex string comparisons or checksums to dig deep into your logic and find memory
+                corruption bugs.</p>
+            <p>While CrossCheckV200 doesn't do coverage tracking, its type-aware generative approach catches the most
+                common 90% of business logic crashes in dynamic languages like Python without the massive CPU overhead
+                of a coverage-guided engine.</p>
+        </div>
+
+        <!-- ================================================================
+         DEAD CODE
+    ================================================================ -->
+        <div id="pg-deadcode" class="page">
+            <h2>Find Dead Code</h2>
+            <p class="tagline">Detect variables, functions, and logic blocks that exist in your file but can never be
+                reached or used.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What a control flow terminator is: statements like <code>return</code>, <code>raise</code>,
+                        <code>break</code>, and <code>continue</code> that unconditionally end the current flow of
+                        execution.</li>
+                    <li>What variable scope is: a variable defined inside a function is local to that function and does
+                        not exist outside it.</li>
+                    <li>The difference between defining a function (<code>def foo():</code>) and calling a function
+                        (<code>foo()</code>).</li>
+                    <li>What "technical debt" is: the accumulation of quick fixes, leftover code, and shortcuts that
+                        make the codebase progressively harder to maintain over time.</li>
+                    <li>What a refactor is: restructuring existing code without changing its external behavior, to
+                        improve readability or reduce complexity.</li>
+                </ul>
+            </div>
+
+            <h3>Why Dead Code Accumulates</h3>
+            <p>Dead code is not written intentionally — it accumulates through the natural evolution of software.
+                Understanding how it gets there helps you prevent it:</p>
+            <ul>
+                <li><strong>Incomplete refactors:</strong> You replace a helper function with a built-in library call
+                    but forget to delete the old helper function at the bottom of the file.</li>
+                <li><strong>Overly cautious development:</strong> You add a condition to guard against an edge case that
+                    can never actually occur given your data model, but write code after the guard clause that is now
+                    logically unreachable.</li>
+                <li><strong>Debugging leftovers:</strong> You add a <code>print()</code> statement after a
+                    <code>return</code> during debugging — which is unreachable — and commit it.</li>
+                <li><strong>Changed requirements:</strong> A feature is removed but the supporting functions and
+                    variables are not cleaned up because "someone might need them later."</li>
+                <li><strong>Copy-paste programming:</strong> Variables are copied from a template into a function where
+                    only some of them are actually used.</li>
+            </ul>
+
+            <h3>The Three Categories of Dead Code</h3>
+
+            <h4>Category 1: Unreachable Code After Terminators</h4>
+            <p>Statements that appear in the same block <em>after</em> a <code>return</code>, <code>raise</code>,
+                <code>break</code>, or <code>continue</code> that is NOT inside a conditional branch. These statements
+                can never be executed regardless of any input to the function. Python's own linters sometimes warn about
+                this, but not always for complex cases.</p>
+            <pre>def process(data):
+    if data:
+        return clean(data)
+        log("Processed")  # DEAD: unreachable after return
+
+    result = compute(data)
+    raise ValueError("Empty data")
+    return result  # DEAD: unreachable after raise</pre>
+
+            <h4>Category 2: Assigned But Never Used Variables</h4>
+            <p>Local variables that receive a value through assignment but whose name never appears again on the
+                right-hand side of any expression, as a function argument, or in a return statement within the same
+                scope.</p>
+            <pre>def send_notification(user):
+    email = user.get_email()      # USED below
+    phone = user.get_phone()      # DEAD: assigned but never used
+    template = load_template()    # DEAD: assigned but never used
+    subject = "Welcome!"          # USED below
+    send_email(email, subject)    # only email and subject used</pre>
+
+            <h4>Category 3: Defined But Never Called Functions</h4>
+            <p>Functions defined in the file that never appear in a call expression within the same file. These are the
+                most common form of dead code in large projects.</p>
+            <pre>def active_function():
+    return process_data()
+
+def helper_v1():  # DEAD: was replaced by helper_v2, never removed
+    return old_process()
+
+def helper_v2():  # The current implementation
+    return new_process()</pre>
+
+            <div class="terminal">
+                <span class="info">=== DEAD CODE DETECTOR ===</span>
+
+                <span class="warn">[WARN] Line 4: Unreachable code after 'return' in function 'process'.</span>
+                <span class="warn">[WARN] Line 7: Unreachable code after 'raise' in function 'process'.</span>
+                <span class="warn">[WARN] Line 14: Variable 'phone' assigned but never used in
+                    'send_notification'.</span>
+                <span class="warn">[WARN] Line 15: Variable 'template' assigned but never used in
+                    'send_notification'.</span>
+                <span class="warn">[WARN] Line 21: Function 'helper_v1' defined but never called in this file.</span>
+
+                <span class="fail">[FAIL] Found 5 dead code instance(s). Review and remove if confirmed
+                    unnecessary.</span>
+            </div>
+
+            <h3>How to Respond to Dead Code Findings</h3>
+            <p>Don't blindly delete everything Cherm flags. Follow this process for each finding:</p>
+            <ol>
+                <li><strong>Understand WHY it was flagged.</strong> Read the exact line. Do you recognize what this code
+                    does?</li>
+                <li><strong>Search for usage across the project.</strong> Use your editor's "Find in Files" or
+                    <code>grep -r "function_name" .</code> to search the entire project, not just this file. If the
+                    function is imported and used elsewhere, it is NOT dead code — it's a false positive.</li>
+                <li><strong>Check if it's called dynamically.</strong> Functions called via
+                    <code>getattr(obj, func_name)()</code>, registered as callbacks
+                    (<code>event.on_click = func</code>), or passed as arguments are not detectable by static analysis.
+                    If you see these patterns in your codebase, be cautious about deleting flagged functions.</li>
+                <li><strong>If truly unused, delete it.</strong> Dead code that is confirmed unused across the entire
+                    codebase should be deleted, not commented out. Commented-out code is just another form of visual
+                    clutter.</li>
+            </ol>
+
+            <div class="alert alert-danger">
+                <strong>⚠️ HIGH FALSE POSITIVE RISK — Always Search Across All Files First</strong>
+                The dead code detector only analyzes the current file. It has no visibility into other files in your
+                project. A function defined in <code>utils.py</code> that is imported and used in <code>app.py</code>,
+                <code>tests.py</code>, and <code>handlers.py</code> will still be flagged as "never called" because
+                those calls are in other files that Cherm is not analyzing. Before deleting any flagged function,
+                perform a project-wide search.
+            </div>
+
+            <h3>Deep Dive: Graph Theory in Dead Code Elimination</h3>
+            <p>Dead code elimination (DCE) is a standard optimization performed by modern compilers (like GCC or LLVM)
+                before generating machine code. They use mathematical <strong>Graph Theory</strong> to do this safely.
+            </p>
+            <p>A compiler builds a <strong>Control Flow Graph (CFG)</strong>. In a CFG, every basic block of code (a
+                sequence of statements with no branches) is a node, and every possible jump (an <code>if</code>, a
+                <code>while</code> loop, a function call) is a directed edge connecting two nodes. The compiler starts
+                at the entry point of the program (like <code>main()</code>) and traces every possible path along the
+                edges.</p>
+            <p>Any node in the graph that cannot be reached by traversing edges from the entry point is mathematically
+                proven to be unreachable code. The compiler simply deletes these disconnected subgraphs from memory
+                before generating the final binary, making the executable smaller and faster. Cherm attempts to do a
+                lightweight, single-file version of this graph reachability analysis by treating module-level code as
+                the entry point and looking for disconnected function nodes.</p>
+        </div>
+
+        <!-- ================================================================
+         MAGIC NUMBERS
+    ================================================================ -->
+        <div id="pg-magic" class="page">
+            <h2>Detect Magic Numbers</h2>
+            <p class="tagline">Find raw numerical constants embedded in logic that should be extracted into named,
+                self-documenting constant variables.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>The concept of "self-documenting code": code that communicates its intent through naming
+                        choices, not just comments.</li>
+                    <li>What a constant variable is and why Python convention uses ALL_CAPS names for module-level
+                        constants (<code>MAX_RETRIES = 3</code>).</li>
+                    <li>The DRY principle (Don't Repeat Yourself): if the same magic number appears in 10 places and the
+                        requirement changes, you must find and update all 10 occurrences. A named constant means
+                        updating one line.</li>
+                    <li>The difference between numeric values that are genuinely self-explanatory by convention (like
+                        array index 0, boolean 1/0) versus values that carry domain-specific meaning that readers cannot
+                        infer from context.</li>
+                </ul>
+            </div>
+
+            <h3>What Makes a Number "Magic"?</h3>
+            <p>Not every number in code is a magic number. The term specifically refers to numeric literals that carry
+                <em>domain-specific meaning</em> that is invisible from the number itself. Consider the difference:</p>
+            <ul>
+                <li><code>if index == 0:</code> — Not magic. Zero is universally understood as the first element.</li>
+                <li><code>if status == 4:</code> — Magic. What is status 4? "Cancelled"? "Pending review"? "Archived"?
+                </li>
+                <li><code>for _ in range(3):</code> — Possibly magic. Is 3 "max retries"? "Processing stages"? "Columns
+                    in a grid"?</li>
+                <li><code>if amount > 500:</code> — Magic. Is 500 a free shipping threshold? A fraud detection limit? A
+                    discount tier?</li>
+            </ul>
+            <p>The guiding question is: could someone who has never seen this codebase before understand what this
+                number means from context alone? If the answer is no, it is a magic number.</p>
+
+            <h3>Domain Examples of Magic Numbers</h3>
+
+            <h4>E-commerce / Financial</h4>
+            <pre># BAD - Magic numbers
+def calculate_order(subtotal, is_premium_member):
+    if subtotal > 75:        # What is 75?
+        shipping = 0
+    else:
+        shipping = 9.99      # What is 9.99?
+    tax = subtotal * 0.085   # What is 0.085?
+    if is_premium_member:
+        discount = 0.15      # What is 0.15?
+    return subtotal + shipping + tax - (subtotal * discount if is_premium_member else 0)
+
+# GOOD - Self-documenting
+FREE_SHIPPING_THRESHOLD = 75.00
+STANDARD_SHIPPING_FEE   = 9.99
+SALES_TAX_RATE          = 0.085   # 8.5% state tax
+PREMIUM_DISCOUNT_RATE   = 0.15    # 15% loyalty discount
+
+def calculate_order(subtotal, is_premium_member):
+    shipping = 0 if subtotal > FREE_SHIPPING_THRESHOLD else STANDARD_SHIPPING_FEE
+    tax      = subtotal * SALES_TAX_RATE
+    discount = subtotal * PREMIUM_DISCOUNT_RATE if is_premium_member else 0
+    return subtotal + shipping + tax - discount</pre>
+
+            <h4>Network / System Programming</h4>
+            <pre># BAD
+sock.settimeout(30)
+if response.status == 429:
+    time.sleep(60)
+
+# GOOD
+SOCKET_TIMEOUT_SECONDS   = 30
+HTTP_TOO_MANY_REQUESTS   = 429    # RFC 6585 status code
+RATE_LIMIT_BACKOFF_SECS  = 60</pre>
+
+            <h4>Game Development</h4>
+            <pre># BAD
+if player.health > 20:
+    player.speed = 5.5
+else:
+    player.speed = 2.0
+
+# GOOD
+LOW_HEALTH_THRESHOLD = 20    # % health below which movement is impaired
+NORMAL_MOVE_SPEED    = 5.5   # units per frame
+IMPAIRED_MOVE_SPEED  = 2.0   # units per frame when low health</pre>
+
+            <div class="terminal">
+                <span class="info">=== MAGIC NUMBER DETECTOR ===</span>
+
+                <span class="warn">[WARN] Line 3: Magic number '75' in comparison. Suggested name:
+                    FREE_SHIPPING_THRESHOLD</span>
+                <span class="warn">[WARN] Line 5: Magic number '9.99' in assignment. Suggested name:
+                    STANDARD_SHIPPING_FEE</span>
+                <span class="warn">[WARN] Line 6: Magic number '0.085' in arithmetic. Suggested name:
+                    SALES_TAX_RATE</span>
+                <span class="warn">[WARN] Line 7: Magic number '0.15' in arithmetic. Suggested name:
+                    PREMIUM_DISCOUNT_RATE</span>
+
+                <span class="fail">[FAIL] 4 magic number(s) found. Extract to named constants for
+                    maintainability.</span>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Best Practice:</strong> Group related constants at the top of your file under a comment block
+                like <code># ─── CONSTANTS ───</code>. When a new developer joins the team, they can read all the
+                configuration values of the system at a glance in one place without hunting through function
+                implementations.
+            </div>
+
+            <h3>Deep Dive: AST Constant Detection vs Lexical Regex</h3>
+            <p>Why doesn't Cherm just use a regex like <code>[0-9]+</code> to find magic numbers? Because regex cannot
+                distinguish between syntax and semantics. A regex would match <code>list[0]</code>,
+                <code>exit(1)</code>, and <code>range(10)</code> — flooding you with false positives because these are
+                well-understood conventions, not "magic" domain numbers.</p>
+            <p>Instead, Cherm uses the <code>ast</code> module to walk the Abstract Syntax Tree. It specifically looks
+                for <code>ast.Constant</code> nodes (which represent literal values like <code>75</code> or
+                <code>3.14</code>). Crucially, because it knows the <em>context</em> of the node, it applies intelligent
+                filters:</p>
+            <ul>
+                <li><strong>Assignment Context:</strong> If the constant is the right-hand side of an assignment to a
+                    variable named with ALL_CAPS (like <code>MAX_RETRIES = 5</code>), Cherm ignores it. It recognizes
+                    this is already a named constant.</li>
+                <li><strong>Array Index Context:</strong> If the constant is inside an <code>ast.Subscript</code> node
+                    (like <code>items[0]</code>), Cherm ignores <code>0</code>, <code>1</code>, and <code>-1</code> as
+                    standard indexing patterns.</li>
+                <li><strong>Conditional Context:</strong> Constants appearing in <code>ast.Compare</code> nodes (like
+                    <code>if x > 1000:</code>) are highly scrutinized because business logic limits are usually defined
+                    here.</li>
+            </ul>
+            <p>By operating on the syntax tree rather than raw text, Cherm reduces false positives by over 95% compared
+                to naive text scanning.</p>
+        </div>
+
+        <!-- ================================================================
+         FILE STATISTICS
+    ================================================================ -->
+        <div id="pg-stats" class="page">
+            <h2>View File Statistics</h2>
+            <p class="tagline">Instant quantitative metrics on file size, line density, and documentation health — a
+                fast health check for any source file.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>The difference between a comment line (starts with <code>#</code> or is inside a docstring), a
+                        code line (contains executable statements), and a blank line (only whitespace).</li>
+                    <li>What a docstring is: a triple-quoted string (<code>"""..."""</code>) placed immediately after a
+                        function or class definition to document its purpose, arguments, and return values.</li>
+                    <li>Why code-to-comment ratio matters in team environments: poorly documented code forces every
+                        developer to reverse-engineer the author's intent each time they need to modify it.</li>
+                </ul>
+            </div>
+
+            <h3>When to Use File Statistics</h3>
+            <ul>
+                <li><strong>Before a code review:</strong> Quickly check if the file you are about to review has
+                    reasonable documentation coverage. A 500-line file with 0 comment lines and no docstrings will
+                    require much more time to review safely.</li>
+                <li><strong>During onboarding:</strong> When taking over a legacy codebase, run File Statistics on key
+                    files to gauge the overall documentation debt of the project.</li>
+                <li><strong>Setting team quality standards:</strong> "No file shall be committed with a comment ratio
+                    below 10%" becomes an enforceable policy when you have a tool to measure it.</li>
+                <li><strong>Tracking documentation progress:</strong> Run the tool, note the ratio, write docstrings,
+                    run again, compare the improvement.</li>
+            </ul>
+
+            <h3>How Each Metric is Calculated</h3>
+            <p>Cherm reads the file line by line, running each line through a classifier:</p>
+            <ul>
+                <li><strong>Blank line:</strong> <code>line.strip() == ""</code></li>
+                <li><strong>Comment line:</strong> <code>line.strip().startswith("#")</code> or the line is inside an
+                    active triple-quoted docstring block (<code>"""</code> or <code>'''</code>). The scanner maintains a
+                    state flag to track whether it is currently inside a multi-line string.</li>
+                <li><strong>Code line:</strong> Any line that is not blank and not a comment.</li>
+            </ul>
+            <p>The <strong>Unique Word Count</strong> is calculated by tokenizing the file text (splitting on whitespace
+                and punctuation) and counting the size of the resulting set. A high unique word count relative to line
+                count suggests a complex, dense codebase with many different concepts. A low unique word count suggests
+                repetitive boilerplate code.</p>
+            <p>The <strong>Documentation Health Grade</strong> is: <code>comment_lines / total_lines * 100</code>. Below
+                5% = FAIL. 5%–20% = WARN. Above 20% = OK.</p>
+
+            <div class="terminal">
+                <span class="info">═══════════════════════════════════════════════
+                    FILE STATISTICS: database_manager.py
+                    ═══════════════════════════════════════════════</span>
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="ok">[ OK ] File size : 38.7 KB</span>
+                <span class="ok">[ OK ] Last modified : 2025-08-10 09:44:12</span>
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="ok">[ OK ] Total lines : 1,204</span>
+                <span class="ok">[ OK ] Pure code lines : 892 (74.1%)</span>
+                <span class="ok">[ OK ] Blank lines : 120 (10.0%)</span>
+                <span class="warn">[WARN] Comment lines : 37 (3.1%)</span>
+                <span class="ok">[ OK ] Unique word count : 1,847</span>
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="fail">[FAIL] Documentation: Very sparse! (3.1% comment ratio)
+                    A 1,204-line file with only 37 comment lines is difficult to
+                    maintain. Add docstrings to all classes and functions.</span>
+            </div>
+
+            <h3>Understanding "Well Documented" Code</h3>
+            <p>Good documentation does not mean a comment on every line — over-commenting code is itself an anti-pattern
+                that clutters readability. The ideal is strategic documentation:</p>
+            <ul>
+                <li>Every module should have a top-level docstring explaining what the file is and what it does.</li>
+                <li>Every class should have a docstring explaining its purpose, what state it manages, and its
+                    lifecycle.</li>
+                <li>Every public function should have a docstring explaining its purpose, parameters (name, type,
+                    meaning), return value, and any exceptions it may raise.</li>
+                <li>Complex or non-obvious logic blocks inside functions should have a comment explaining the
+                    <em>why</em>, not the <em>what</em> (the what is visible from the code itself).</li>
+            </ul>
+
+            <h3>Deep Dive: Tokenization and Lexical Analysis</h3>
+            <p>How does Cherm accurately count "pure code lines" versus "comment lines" in a language like Python where
+                strings can span multiple lines and act as docstrings? A simple regex cannot handle this reliably.</p>
+            <p>Cherm uses Python's built-in <code>tokenize</code> module to perform lexical analysis. Lexical analysis
+                is the first phase of a compiler. It reads the raw stream of characters and groups them into meaningful
+                "tokens" (like IDENTIFIER, STRING, NUMBER, NEWLINE, COMMENT).</p>
+            <p>When Cherm processes your file, it doesn't look at lines of text; it looks at a stream of tokens. If it
+                sees a <code>tokenize.COMMENT</code> token, it increments the comment count. If it sees a
+                <code>tokenize.STRING</code> token that occurs as the very first statement inside a module, class, or
+                function, it correctly identifies it as a docstring and counts its line span towards the documentation
+                metric. This guarantees that a <code>#</code> symbol inside a printed string (e.g.,
+                <code>print("Order #123")</code>) is never accidentally counted as a comment line, a common flaw in
+                simpler regex-based statistic tools.</p>
+        </div>
+
+        <!-- ================================================================
+         FULL PENTEST
+    ================================================================ -->
+        <div id="pg-pentest" class="page">
+            <h2>Full Security Pentest</h2>
+            <p class="tagline">An orchestrated multi-tool security sweep using Bandit, Semgrep, and Safety — the
+                professional Python security toolkit.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What a CVE is: Common Vulnerabilities and Exposures, a publicly disclosed security vulnerability
+                        in a software package with a standardized identifier like CVE-2021-34552.</li>
+                    <li>What a Python package dependency is and what <code>requirements.txt</code> or
+                        <code>pyproject.toml</code> is used for.</li>
+                    <li>What "deserialization" means: the process of converting stored data back into a Python object.
+                        This is exploitable when the data source is untrusted (the attacker controls the serialized
+                        data).</li>
+                    <li>The concept of "severity levels": Critical, High, Medium, Low — how serious a vulnerability is
+                        based on its exploitability and potential impact.</li>
+                    <li>That Bandit, Semgrep, and Safety are separate tools that must be installed. Run:
+                        <code>pip install bandit semgrep safety</code></li>
+                </ul>
+            </div>
+
+            <h3>Why Run Three Tools Instead of One?</h3>
+            <p>No single security scanning tool catches everything. Each of the three tools uses a fundamentally
+                different analysis technique and catches different classes of vulnerabilities. Running all three
+                simultaneously gives you overlapping coverage — a vulnerability missed by Bandit's pattern library might
+                be caught by Semgrep's AST rules, and a safe-looking codebase might still have a vulnerable third-party
+                library caught by Safety.</p>
+
+            <h3>Tool 1: Bandit — Python-Specific AST Security Scanning</h3>
+            <p>Bandit walks your code's AST and applies a library of security test plugins. Each plugin looks for a
+                specific security anti-pattern that is uniquely problematic in Python:</p>
+            <ul>
+                <li><strong>B301 (pickle):</strong> The <code>pickle</code> module can execute arbitrary Python code
+                    when deserializing untrusted data. Any use of <code>pickle.loads()</code> on data from the network
+                    is a critical vulnerability.</li>
+                <li><strong>B324 (weak hashing):</strong> Using <code>hashlib.md5()</code> or
+                    <code>hashlib.sha1()</code> for security-sensitive purposes (password storage, digital signatures)
+                    is dangerous because both algorithms are cryptographically broken and subject to collision attacks.
+                </li>
+                <li><strong>B106 (hardcoded password):</strong> Flags string literals assigned to variables with names
+                    like "password", "passwd", or "secret".</li>
+                <li><strong>B608 (SQL injection):</strong> Detects string formatting used to construct SQL queries.</li>
+                <li><strong>B102 (exec):</strong> Flags use of the <code>exec()</code> built-in, which executes
+                    arbitrary Python code strings — a major risk if the input is user-controlled.</li>
+            </ul>
+
+            <h3>Tool 2: Semgrep — Universal AST Pattern Matching</h3>
+            <p>Semgrep is a static analysis engine that matches patterns directly against the Abstract Syntax Tree, not
+                raw text. This makes it far more precise than regex. A Semgrep rule can specify patterns like "find any
+                function call to <code>execute()</code> where the first argument is a string concatenation involving a
+                variable" — catching SQL injection even when expressed with f-strings, <code>%</code> formatting, or
+                <code>+</code> concatenation, without any false positives from string literal concatenations that are
+                safe.</p>
+            <p>Semgrep maintains an extensive community rule library covering not just security vulnerabilities but also
+                correctness issues and performance anti-patterns across Python, JavaScript, Java, Go, Ruby, and many
+                other languages.</p>
+
+            <h3>Tool 3: Safety — Dependency Vulnerability Database</h3>
+            <p>Safety checks your installed Python packages against PyUp.io's Safety DB, a continuously updated database
+                of publicly disclosed vulnerabilities in open-source Python packages. Even perfectly written application
+                code is insecure if it depends on a library with a known, unpatched vulnerability that an attacker can
+                trigger through your application's normal public interface.</p>
+            <p>Safety runs against either your currently installed environment (<code>pip freeze</code>) or a specific
+                <code>requirements.txt</code> file. For each vulnerable package found, it shows the CVE identifier, a
+                plain-English description of the vulnerability, the affected version range, and the minimum safe version
+                to upgrade to.</p>
+
+            <div class="terminal">
+                <span class="info">═══════════════════════════════════════════════
+                    CHERM FULL SECURITY PENTEST
+                    ═══════════════════════════════════════════════</span>
+                <span class="ok">[ OK ] Starting Bandit, Semgrep, and Safety in parallel threads...</span>
+                <span class="dim"> Running on shadow: app_d9f3a1b2.py</span>
+
+                <span class="info">────────────────────────────────────────────────
+                    BANDIT
+                    ────────────────────────────────────────────────</span>
+                <span class="fail">[CRITICAL] B301 — pickle.loads() on line 47
+                    Deserialization of untrusted data. An attacker who controls
+                    the session cookie can execute arbitrary code on your server.
+                    Fix: Use json.loads() instead for safe deserialization.</span>
+
+                <span class="warn">[HIGH] B324 — hashlib.md5() on line 92
+                    MD5 is cryptographically broken. Vulnerable to collision
+                    attacks. For passwords, use bcrypt. For checksums, use SHA-256.</span>
+
+                <span class="info">────────────────────────────────────────────────
+                    SEMGREP
+                    ────────────────────────────────────────────────</span>
+                <span class="warn">[HIGH] python.lang.security.audit.subprocess-shell-true
+                    subprocess.run() with shell=True on line 118. Command is
+                    partially constructed from function argument 'filename'.
+                    Fix: Use shell=False with a list of arguments.</span>
+
+                <span class="info">────────────────────────────────────────────────
+                    SAFETY — DEPENDENCY CHECK
+                    ────────────────────────────────────────────────</span>
+                <span class="fail">[CRITICAL] requests 2.19.1 — CVE-2018-18074
+                    Incorrect certificate reuse for redirect targets. Allows MITM.
+                    Fix: Upgrade to requests >= 2.20.0</span>
+
+                <span class="fail">[CRITICAL] Pillow 8.2.0 — CVE-2021-34552
+                    Stack buffer overflow via crafted TIFF file. Remote code exec.
+                    Fix: Upgrade to Pillow >= 9.0.0</span>
+
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="fail"> RESULT: 2 CRITICAL, 2 HIGH severity issues found.</span>
+            </div>
+
+            <h3>How to Act on Pentest Results</h3>
+            <ol class="step-list">
+                <li>Address <strong>CRITICAL</strong> issues before anything else. Unpatched critical vulnerabilities
+                    are actively exploited in the wild.</li>
+                <li>For dependency vulnerabilities (Safety results), update your <code>requirements.txt</code> to
+                    specify the minimum safe version and run <code>pip install -r requirements.txt --upgrade</code>.
+                </li>
+                <li>For code vulnerabilities (Bandit/Semgrep results), read the specific line flagged, understand the
+                    attack vector explained in the finding, and apply the fix described.</li>
+                <li>Re-run the pentest after each fix to confirm the finding is resolved and no new issues were
+                    introduced.</li>
+            </ol>
+        </div>
+
+        <!-- ================================================================
+         OWASP
+    ================================================================ -->
+        <div id="pg-owasp" class="page">
+            <h2>Security Audit (OWASP)</h2>
+            <p class="tagline">A zero-dependency, instant regex-based audit for the most critical web application
+                vulnerability patterns — no pip installs required.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What the OWASP Top 10 is: the Open Web Application Security Project's list of the 10 most
+                        critical web application security risks, updated periodically based on real-world vulnerability
+                        data.</li>
+                    <li>What SQL Injection is and how parameterized queries prevent it.</li>
+                    <li>What Command Injection is and why <code>subprocess.Popen(shell=False)</code> is safer than
+                        <code>os.system()</code>.</li>
+                    <li>What Path Traversal is and why user-supplied filenames must be sanitized with
+                        <code>os.path.basename()</code> before use.</li>
+                    <li>That regular expressions cannot understand code context — they only match text patterns, and can
+                        produce false positives on safe code that happens to match the pattern.</li>
+                </ul>
+            </div>
+
+            <h3>The OWASP Top 10 — Context for This Tool</h3>
+            <p>The OWASP Top 10 represents the categories of vulnerabilities responsible for the majority of real-world
+                web application breaches. Cherm's built-in OWASP audit specifically targets the following categories
+                (listed by risk priority):</p>
+
+            <h4>A01 — Broken Access Control</h4>
+            <p>When file path operations accept user-supplied filenames without sanitization, attackers can use path
+                traversal sequences (<code>../</code>) to read or write files outside the intended directory. Cherm
+                looks for <code>open(</code>, <code>os.path.join(</code>, <code>pathlib.Path(</code> calls where the
+                path argument contains a function parameter or variable rather than a pure string literal.</p>
+
+            <h4>A03 — Injection (SQL, Command, LDAP)</h4>
+            <p><strong>SQL Injection</strong> occurs when user data is concatenated directly into SQL query strings
+                instead of being passed as bound parameters. Cherm detects string concatenation (<code>+</code>),
+                f-string interpolation (<code>f"..."</code>), and <code>%</code> formatting used in the same expression
+                as SQL keywords (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>,
+                <code>WHERE</code>). Example attack payload: <code>' OR '1'='1' --</code> which turns a login check into
+                always-true.</p>
+            <p><strong>Command Injection</strong> occurs when user data is concatenated into shell command strings
+                passed to <code>os.system()</code>, <code>subprocess.run(shell=True)</code>, or <code>eval()</code>.
+                Cherm flags all occurrences of these functions where the argument is not a pure string literal. Example
+                attack payload: <code>; rm -rf / #</code> appended to a filename that gets passed to a shell command.
+            </p>
+
+            <h4>A02 — Cryptographic Failures</h4>
+            <p>Cherm flags the use of weak or deprecated cryptographic functions: MD5 and SHA1 for security purposes,
+                DES/3DES encryption, and random number generation using <code>random.random()</code> for security tokens
+                (which should use <code>secrets.token_hex()</code> instead).</p>
+
+            <div class="label">Example: Multiple OWASP Violations in One File</div>
+            <pre>import sqlite3, os, hashlib, random
+
+def login(username, password):
+    # VIOLATION: SQL Injection (A03)
+    query = f"SELECT * FROM users WHERE name='{username}'"
+    cursor.execute(query)
+
+def backup_file(filename):
+    # VIOLATION: Command Injection (A03)
+    os.system("cp source/ " + filename)
+
+def generate_token():
+    # VIOLATION: Weak Random (A02) — predictable, not cryptographically secure
+    return str(random.randint(100000, 999999))
+
+def hash_pw(password):
+    # VIOLATION: Weak Hash (A02) — MD5 is broken
+    return hashlib.md5(password.encode()).hexdigest()</pre>
+
+            <div class="terminal">
+                <span class="info">=== OWASP SECURITY AUDIT ===</span>
+
+                <span class="fail">[CRITICAL] SQL Injection (A03) — Line 5
+                    f-string interpolation in SQL query. Attacker can bypass authentication.
+                    Attack payload: username = "' OR '1'='1' --"
+                    Fix: Use cursor.execute("SELECT * FROM users WHERE name=?", (username,))</span>
+
+                <span class="fail">[CRITICAL] Command Injection (A03) — Line 9
+                    os.system() with string concatenation. Attacker can run any shell command.
+                    Attack payload: filename = "; cat /etc/passwd"
+                    Fix: Use subprocess.run(["cp", "source/", filename], shell=False)</span>
+
+                <span class="warn">[HIGH] Weak PRNG for Security (A02) — Line 13
+                    random.randint() is not cryptographically secure.
+                    Fix: Use secrets.token_hex(16) instead.</span>
+
+                <span class="warn">[HIGH] Weak Hash Algorithm (A02) — Line 17
+                    MD5 is cryptographically broken. Collisions are computationally feasible.
+                    Fix: Use bcrypt for passwords. Use hashlib.sha256() for checksums.</span>
+
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="fail"> RESULT: 2 CRITICAL, 2 HIGH issues found.</span>
+            </div>
+
+            <div class="alert alert-warn">
+                <strong>⚠️ Regex Limitations — Understand False Positives and Negatives</strong>
+                The OWASP audit uses regex to match text patterns. It does NOT understand code context.
+                <br><br>
+                <strong>False Positive example:</strong> <code>query = "SELECT " + column_name</code> where
+                <code>column_name</code> is a hardcoded constant from a trusted enum (not user input) will still be
+                flagged as SQL injection because the regex sees string concatenation with a SQL keyword.
+                <br><br>
+                <strong>False Negative example:</strong> SQL injection constructed across multiple lines and variables
+                (<code>part1 = "SELECT * FROM "; part2 = part1 + user_input; cursor.execute(part2)</code>) may not match
+                the single-line pattern and will be missed.
+                <br><br>
+                Always review each finding in context and apply developer judgement before acting.
+            </div>
+
+            <h3>Deep Dive: Modern Web Application Defense Strategies</h3>
+            <p>Fixing individual lines of code is treating the symptom. To truly secure a modern application, you must
+                adopt an overarching architectural defense strategy. The industry standard approach involves
+                <strong>Defense in Depth</strong>, meaning you do not rely on a single mitigation (like this regex
+                audit) but rather layer multiple independent security controls.</p>
+
+            <h4>Layer 1: The Code Level (What Cherm Does)</h4>
+            <p>The first line of defense is secure coding practices. This means never trusting user input. Ever. You
+                enforce this by:</p>
+            <ul>
+                <li><strong>Parameterized Queries:</strong> Using ORMs (like SQLAlchemy or Django ORM) or strict bound
+                    parameters in raw SQL (e.g., <code>?</code> in SQLite, <code>%s</code> in psycopg2) to ensure user
+                    input is treated as literal data, never executable code.</li>
+                <li><strong>Input Validation:</strong> Rejecting data that does not conform to strict type, length, and
+                    format requirements before it ever reaches your business logic.</li>
+                <li><strong>Context-Aware Encoding:</strong> When echoing user data back to the browser, it must be
+                    HTML-encoded to prevent Cross-Site Scripting (XSS). If echoing into a JavaScript block, it must be
+                    JS-encoded. Frameworks like React or Vue handle HTML encoding by default, but legacy templating
+                    engines often require manual effort.</li>
+            </ul>
+
+            <h4>Layer 2: The Network Level (WAF and Egress Filtering)</h4>
+            <p>Even if a developer makes a mistake and introduces a SQL injection, a <strong>Web Application Firewall
+                    (WAF)</strong> can often block the attack. WAFs inspect incoming HTTP traffic for malicious payloads
+                (like the classic <code>' OR '1'='1'</code> string) and drop the request before it hits your Python
+                server. Similarly, Egress Filtering ensures that if an attacker achieves Remote Code Execution (RCE) via
+                Command Injection, they cannot easily download further malware from the internet because outbound
+                connections from the server are blocked.</p>
+
+            <h4>Layer 3: The Environment Level (Least Privilege)</h4>
+            <p>If an attacker successfully executes SQL injection, what can they do? If your application connects to the
+                database as the <code>root</code> or <code>postgres</code> superuser, the attacker can drop tables, read
+                password hashes, or even execute OS commands on the database server. By applying the <strong>Principle
+                    of Least Privilege</strong>, your app should connect using a restricted user account that only has
+                <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> privileges on
+                specific tables, significantly limiting the blast radius of an injection flaw.</p>
+        </div>
+
+        <!-- ================================================================
+         SECRETS
+    ================================================================ -->
+        <div id="pg-secrets" class="page">
+            <h2>Scan for Secrets</h2>
+            <p class="tagline">Detect hardcoded API keys, passwords, and credentials in source code before they are
+                committed to version control.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What an API key is and why it is a credential: it authenticates your application with a
+                        third-party service. If stolen, an attacker can use your identity and incur costs or access your
+                        users' data.</li>
+                    <li>What environment variables are and how to use them safely:
+                        <code>os.environ.get("MY_SECRET_KEY")</code>.</li>
+                    <li>What Shannon Entropy is conceptually: a measure of randomness or unpredictability in a string.
+                        High entropy strings (like base64-encoded cryptographic keys) look very different from
+                        low-entropy natural language strings.</li>
+                    <li>Why deleting a secret from your current file is NOT sufficient if it was already committed to
+                        Git: Git preserves the complete history, and the secret remains permanently accessible via
+                        <code>git log</code> and by browsing any past commit.</li>
+                    <li>What a <code>.env</code> file and <code>.gitignore</code> are used for as part of a safe secrets
+                        management workflow.</li>
+                </ul>
+            </div>
+
+            <h3>The Real-World Stakes</h3>
+            <p>Exposed credentials in public GitHub repositories are exploited within seconds by automated bots. This is
+                not hypothetical — it is a well-documented and extremely common incident. Some documented real-world
+                consequences include:</p>
+            <ul>
+                <li>Developers receiving AWS bills of $50,000+ overnight because a crypto miner bot detected their AWS
+                    key and spun up hundreds of GPU instances.</li>
+                <li>Customer databases being exported by attackers who found a database connection string with an admin
+                    password in a public repository.</li>
+                <li>OAuth tokens being used to impersonate users and access their private data on third-party platforms.
+                </li>
+            </ul>
+            <p>Cherm's secret scanner is a lightweight, offline-first tool to catch these mistakes before they reach
+                your remote repository.</p>
+
+            <h3>Detection Method 1: Pattern Matching</h3>
+            <p>Many credential types have strongly distinctive structural patterns that can be detected with high
+                precision using regex:</p>
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Credential Type</th>
+                        <th>Pattern</th>
+                        <th>Example Match</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>AWS Access Key ID</td>
+                        <td><code>AKIA[0-9A-Z]{16}</code></td>
+                        <td>AKIAIOSFODNN7EXAMPLE</td>
+                    </tr>
+                    <tr>
+                        <td>GitHub Token (Classic)</td>
+                        <td><code>ghp_[a-zA-Z0-9]{36}</code></td>
+                        <td>ghp_GITHUB_API_PLACEHOLDER_KEY_HERE_</td>
+                    </tr>
+                    <tr>
+                        <td>GitHub OAuth Token</td>
+                        <td><code>gho_[a-zA-Z0-9]{36}</code></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Stripe Live Secret Key</td>
+                        <td><code>sk_live_[a-zA-Z0-9]{24}</code></td>
+                        <td>sk_live_51NqXxxx...</td>
+                    </tr>
+                    <tr>
+                        <td>Stripe Test Secret Key</td>
+                        <td><code>sk_test_[a-zA-Z0-9]{24}</code></td>
+                        <td>sk_test_STRIPE_API_PLACEHOLDER_KEY_</td>
+                    </tr>
+                    <tr>
+                        <td>RSA Private Key Header</td>
+                        <td><code>-----BEGIN RSA PRIVATE KEY-----</code></td>
+                        <td>The header of a PEM-encoded key file</td>
+                    </tr>
+                    <tr>
+                        <td>Generic JWT Token</td>
+                        <td>Three base64 segments separated by dots</td>
+                        <td>eyJhbGciOiJIUzI1NiJ9.eyJ...</td>
+                    </tr>
+                    <tr>
+                        <td>Slack Webhook URL</td>
+                        <td><code>hooks.slack.com/services/T</code></td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Detection Method 2: Heuristic Entropy Analysis</h3>
+            <p>For credentials that don't follow a fixed structural pattern (like database passwords or internal API
+                keys), Cherm looks for two conditions occurring simultaneously:</p>
+            <ol>
+                <li>The variable being assigned has a name that strongly suggests it is a credential: contains any of
+                    the words <code>password</code>, <code>passwd</code>, <code>secret</code>, <code>api_key</code>,
+                    <code>apikey</code>, <code>token</code>, <code>auth</code>, <code>private_key</code>,
+                    <code>access_key</code>.</li>
+                <li>The assigned value is a string with high Shannon Entropy — meaning it looks like a randomly
+                    generated credential rather than a readable word or short code snippet.</li>
+            </ol>
+            <p>Shannon Entropy is calculated as: <code>-∑ p(c) × log₂(p(c))</code> for each unique character in the
+                string. Natural language text has low entropy (predictable character distribution). Random cryptographic
+                tokens have high entropy (very unpredictable character distribution, scores typically above 4.5 bits per
+                character).</p>
+
+            <div class="label">Example Source Code</div>
+            <pre># Pattern match - instantly detected
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+STRIPE_KEY        = "sk_live_STRIPE_API_PLACEHOLDER_KEY"
+
+# Entropy analysis - detected via name + randomness
+DATABASE_PASSWORD = "Kx9@mP#zQ2vLr5nW8hJb"
+INTERNAL_API_KEY  = "7f3d9a2e8c4b1f6a0d5e2c9b8a7f3d1e"
+
+# Safe pattern - recognized as safe
+SAFE_KEY = os.environ.get("DATABASE_PASSWORD")
+ANOTHER  = config.get("api.key")</pre>
+
+            <div class="terminal">
+                <span class="info">=== SECRETS SCANNER ===</span>
+
+                <span class="fail">[CRITICAL] Line 2: AWS Access Key ID pattern detected (AKIA...)</span>
+                <span class="fail">[CRITICAL] Line 3: Stripe Live Secret Key pattern detected (sk_live_...)</span>
+                <span class="fail">[CRITICAL] Line 6: Variable 'DATABASE_PASSWORD' assigned high-entropy string
+                    (entropy=4.8)</span>
+                <span class="fail">[CRITICAL] Line 7: Variable 'INTERNAL_API_KEY' assigned high-entropy hex
+                    string</span>
+                <span class="ok">[ OK ] Line 10: os.environ.get() pattern — safe, credential loaded from
+                    environment.</span>
+                <span class="ok">[ OK ] Line 11: config.get() pattern — safe, credential loaded from config
+                    system.</span>
+
+                <span class="fail">RESULT: 4 credentials detected. Remove immediately and rotate all keys.</span>
+            </div>
+
+            <h3>The Safe Secrets Management Workflow</h3>
+            <p>After removing hardcoded secrets from your code, use this approach going forward:</p>
+            <ol class="step-list">
+                <li>Create a <code>.env</code> file in your project root containing your secrets:
+                    <code>DATABASE_PASSWORD=Kx9@mP...</code></li>
+                <li>Add <code>.env</code> to your <code>.gitignore</code> file so it is never committed. Verify it's
+                    ignored with <code>git status</code>.</li>
+                <li>Install <code>python-dotenv</code>: <code>pip install python-dotenv</code></li>
+                <li>At the start of your script, load the environment:
+                    <code>from dotenv import load_dotenv; load_dotenv()</code></li>
+                <li>Access secrets via <code>os.environ.get("DATABASE_PASSWORD")</code> anywhere in your code. If the
+                    value is None, the secret wasn't loaded — fail loudly rather than silently using an empty string.
+                </li>
+                <li>Create a <code>.env.example</code> file (safe to commit) showing the key names without real values,
+                    so teammates know what environment variables to configure.</li>
+            </ol>
+
+            <div class="alert alert-danger">
+                <strong>⚠️ IF THE SECRET WAS ALREADY PUSHED TO GITHUB — ROTATE IMMEDIATELY</strong>
+                Deleting the secret from your current file and committing the deletion is NOT sufficient. Git history
+                preserves every version of every file. Anyone who knows to look can find the secret using
+                <code>git log -p</code> or by browsing to an old commit on GitHub. The only correct response is:
+                <br><br>
+                1. <strong>Immediately revoke/rotate the key</strong> through your cloud provider or service dashboard.
+                Do this first, before doing anything else. The key is already compromised the moment it was public.
+                <br><br>
+                2. Remove the secret from Git history using BFG Repo Cleaner or <code>git filter-branch</code>. This is
+                complex and requires force-pushing, which rewrites history for all collaborators.
+                <br><br>
+                3. Notify your team and any affected users if the secret provided access to their data.
+            </div>
+
+            <h3>Enterprise Secrets Management Architecture</h3>
+            <p>As applications scale beyond simple scripts, managing secrets via <code>.env</code> files becomes a
+                liability. How do you distribute the <code>.env</code> file to 50 developers securely? How do you rotate
+                a database password across 10 microservices simultaneously without downtime? Enterprise teams move
+                beyond local environment variables to centralized secrets management architectures.</p>
+
+            <h4>The HashiCorp Vault / AWS Secrets Manager Model</h4>
+            <p>In a mature architecture, the application code itself contains no secrets. Not even in environment
+                variables loaded at boot. Instead, the application only possesses an identity (like an AWS IAM Role
+                attached to its EC2 instance or Kubernetes Pod). The workflow looks like this:</p>
+            <ol>
+                <li>The application boots up.</li>
+                <li>Using its IAM Role, it authenticates to a central secrets vault (like AWS Secrets Manager, Azure Key
+                    Vault, or HashiCorp Vault).</li>
+                <li>It requests the database credentials.</li>
+                <li>The vault dynamically generates a temporary database password valid for only 1 hour, hands it to the
+                    application, and registers the password with the database.</li>
+                <li>The application connects and does its work. If the password is leaked, it becomes useless in 60
+                    minutes anyway.</li>
+            </ol>
+
+            <h4>Why This Matters to You</h4>
+            <p>Even if you are writing a small Python script today, building the habit of abstracting configuration away
+                from logic is critical. By using <code>os.environ.get()</code>, you decouple the secret from the code.
+                Later, if you deploy this script to AWS Lambda or Google Cloud Functions, you simply inject those
+                environment variables through the cloud console, and your code requires zero changes. This is the core
+                philosophy behind the <strong>Twelve-Factor App</strong> methodology for building SaaS applications.</p>
+        </div>
+
+        <!-- ================================================================
+         EXECUTE FILE
+    ================================================================ -->
+        <div id="pg-exec" class="page">
+            <h2>Execute File / Run</h2>
+            <p class="tagline">Run your code directly from the Cherm file browser with full interactive terminal support
+                — no context switching required.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>How to run programs from the terminal: <code>python script.py</code>, <code>./binary</code>,
+                        <code>node app.js</code>.</li>
+                    <li>What stdin, stdout, and stderr are: the three standard communication channels of a process
+                        (standard input, standard output, and standard error output).</li>
+                    <li>What an exit code is: programs conventionally return 0 on success and a non-zero integer on
+                        failure. Exit code 1 is a generic error. Python scripts exit with code 1 on uncaught exceptions.
+                    </li>
+                    <li>What <code>subprocess.run()</code> does in Python: spawns a new operating system process and
+                        optionally waits for it to complete.</li>
+                </ul>
+            </div>
+
+            <h3>The Use Case: Rapid Iteration Without Context Switching</h3>
+            <p>Every context switch between your code editor and your terminal has a cost — even if it is small, it
+                breaks your concentration and adds friction to the edit-run-debug loop. When you are rapidly iterating
+                on a script — make a fix, run it, see the output, make another fix — keeping that loop as tight as
+                possible directly affects developer productivity and focus.</p>
+            <p>Cherm's Execute feature collapses the context switch into a single keypress. You are already in Cherm
+                reviewing the file. You press ENTER on "Execute". Your script runs. You see the output. You press ENTER
+                again to return to Cherm. The entire loop without opening a second terminal.</p>
+            <p>This is especially valuable for:</p>
+            <ul>
+                <li>Scripts that accept interactive user input (<code>input()</code> calls).</li>
+                <li>CLI tools being tested with manual inputs.</li>
+                <li>Data processing scripts where you want to immediately verify the output after a logic change.</li>
+                <li>Developers working in SSH sessions where splitting the terminal into panes isn't always practical.
+                </li>
+            </ul>
+
+            <h3>The Technical Process: What Happens During Execution</h3>
+            <ol class="step-list">
+                <li><strong>curses teardown:</strong> Cherm calls <code>curses.endwin()</code> to gracefully exit curses
+                    mode. This restores the terminal to its normal, line-buffered "cooked mode" where regular text input
+                    and output work as expected.</li>
+                <li><strong>Header display:</strong> Cherm prints a visual separator and the filename being executed, so
+                    you have a clear visual cue that execution has begun and which file is running.</li>
+                <li><strong>Execution prefix selection:</strong> Cherm determines the correct command based on file
+                    extension: <code>.py</code> → <code>python</code> (or <code>python3</code>), <code>.js</code> →
+                    <code>node</code>, <code>.sh</code> → <code>bash</code>, compiled binaries → direct path execution.
+                </li>
+                <li><strong>Process spawn:</strong> <code>subprocess.run(command, shell=True)</code> is called with
+                    inherited stdin, stdout, and stderr from the parent Cherm process. Your script runs with full access
+                    to the terminal — your script's <code>input()</code> waits for you to type, and <code>print()</code>
+                    writes directly to your screen.</li>
+                <li><strong>Wait for completion:</strong> Cherm blocks until your script exits. The exit code is
+                    captured.</li>
+                <li><strong>Result display:</strong> The exit code is displayed. Exit code 0 = OK (green). Any other
+                    exit code = Error (red).</li>
+                <li><strong>Pause for user:</strong> Cherm prints "Press ENTER to return to Cherm..." and waits for you
+                    to review the output before the curses UI is re-drawn.</li>
+            </ol>
+
+            <div class="terminal">
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+                <span class="info"> Cherm Execute — Running: python data_processor.py</span>
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+                Loading dataset from data/sales_2024.csv...
+                Processing 48,320 rows...
+                Applying filters: region=APAC, year>=2023
+                Aggregating by product category...
+
+                Results summary:
+                Electronics : $4,821,300 (+12.4% YoY)
+                Clothing : $2,104,600 ( -3.1% YoY)
+                Food &amp; Bev : $1,893,200 (+28.7% YoY)
+
+                Output saved to results/sales_summary_2024.csv
+
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+                <span class="ok"> [ OK ] Process exited with code 0</span>
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+
+                Press ENTER to return to Cherm...
+            </div>
+
+            <h3>Reading Crash Output</h3>
+            <p>When your script crashes, Python will write the full traceback to stderr, which is displayed directly on
+                screen before the "Press ENTER" prompt. The traceback tells you exactly which line caused the crash and
+                what the exception was. For example:</p>
+
+            <div class="terminal">
+                <span class="fail">Traceback (most recent call last):
+                    File "data_processor.py", line 47, in &lt;main&gt;
+                    results = aggregate(filtered_data, key="category")
+                    File "data_processor.py", line 112, in aggregate
+                    return {k: sum(v) / len(v) for k, v in data.items()}
+                    ZeroDivisionError: division by zero</span>
+
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+                <span class="fail"> [!!] Process exited with code 1 (error)</span>
+                <span class="dim">────────────────────────────────────────────────────────────────</span>
+
+                Press ENTER to return to Cherm...
+            </div>
+
+            <p>This traceback tells you the crash occurred on line 112 of <code>data_processor.py</code>, inside the
+                <code>aggregate</code> function, due to a ZeroDivisionError — meaning one of the value lists in
+                <code>data</code> is empty. Fix the empty list guard, return to your editor, save, come back to Cherm,
+                and re-run.</p>
+
+            <div class="alert alert-info">
+                <strong>ℹ️ Execution Uses the REAL file, not the shadow copy</strong>
+                Unlike all analysis tools, the Execute feature runs your original source file directly, not the shadow
+                copy. This is correct behavior — your program needs to be in its real location on disk so that relative
+                file paths, local imports, and configuration file references all resolve correctly. Shadow copies are in
+                a temp folder with altered filenames, which would break most non-trivial scripts.
+            </div>
+
+            <h3>Deep Dive: Process Lifecycle and OS-Level Isolation</h3>
+            <p>When you trigger the Execute function, Cherm is acting as a parent process spawning a child process.
+                Understanding this process tree is fundamental to systems programming.</p>
+
+            <h4>Memory Isolation</h4>
+            <p>Because Cherm uses <code>subprocess.run()</code>, the executed script runs in an entirely separate memory
+                space. If your script has a catastrophic memory leak that consumes 16GB of RAM and is killed by the OS
+                Out-Of-Memory (OOM) killer, Cherm itself remains unaffected and responsive. If Cherm had attempted to
+                run your script using Python's <code>exec()</code> within the same process, a crash in your script would
+                crash the entire Cherm IDE.</p>
+
+            <h4>File Descriptor Inheritance</h4>
+            <p>Why does the <code>print()</code> statement in your script appear on your screen, even though it's
+                running in a separate process? When an operating system forks a new process, the child inherits the
+                parent's standard file descriptors: 0 (stdin), 1 (stdout), and 2 (stderr). Cherm deliberately does not
+                capture or redirect these streams. As a result, the OS routes the child process's output directly to the
+                terminal emulator you are viewing, bypassing Cherm's internal logic entirely. This is why interactive
+                scripts with <code>input()</code> work flawlessly.</p>
+
+            <h4>The Role of the Exit Code</h4>
+            <p>The exit code (status code) is the only piece of information a child process is guaranteed to pass back
+                to its parent. In POSIX systems (Linux, macOS, Unix), this is an 8-bit integer (0-255). Python abstracts
+                this: if a script finishes normally, it calls <code>sys.exit(0)</code> implicitly. If an unhandled
+                exception reaches the top of the stack, the Python interpreter prints the traceback to stderr and calls
+                <code>sys.exit(1)</code>. Cherm captures this integer to color-code the success/failure message at the
+                end of the run.</p>
+        </div>
+
+        <!-- ================================================================
+         API STATUS SCANNER
+    ================================================================ -->
+        <div id="pg-api" class="page">
+            <h2>API Status Scanner</h2>
+            <p class="tagline">Extract every URL from your source file and fire concurrent HTTP health checks to verify
+                which endpoints are alive and responsive.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What HTTP status codes mean: 200 (OK — success), 201 (Created), 204 (No Content), 301/302
+                        (Redirect), 400 (Bad Request), 401 (Unauthorized — no credentials provided), 403 (Forbidden —
+                        credentials provided but insufficient), 404 (Not Found), 429 (Too Many Requests — rate limited),
+                        500 (Internal Server Error).</li>
+                    <li>What "link rot" is: the gradual breakdown of URLs as pages move, APIs are deprecated, or servers
+                        shut down.</li>
+                    <li>What DNS resolution is: the process of converting a domain name like
+                        <code>api.example.com</code> into an IP address. A DNS failure means the domain cannot be found
+                        at all on the network.</li>
+                    <li>What a timeout is: the maximum time a client will wait for a server to respond before giving up
+                        and reporting an error.</li>
+                    <li>What concurrency means in the context of HTTP requests: making multiple requests simultaneously
+                        in parallel rather than one after another in sequence.</li>
+                </ul>
+            </div>
+
+            <h3>Why API Health Checking is an Ongoing Need</h3>
+            <p>Modern applications depend on a growing ecosystem of external APIs — payment processors, notification
+                services, data providers, mapping services, authentication providers, cloud storage, analytics
+                platforms. Each of these integrations introduces a URL that is hardcoded somewhere in your codebase.
+                Over the lifecycle of a project, these URLs accumulate. Some get deprecated and replaced. Some move to
+                new domains or new API versions. Some services shut down entirely.</p>
+            <p>A broken API endpoint in your code does not produce a compilation error or a static analysis warning — it
+                only fails at runtime, when a user triggers that specific code path, often in production during peak
+                traffic. The API Status Scanner gives you a systematic way to health-check all of your external
+                dependencies in one sweep.</p>
+
+            <h3>URL Extraction Process</h3>
+            <p>Cherm uses the regex pattern <code>https?://[^\s'"&lt;&gt;,\)]+</code> applied to the entire file as a
+                flat text string (not parsed by AST). This means it extracts URLs from:</p>
+            <ul>
+                <li>String literals assigned to variables (<code>API_URL = "https://..."</code>)</li>
+                <li>String literals in function calls (<code>requests.get("https://...")</code>)</li>
+                <li>Comment lines (<code># See docs at https://...</code>)</li>
+                <li>Docstrings that reference endpoint documentation</li>
+                <li>F-strings (the static prefix portion before variables is extracted)</li>
+            </ul>
+
+            <h3>Concurrent HTTP Health Checks</h3>
+            <p>Once the URL list is built, Cherm spawns one Python thread per URL (up to a reasonable concurrency limit
+                to avoid flooding the network). Each thread performs a GET request using
+                <code>urllib.request.urlopen()</code> with a 5-second connection timeout. The thread records:</p>
+            <ul>
+                <li>The HTTP status code returned by the server</li>
+                <li>The response latency in milliseconds (wall clock time from request start to first byte received)
+                </li>
+                <li>Any exception message if the request failed (DNS resolution failure, connection refused, timeout,
+                    SSL error)</li>
+            </ul>
+
+            <div class="terminal">
+                <span class="info">═══════════════════════════════════════════════
+                    API STATUS SCANNER — 6 URLs Found
+                    ═══════════════════════════════════════════════</span>
+                <span class="dim">Firing concurrent health checks (timeout: 5s)...</span>
+
+                <span class="ok">[ OK ] 200 38ms https://api.github.com/users</span>
+                <span class="ok">[ OK ] 200 110ms https://api.stripe.com/v1</span>
+                <span class="ok">[ OK ] 200 204ms https://maps.googleapis.com/maps/api/geocode/json</span>
+                <span class="warn">[WARN] 401 72ms https://api.sendgrid.com/v3/mail/send</span>
+                <span class="fail">[FAIL] 404 188ms https://old-api.mycompany.com/v1/customers</span>
+                <span class="warn">[ERR ] DNS N/A https://internal.payments.mycompany.local/ (Name not known)</span>
+
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                <span class="fail"> 2 of 6 URLs are unreachable. Review and update.</span>
+            </div>
+
+            <h3>Interpreting the Results</h3>
+            <ul>
+                <li><strong>200 OK:</strong> The endpoint is alive and responding normally. No action needed.</li>
+                <li><strong>401 Unauthorized:</strong> The endpoint exists and is reachable, but your request lacks
+                    authentication. This is actually a healthy response — it confirms the URL is valid. The 401 is
+                    expected if you're hitting an authenticated endpoint without credentials in the GET request.</li>
+                <li><strong>403 Forbidden:</strong> The endpoint exists and authentication was provided, but access is
+                    denied. Similar to 401 — not a URL problem, an auth problem.</li>
+                <li><strong>404 Not Found:</strong> The server was reached, but the specific resource path doesn't
+                    exist. This URL in your code is broken — update or remove it.</li>
+                <li><strong>DNS Error:</strong> The domain name could not be resolved. Either the domain no longer
+                    exists, the service was shut down, or you are trying to reach an internal service URL that is only
+                    accessible inside a specific network (like a VPN or company intranet).</li>
+                <li><strong>Timeout:</strong> The server didn't respond within 5 seconds. This could be a slow server, a
+                    firewall blocking the request, or a service under heavy load. Check manually in a browser.</li>
+            </ul>
+
+            <div class="alert alert-warn">
+                <strong>⚠️ Authentication-Protected Endpoints</strong>
+                The scanner fires unauthenticated GET requests. Endpoints that require API keys in headers or JWT tokens
+                in Authorization headers will return 401 or 403. These are not broken — they are correctly rejecting an
+                unauthorized request. A 401 from an API endpoint is actually a positive health signal: it confirms the
+                server is up, the route exists, and authentication is working as expected.
+            </div>
+        </div>
+
+        <!-- ================================================================
+         VIEW RAW FILE
+    ================================================================ -->
+        <div id="pg-view" class="page">
+            <h2>View Raw File</h2>
+            <p class="tagline">A lightweight, integrated terminal pager for reading any text file directly within the
+                Cherm UI without invoking an external editor.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What a "pager" is in Unix traditions: tools like <code>less</code> and <code>more</code> that
+                        display file content one screenful at a time, allowing scrolling without loading the entire file
+                        visually.</li>
+                    <li>The difference between text files (human-readable source code, config files, logs) and binary
+                        files (compiled executables, images). The raw viewer is designed for text files only.</li>
+                    <li>What "viewport rendering" means: only drawing the lines currently visible on screen rather than
+                        the entire file, which enables smooth scrolling even for very large files.</li>
+                </ul>
+            </div>
+
+            <h3>When to Use the Raw File Viewer</h3>
+            <p>The Raw File Viewer is a speed tool. It answers the question "what is in this file?" without the overhead
+                of launching a full editor. Use it for:</p>
+            <ul>
+                <li><strong>Configuration files:</strong> Quickly check what's in a <code>.env.example</code>,
+                    <code>config.yaml</code>, or <code>settings.json</code> without opening your editor.</li>
+                <li><strong>Log files:</strong> Read through server logs, error logs, or test output files to identify
+                    patterns or specific error messages.</li>
+                <li><strong>README and documentation files:</strong> Preview markdown documentation files, changelogs,
+                    or license files.</li>
+                <li><strong>Output verification:</strong> After running a data processing script, immediately view the
+                    output file in the same Cherm session.</li>
+                <li><strong>Unfamiliar files:</strong> Before deciding to analyze or run a file, quickly skim its
+                    content to understand what it is.</li>
+            </ul>
+
+            <h3>Navigation Controls in the Viewer</h3>
+            <ul>
+                <li><strong>↑ Arrow:</strong> Scroll up one line.</li>
+                <li><strong>↓ Arrow:</strong> Scroll down one line.</li>
+                <li><strong>Page Up / U:</strong> Scroll up one full screenful (height of the terminal minus
+                    header/footer).</li>
+                <li><strong>Page Down / D:</strong> Scroll down one full screenful.</li>
+                <li><strong>Home / G (lowercase g):</strong> Jump to the very beginning of the file (line 1).</li>
+                <li><strong>End / Shift+G:</strong> Jump to the very end of the file (last line).</li>
+                <li><strong>← / → Arrow:</strong> Horizontal scroll for lines wider than the terminal width.</li>
+                <li><strong>Q or Backspace:</strong> Exit the viewer and return to the Action Menu.</li>
+            </ul>
+
+            <h3>Performance Characteristics</h3>
+            <p>The Raw File Viewer reads the entire file into memory as a Python list of strings (one string per line)
+                at startup. This means the initial load time scales with file size — a 10MB log file will take a
+                fraction of a second to load, while a 1GB file may take several seconds. However, once loaded, scrolling
+                is always instantaneous because it only asks curses to render 40–50 lines at a time regardless of total
+                file size.</p>
+            <p>The current position in the file is always shown in the status bar as both a line number
+                (<code>Line 1,240 / 48,320</code>) and a percentage (<code>2.6%</code>), giving you a sense of position
+                within the file at all times.</p>
+
+            <div class="alert alert-info">
+                <strong>ℹ️ Binary Files Will Display Garbage</strong>
+                If you accidentally open a compiled binary, a compressed archive, an image, or any other non-text file
+                with the Raw File Viewer, the terminal will display the binary data interpreted as text characters —
+                mostly garbled noise and control characters. This is harmless (it won't crash Cherm or corrupt
+                anything), but it is not useful. Press Q to exit the viewer immediately if this happens.
+            </div>
+
+            <h3>Deep Dive: Pager Memory Management and Terminal Rendering</h3>
+            <p>The concept of a "pager" dates back to the early days of Unix when terminals were physical teletype
+                machines printing on paper. The command <code>cat</code> (concatenate) would dump the whole file to the
+                printer, wasting reams of paper. Pagers like <code>more</code> and later <code>less</code> were invented
+                to pause the output after one screenful.</p>
+            <p>Cherm implements its own modern virtual pager using <code>curses</code>. When you view a file, Cherm
+                maintains a "viewport" — a sliding window defined by a <code>start_line</code> index and the terminal's
+                physical height (usually 24 to 50 rows). Every time you press the Down arrow, Cherm increments
+                <code>start_line</code> by 1.</p>
+            <p>Critically, the <code>curses</code> library uses a <strong>double-buffering</strong> technique. When you
+                scroll, Cherm clears an off-screen memory buffer, writes the 40 lines of text into that buffer, and then
+                calls <code>screen.refresh()</code>. The curses engine then calculates the <em>diff</em> between the
+                off-screen buffer and what is currently displayed on your physical screen, and sends only the minimal
+                terminal escape sequences required to update the changed characters. This differential rendering is what
+                allows terminal UIs to feel so blazing fast even over slow SSH connections.</p>
+        </div>
+
+        <!-- ================================================================
+         COPY PATH
+    ================================================================ -->
+        <div id="pg-copy" class="page">
+            <h2>Copy Path to Clipboard</h2>
+            <p class="tagline">Instantly copy the absolute path of any file to your OS clipboard directly from the Cherm
+                file browser.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>The difference between a relative path (<code>./scripts/deploy.sh</code>) and an absolute path
+                        (<code>C:\Users\Alice\projects\app\scripts\deploy.sh</code>). Relative paths break when the
+                        working directory changes; absolute paths are valid from anywhere in the system.</li>
+                    <li>What the OS clipboard is: a system-level temporary storage buffer maintained by the operating
+                        system that allows copy-paste operations between applications.</li>
+                    <li>Why absolute paths are critical for CI/CD configurations, Docker volume mounts, cron jobs, and
+                        shell scripts that may be executed from varying working directories.</li>
+                </ul>
+            </div>
+
+            <h3>When You Need This Feature</h3>
+            <p>Developers frequently need to paste file paths into contexts outside their code editor:</p>
+            <ul>
+                <li>Configuring a Docker bind mount: <code>volumes: - /absolute/path/to/data:/app/data</code></li>
+                <li>Writing a <code>cron</code> job: <code>0 2 * * * /absolute/path/to/script.py</code> — cron runs
+                    without a working directory, so relative paths don't work.</li>
+                <li>Configuring rsync for backups: <code>rsync -av /absolute/source/ user@server:/backup/</code></li>
+                <li>Creating symlinks: <code>ln -s /absolute/target/path /link/location</code></li>
+                <li>Setting a <code>PYTHONPATH</code> environment variable to include a specific directory.</li>
+                <li>Sending a file path to a teammate via chat for precise identification of a file location.</li>
+            </ul>
+
+            <h3>How it Works — OS Detection and Clipboard Access</h3>
+            <p>Cherm first calls <code>os.path.abspath(filepath)</code> to resolve the canonical, fully absolute path.
+                It then detects the operating system using <code>os.name</code> (<code>nt</code> for Windows,
+                <code>posix</code> for Linux/Mac):</p>
+
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Platform</th>
+                        <th>Method</th>
+                        <th>Command</th>
+                        <th>Requires Install?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Windows</td>
+                        <td>Pipe to clip.exe</td>
+                        <td><code>echo [path] | clip</code></td>
+                        <td>No (built-in)</td>
+                    </tr>
+                    <tr>
+                        <td>macOS</td>
+                        <td>Pipe to pbcopy</td>
+                        <td><code>echo [path] | pbcopy</code></td>
+                        <td>No (built-in)</td>
+                    </tr>
+                    <tr>
+                        <td>Linux (with X11)</td>
+                        <td>Pipe to xclip</td>
+                        <td><code>echo [path] | xclip -selection clipboard</code></td>
+                        <td>Yes: <code>apt install xclip</code></td>
+                    </tr>
+                    <tr>
+                        <td>Linux (Wayland)</td>
+                        <td>Pipe to wl-copy</td>
+                        <td><code>echo [path] | wl-copy</code></td>
+                        <td>Yes: <code>apt install wl-clipboard</code></td>
+                    </tr>
+                    <tr>
+                        <td>Linux (headless SSH)</td>
+                        <td>Fails gracefully</td>
+                        <td>No display available</td>
+                        <td>N/A — display clipboard unavailable</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>On Linux headless servers (accessed via SSH without X11 forwarding), the clipboard is not accessible
+                because there is no display server. In this case, Cherm displays the path as text on the screen so you
+                can manually select and copy it using your SSH client's terminal selection.</p>
+
+            <div class="tip-box">
+                <strong>💡 Pro Tip:</strong> On Linux, if you regularly need clipboard support over SSH, launch your SSH
+                session with X11 forwarding enabled: <code>ssh -X user@server</code>. This tunnels the X11 display
+                protocol over SSH, allowing clipboard access from the remote server.
+            </div>
+
+            <h3>Deep Dive: X11 Selection Buffers vs Wayland Clipboards</h3>
+            <p>While copy-pasting feels like a universal operating system feature, its underlying architecture is highly
+                fragmented, which is why Cherm has to dynamically branch its logic.</p>
+            <p>On Windows and macOS, the clipboard is a centralized OS service. Programs simply make a system call to
+                read or write data to it.</p>
+            <p>On Linux running the older <strong>X11</strong> display server, there is no centralized clipboard.
+                Instead, X11 uses "Selection Buffers" (PRIMARY, SECONDARY, and CLIPBOARD). When you copy text, the
+                application doesn't send the text to a central server; instead, it tells the X server "I own the
+                CLIPBOARD selection." When another application wants to paste, it asks the X server "Who owns the
+                CLIPBOARD?", contacts that application, and requests the data. If the application you copied from closes
+                before you paste, the text is lost! This is why Cherm shells out to <code>xclip</code>, which
+                artificially keeps itself alive just long enough to serve the selection to the next paste request.</p>
+            <p>Modern Linux uses <strong>Wayland</strong>, which fundamentally redesigned this for security. In Wayland,
+                applications cannot snoop on each other's clipboards without the compositor's explicit permission.
+                Wayland uses the <code>wl-clipboard</code> protocol to manage this exchange securely.</p>
+        </div>
+
+        <!-- ================================================================
+         GIT COMMAND CENTER
+    ================================================================ -->
+        <div id="pg-gitcmd" class="page">
+            <h2>Git Command Center</h2>
+            <p class="tagline">Stage files, write commit messages, and restore changes — directly from the Cherm file
+                browser without opening a separate terminal.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>The three Git areas and what they mean: <strong>Working Directory</strong> (your files as they
+                        are right now), <strong>Staging Area / Index</strong> (changes marked for the next commit),
+                        <strong>Repository / .git</strong> (the permanent history of commits).</li>
+                    <li>What <code>git add [file]</code> does: moves the current changes to the named file from the
+                        Working Directory into the Staging Area.</li>
+                    <li>What <code>git commit -m "message"</code> does: takes everything in the Staging Area and creates
+                        a permanent, hash-addressed snapshot in the Repository with a descriptive message.</li>
+                    <li>What <code>git restore [file]</code> does: <strong>irreversibly</strong> discards all unstaged
+                        changes to the named file, reverting it to the state it was in at the last commit (HEAD). This
+                        cannot be undone — the changes are permanently lost.</li>
+                    <li>What a good commit message looks like: short present-tense summary, optionally followed by a
+                        blank line and a longer explanation. Example: "Fix ZeroDivisionError in calculate_average when
+                        input list is empty".</li>
+                </ul>
+            </div>
+
+            <h3>Why Git Integration Inside Cherm Matters</h3>
+            <p>The optimal professional Git workflow involves making small, focused, single-purpose commits rather than
+                large, sprawling commits that touch many different aspects of the codebase. A commit should represent a
+                single logical change: "Fix the login bug", "Add email validation", "Refactor the payment module". This
+                granularity makes the commit history readable, makes bugs traceable to specific changes, and makes git
+                bisect (finding which commit introduced a bug) practical.</p>
+            <p>Achieving this granularity requires the habit of staging and committing individual files frequently — as
+                soon as each piece of work is complete. The Git Command Center makes this workflow frictionless: you are
+                already in Cherm reviewing the file, you confirmed it's clean, and you commit it right there without any
+                additional context switching.</p>
+
+            <h3>Available Commands — Detailed</h3>
+
+            <h4>Git Add (Stage File)</h4>
+            <p>Executes <code>git add [absolute_path_of_file]</code> targeting specifically the file you have selected
+                in the browser, not all changed files. This is the correct approach for granular commits — add and
+                commit files one at a time or in logically related groups rather than staging everything with
+                <code>git add .</code>.</p>
+            <p>After running Git Add, you can verify the staging with <code>git status</code> in another terminal. The
+                file will appear under "Changes to be committed" in green text.</p>
+
+            <h4>Git Restore (Discard Changes)</h4>
+            <p>Executes <code>git restore [absolute_path_of_file]</code> on the selected file. This reverts the Working
+                Directory version of the file to exactly match the HEAD version (the last committed state). Any edits
+                you made since the last commit are permanently lost.</p>
+            <p>Use this when: you made speculative changes to test a hypothesis and the hypothesis was wrong; you
+                accidentally introduced a regression and want to start clean; you modified the wrong file and want to
+                undo the accidental changes.</p>
+            <p><strong>Warning:</strong> There is no undo for git restore on unstaged changes. Once you run this, your
+                uncommitted changes are gone. If there's any doubt, use the Diff Viewer first to confirm exactly what
+                you are about to discard.</p>
+
+            <h4>Git Commit</h4>
+            <p>Opens a minimal text input bar at the bottom of the Cherm screen. Type your commit message and press
+                ENTER. Cherm then executes <code>git commit -m "[your message]"</code>. Critically, this commits
+                <em>everything currently in the Staging Area</em>, not just the file you have selected. Ensure you have
+                only staged the files you intend to commit before running this.</p>
+
+            <div class="terminal">
+                <span class="dim"># Cherm drops briefly to terminal to show Git output</span>
+
+                <span class="dim">────────────────────────────────────────────────</span>
+                <span class="info"> Cherm Git — Running: git commit -m "Fix ZeroDivisionError in
+                    calculate_average"</span>
+                <span class="dim">────────────────────────────────────────────────</span>
+                <span class="ok">[main 7f3d9a2] Fix ZeroDivisionError in calculate_average
+                    1 file changed, 3 insertions(+), 1 deletion(-)</span>
+
+                <span class="dim">────────────────────────────────────────────────</span>
+                <span class="ok"> [ OK ] Commit successful.</span>
+                <span class="dim">────────────────────────────────────────────────</span>
+            </div>
+
+            <h3>Writing Good Commit Messages</h3>
+            <p>A commit message is a permanent record that will be read by other developers (and your future self)
+                during debugging, code review, and audit. Invest 30 seconds in writing a clear message:</p>
+            <ul>
+                <li><strong>Use present tense:</strong> "Fix bug" not "Fixed bug". The commit represents a change,
+                    described in the imperative form of what it does.</li>
+                <li><strong>Be specific:</strong> "Fix ZeroDivisionError in calculate_average when input list is empty"
+                    is 10x more useful than "Fix bug".</li>
+                <li><strong>Reference the problem, not the solution:</strong> "Handle empty list case in average
+                    calculation" tells a reader what was wrong and what was done, without requiring them to read the
+                    diff to understand the context.</li>
+                <li><strong>Keep the first line under 72 characters:</strong> Git log displays commit subjects in a
+                    fixed-width column, and lines over 72 chars get truncated.</li>
+            </ul>
+
+            <div class="alert alert-warn">
+                <strong>⚠️ The file must be inside a Git repository</strong>
+                All Git operations require a <code>.git</code> directory to exist in the file's directory or any parent
+                directory in the path. If you run a Git operation on a file outside of a Git repository, the
+                <code>git</code> command will fail and Cherm will display the error output from Git. Initialize a
+                repository first with <code>git init</code> from the project root.
+            </div>
+
+            <h3>Deep Dive: The Object Database and Merkle Trees</h3>
+            <p>When you use Cherm's "Git Add" and "Git Commit" features, it feels like you are saving files. In reality,
+                you are interacting with a cryptographic <strong>Merkle Tree</strong> stored inside the hidden
+                <code>.git/objects/</code> directory.</p>
+            <p>Git does not store diffs; it stores snapshots. When you execute <code>git add my_file.py</code>, Git
+                takes the entire content of that file, compresses it with zlib, calculates its SHA-1 hash (e.g.,
+                <code>7f3d9a...</code>), and saves it as a "blob" object in the database. The Staging Area (or Index) is
+                simply a binary file (<code>.git/index</code>) that maps the filename "my_file.py" to that specific
+                SHA-1 hash.</p>
+            <p>When you execute <code>git commit</code> from Cherm, Git creates a "tree" object. This tree lists the
+                names of all directories and files and their corresponding blob hashes. Finally, Git creates a "commit"
+                object containing your commit message, the author details, a pointer to the tree object, and a pointer
+                to the parent commit. Because every object's identity is derived from its cryptographic hash, the entire
+                history is tamper-proof — changing a single byte in a file from a year ago would change its blob hash,
+                which would change the tree hash, which would change the commit hash, cascading all the way to the
+                present HEAD.</p>
+        </div>
+
+        <!-- ================================================================
+         DIFF VIEWER
+    ================================================================ -->
+        <div id="pg-diff" class="page">
+            <h2>File Diff Viewer</h2>
+            <p class="tagline">Review exactly what changed in a file compared to the last commit — a visual pre-commit
+                code review tool built into Cherm.</p>
+
+            <div class="prereq-box">
+                <h4>What you must understand before using this</h4>
+                <ul>
+                    <li>What <code>git diff</code> does: shows the differences between two versions of a file, line by
+                        line, using the "unified diff" format.</li>
+                    <li>What HEAD means in Git: a reference pointing to the most recent commit on your current branch.
+                        "The HEAD version of a file" means the file's content as it was last committed.</li>
+                    <li>How to read a unified diff: lines starting with <code>-</code> (red) are removed lines. Lines
+                        starting with <code>+</code> (green) are added lines. Lines starting with a space are unchanged
+                        context lines shown around the change.</li>
+                    <li>What a "hunk" is in diff terminology: a contiguous block of changes, preceded by a header like
+                        <code>@@ -45,7 +45,10 @@</code> indicating which line numbers are affected in the old and new
+                        versions.</li>
+                    <li>Why reviewing your own diff before committing is a critical professional habit: it catches
+                        forgotten debug prints, unintended changes, incomplete implementations, and logic reversals.
+                    </li>
+                </ul>
+            </div>
+
+            <h3>The Pre-Commit Self-Review Habit</h3>
+            <p>Professional software developers develop the habit of reviewing their own changes before committing them.
+                This self-review catches a remarkable number of mistakes that would otherwise reach the team's
+                repository:</p>
+            <ul>
+                <li><strong>Debug print statements:</strong> <code>print("HERE")</code> added during debugging and
+                    forgotten when the bug was fixed.</li>
+                <li><strong>Commented-out code:</strong> Blocks of old code commented out rather than deleted, adding
+                    clutter to the file.</li>
+                <li><strong>Incomplete implementations:</strong> Functions with <code>pass</code> or <code>TODO</code>
+                    that weren't completed before the commit.</li>
+                <li><strong>Accidental whitespace changes:</strong> Reformatting that changes hundreds of lines and
+                    obscures the actual logical change in the commit history.</li>
+                <li><strong>Logic reversals:</strong> Accidentally swapping <code>True</code>/<code>False</code>,
+                    <code>&lt;</code>/<code>&gt;</code>, or <code>and</code>/<code>or</code> during a refactor.</li>
+                <li><strong>Wrong variable names:</strong> A copy-paste of code with the wrong variable name that
+                    produces subtle bugs.</li>
+            </ul>
+            <p>The File Diff Viewer is designed to make this self-review fast and visually clear. The color-highlighted,
+                side-by-side diff format is significantly easier to parse than raw terminal <code>git diff</code>
+                output.</p>
+
+            <h3>How the Diff is Generated</h3>
+            <ol class="step-list">
+                <li><strong>Get the HEAD version:</strong> Cherm executes
+                    <code>git show HEAD:[relative_path_from_repo_root]</code> in a subprocess and captures its stdout.
+                    This gives the exact content of the file as it was in the last commit.</li>
+                <li><strong>Read the current version:</strong> Cherm reads the current on-disk file content directly.
+                </li>
+                <li><strong>Generate the diff:</strong> Python's standard library
+                    <code>difflib.unified_diff(head_lines, current_lines, lineterm="")</code> produces the diff in
+                    unified format — the same format as <code>git diff</code>.</li>
+                <li><strong>Render with colors:</strong> Cherm renders the diff line by line to the curses screen,
+                    coloring lines starting with <code>-</code> in red and lines starting with <code>+</code> in green,
+                    with unchanged context lines in normal color.</li>
+            </ol>
+
+            <div class="label">Example: Reviewing a Bug Fix Commit</div>
+            <div class="terminal">
+                <span class="dim">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    DIFF VIEWER: payment.py (HEAD → Working Directory)
+                    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+                <span class="dim">@@ -42,8 +42,14 @@</span>
+
+                def process_payment(amount: float, account: Account) -&gt; PaymentResult:
+                <span class="fail">- result = charge_card(amount)</span>
+                <span class="ok">+ if amount &lt;= 0:</span>
+                <span class="ok">+ raise ValueError(f"Payment amount must be positive, got: {amount}")</span>
+                <span class="ok">+ if amount &gt; MAX_SINGLE_TRANSACTION:</span>
+                <span class="ok">+ result = charge_card_with_review(amount)</span>
+                <span class="ok">+ else:</span>
+                <span class="ok">+ result = charge_card(amount, retry=True)</span>
+                if result.success:
+                <span class="fail">- send_receipt(account.email)</span>
+                <span class="ok">+ send_receipt(account.email, template="receipt_v2")</span>
+                log_transaction(result)
+                return result
+
+                <span class="dim">@@ -58,6 +64,9 @@</span>
+
+                def refund_payment(transaction_id: str) -&gt; bool:
+                <span class="fail">- return gateway.refund(transaction_id)</span>
+                <span class="ok">+ if not transaction_id or not transaction_id.strip():</span>
+                <span class="ok">+ raise ValueError("Transaction ID cannot be empty")</span>
+                <span class="ok">+ return gateway.refund(transaction_id.strip())</span>
+            </div>
+
+            <p>Reading this diff, you can verify:</p>
+            <ul>
+                <li>A validation guard was added to reject non-positive or extremely large payment amounts — which
+                    addresses potential financial edge cases.</li>
+                <li>The <code>charge_card</code> call was updated to include retry logic and a large-transaction review
+                    pathway.</li>
+                <li>The receipt template was updated from the old version to v2.</li>
+                <li>The <code>refund_payment</code> function was hardened against empty transaction IDs.</li>
+            </ul>
+            <p>These are all related, coherent changes that belong in the same commit. There are no debug prints, no
+                commented-out code, and no unintended side effects visible in the diff. This is ready to commit.</p>
+
+            <h3>Diff Viewer for Multi-File Changes</h3>
+            <p>The Diff Viewer operates on one file at a time. If your feature change spans multiple files, open the
+                Diff Viewer for each file individually before staging and committing. This is actually the ideal
+                workflow for granular commits — review each file's changes in isolation to verify each one is clean and
+                complete.</p>
+
+            <h3>When There is No HEAD Version (New Files)</h3>
+            <p>If the file has never been committed before (it was just created), <code>git show HEAD:[path]</code> will
+                fail because there is no HEAD version to retrieve. In this case, Cherm will display the entire file
+                content as additions (all lines in green), since compared to an empty baseline, every line is new. This
+                is expected behavior and not an error.</p>
+
+            <h3>When the File is Not in a Git Repository</h3>
+            <p>If the file is not inside any Git repository, the <code>git show</code> command will fail with a "not a
+                git repository" error. Cherm will display this error message and exit the viewer. You must be inside a
+                Git repository for the Diff Viewer to function.</p>
+
+            <div class="tip-box">
+                <strong>💡 Build the Pre-Commit Review Habit:</strong> Make it a personal rule that you always open the
+                Diff Viewer before every Git Add. It takes 30 seconds and catches the kinds of mistakes that are
+                embarrassing to have in the permanent commit history of a team project. Over time, this habit
+                significantly reduces the quality and frequency of "oops" commits.
+            </div>
+
+            <h3>Deep Dive: The Myers Diff Algorithm</h3>
+            <p>Have you ever wondered how Git (and Cherm, via Python's <code>difflib</code>) calculates exactly which
+                lines changed? It isn't trivial. If you insert a single new line at the top of a 1,000-line file, a
+                naive line-by-line comparison would say that all 1,000 lines are different because line 1 is now line 2,
+                line 2 is now line 3, etc.</p>
+            <p>To solve this, diff tools use the <strong>Longest Common Subsequence (LCS)</strong> problem, typically
+                solved using Eugene Myers' 1986 algorithm. The Myers algorithm visualizes the two files as an X/Y grid,
+                where the X-axis is the old file and the Y-axis is the new file. It attempts to find the shortest path
+                from the top-left (start of files) to the bottom-right (end of files).</p>
+            <p>Moving right means a line was deleted. Moving down means a line was added. Moving diagonally means the
+                lines match. The algorithm aggressively hunts for diagonal paths (matching lines) to minimize the number
+                of right/down moves (edits). Once it finds this optimal path, it translates the movements into the
+                unified diff format you see on screen, successfully re-synchronizing itself even after large blocks of
+                inserted or deleted code.</p>
+        </div>
+
+    </div><!-- end .content -->
+</body>
+
+</html>
