@@ -825,12 +825,18 @@ INDEX_HTML = r"""<!DOCTYPE html>
                 <div class="dropzone-sub">Drop any single file (.py, .js, .tsx, etc.) or drag an entire folder into this box</div>
                 
                 <div class="dropzone-actions">
+                    <button type="button" class="btn-browse" onclick="openFolderPicker(event)" style="background:var(--text-main); color:#ffffff; border-color:var(--text-main); font-weight:700;">
+                        📁 Choose Full Folder
+                    </button>
                     <button type="button" class="btn-browse" onclick="openFilePicker(event)">
-                        📄 Browse Single File
+                        📄 Choose Single File
                     </button>
-                    <button type="button" class="btn-browse" onclick="openFolderPicker(event)">
-                        📁 Browse Full Folder
-                    </button>
+                </div>
+                
+                <div style="margin-top: 14px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>Or scan local directory:</span>
+                    <input type="text" id="quick-dir-path" value="." style="padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; width: 140px; background:#fff;">
+                    <button type="button" class="btn-browse" style="padding: 5px 12px; font-size: 12px;" onclick="loadQuickPath(event)">Load Folder</button>
                 </div>
                 
                 <input type="file" id="file-input" style="display:none" onchange="onFileChosen(event)">
@@ -1061,6 +1067,10 @@ INDEX_HTML = r"""<!DOCTYPE html>
         return ALLOWED_EXTS.includes(ext);
     }
 
+    // Window-level drag/drop safety to prevent browser default navigation
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => e.preventDefault());
+
     // Drag & Drop
     ['dragenter', 'dragover'].forEach(name => {
         dropzone.addEventListener(name, (e) => {
@@ -1070,7 +1080,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
         });
     });
 
-    ['dragleave', 'drop'].forEach(name => {
+    ['dragleave'].forEach(name => {
         dropzone.addEventListener(name, (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -1079,15 +1089,21 @@ INDEX_HTML = r"""<!DOCTYPE html>
     });
 
     dropzone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+
         const items = e.dataTransfer.items;
         if (items && items.length > 0) {
             let entries = [];
             for (let i = 0; i < items.length; i++) {
-                const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
-                if (entry) entries.push(entry);
+                try {
+                    const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+                    if (entry) entries.push(entry);
+                } catch (err) {}
             }
 
-            const hasDir = entries.some(ent => ent.isDirectory);
+            const hasDir = entries.some(ent => ent && ent.isDirectory);
             if (hasDir || entries.length > 1) {
                 await loadFolderFromEntries(entries);
                 return;
@@ -1105,13 +1121,13 @@ INDEX_HTML = r"""<!DOCTYPE html>
     });
 
     function openFilePicker(e) {
-        if (e) e.stopPropagation();
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         fileInput.value = '';
         fileInput.click();
     }
 
     function openFolderPicker(e) {
-        if (e) e.stopPropagation();
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         folderInput.value = '';
         folderInput.click();
     }
@@ -1132,25 +1148,41 @@ INDEX_HTML = r"""<!DOCTYPE html>
         }
     }
 
+    function loadQuickPath(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        const p = (document.getElementById('quick-dir-path').value || '.').trim();
+        loadLocalPath(p);
+    }
+
+    function readFileAsText(file) {
+        return new Promise((resolve) => {
+            if (file.size > 2500000) {
+                resolve('// [Large file skipped for memory safety]');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result || '');
+            reader.onerror = () => resolve('');
+            reader.readAsText(file);
+        });
+    }
+
     // Traversal for dropped directory entries
     async function traverseDirectoryEntry(entry, path = '') {
+        if (!entry) return [];
         if (entry.isFile) {
             return new Promise((resolve) => {
                 entry.file(async (file) => {
                     const relPath = path + file.name;
                     if (isAllowedCodeFile(relPath, file.name)) {
-                        try {
-                            const content = await file.text();
-                            resolve([{
-                                path: relPath,
-                                name: file.name,
-                                size: file.size,
-                                lines: content.split('\n').length,
-                                content: content
-                            }]);
-                        } catch (err) {
-                            resolve([]);
-                        }
+                        const content = await readFileAsText(file);
+                        resolve([{
+                            path: relPath,
+                            name: file.name,
+                            size: file.size,
+                            lines: content.split('\n').length,
+                            content: content
+                        }]);
                     } else {
                         resolve([]);
                     }
@@ -1177,6 +1209,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             for (const child of entries) {
                 const sub = await traverseDirectoryEntry(child, path + entry.name + '/');
                 results = results.concat(sub);
+                if (results.length >= 500) break;
             }
             return results;
         }
@@ -1192,11 +1225,13 @@ INDEX_HTML = r"""<!DOCTYPE html>
         let rootName = 'Project';
 
         for (const entry of entries) {
+            if (!entry) continue;
             if (entry.isDirectory && rootName === 'Project') {
                 rootName = entry.name;
             }
             const res = await traverseDirectoryEntry(entry, '');
             collected = collected.concat(res);
+            if (collected.length >= 500) break;
         }
 
         loadingState.classList.remove('active');
@@ -1217,16 +1252,14 @@ INDEX_HTML = r"""<!DOCTYPE html>
             const f = fileList[i];
             const relPath = f.webkitRelativePath || f.name;
             if (isAllowedCodeFile(relPath, f.name)) {
-                try {
-                    const content = await f.text();
-                    collected.push({
-                        path: relPath,
-                        name: f.name,
-                        size: f.size,
-                        lines: content.split('\n').length,
-                        content: content
-                    });
-                } catch (e) {}
+                const content = await readFileAsText(f);
+                collected.push({
+                    path: relPath,
+                    name: f.name,
+                    size: f.size,
+                    lines: content.split('\n').length,
+                    content: content
+                });
             }
             if (collected.length >= 500) break;
         }
@@ -1237,6 +1270,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             return;
         }
         setLoadedFolder(folderName, collected);
+    }
     }
 
     function setLoadedFolder(name, files) {
@@ -1354,8 +1388,8 @@ INDEX_HTML = r"""<!DOCTYPE html>
     }
 
     // Local Directory Scan
-    async function loadFromLocalPath() {
-        const pathVal = (document.getElementById('local-dir-path').value || '.').trim();
+    async function loadLocalPath(pathVal) {
+        if (!pathVal) pathVal = '.';
         loadingState.classList.add('active');
         loadingText.textContent = 'Scanning local directory: ' + pathVal;
         resultsPanel.classList.remove('active');
@@ -1384,6 +1418,14 @@ INDEX_HTML = r"""<!DOCTYPE html>
         } catch (err) {
             alert('Directory scan failed: ' + err.message);
         } finally {
+            loadingState.classList.remove('active');
+        }
+    }
+
+    function loadFromLocalPath() {
+        const pathVal = (document.getElementById('local-dir-path').value || '.').trim();
+        loadLocalPath(pathVal);
+    }
             loadingState.classList.remove('active');
         }
     }
