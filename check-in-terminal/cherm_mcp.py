@@ -1289,5 +1289,390 @@ def run_all_in_one_check(
     }
 
 
+# =====================================================================
+# FULL PROJECT & FOLDER AUDIT RUNNER
+# =====================================================================
+
+FOLDER_IGNORE_DIRS = {
+    "node_modules", ".git", ".next", "dist", "build", "out",
+    "venv", ".venv", "env", "__pycache__", ".idea", ".vscode",
+    "coverage", ".turbo", ".cache", ".sst", "target", "vendor",
+    "bin", "obj", ".nuget", ".gradle"
+}
+
+FOLDER_ALLOWED_EXTS = {
+    ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
+    ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp",
+    ".sql", ".html", ".css", ".json", ".yaml", ".yml",
+    ".sh", ".bash", ".ps1", ".md"
+}
+
+
+def _generate_folder_html_report(
+    save_path: str,
+    folder_name: str,
+    health_grade: str,
+    overall_status: str,
+    total_files: int,
+    clean_files: int,
+    vulnerable_files: int,
+    total_issues: int,
+    total_fatal: int,
+    total_race: int,
+    total_design: int,
+    total_smells: int,
+    total_secrets: int,
+    total_lines: int,
+    file_results: List[Dict[str, Any]]
+):
+    rows_summary = []
+    for f in file_results:
+        color = "#059669" if f["status"] == "PASSED" else ("#d97706" if f["status"] == "WARNING" else "#dc2626")
+        rows_summary.append(f"""
+        <tr>
+            <td><code>{f['path']}</code></td>
+            <td><strong style="color: {color};">{f['status']}</strong></td>
+            <td>{f['lines']}</td>
+            <td>{f['total_issues']} ({f['fatal_flaws']} fatal)</td>
+        </tr>
+        """)
+
+    detail_rows = []
+    for f in file_results:
+        if not f.get("findings"):
+            continue
+        for item in f["findings"]:
+            badge_color = "#dc2626" if item.get("severity") in ("CRITICAL", "FATAL") else "#d97706"
+            detail_rows.append(f"""
+            <tr>
+                <td>
+                    <code>{f['path']}:{item.get('line', 1)}</code><br>
+                    <span style="font-weight:bold; color: {badge_color};">{item.get('badge', '')}</span>
+                </td>
+                <td>
+                    <strong>{item.get('title', '')}</strong><br>
+                    {item.get('plain_english', '')}<br>
+                    {f"<strong>Risk:</strong> {item.get('risk')}<br>" if item.get('risk') else ""}
+                    {f"<strong>Fix:</strong> <pre>{item.get('fix')}</pre>" if item.get('fix') else ""}
+                </td>
+            </tr>
+            """)
+
+    detail_content = "\n".join(detail_rows) if detail_rows else "<tr><td colspan='2'>No vulnerabilities found. All files clean.</td></tr>"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Project Audit Report - {folder_name}</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 30px; background: #fff; color: #111; line-height: 1.5; }}
+        h1 {{ font-size: 20px; margin-bottom: 5px; }}
+        .meta {{ font-size: 13px; color: #666; margin-bottom: 20px; }}
+        .summary-box {{ border: 1px solid #ccc; padding: 16px; margin-bottom: 24px; background: #f9f9f9; }}
+        .summary-box table {{ width: 100%; border: none; }}
+        .summary-box td {{ padding: 6px; border: none; font-size: 14px; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; }}
+        th, td {{ border: 1px solid #ddd; padding: 9px 12px; text-align: left; vertical-align: top; font-size: 13px; }}
+        th {{ background: #eee; font-weight: bold; }}
+        code {{ background: #f1f1f1; padding: 2px 4px; font-family: monospace; font-size: 12px; }}
+        pre {{ background: #f6f6f6; padding: 8px; border: 1px solid #e1e1e1; font-family: monospace; font-size: 12px; white-space: pre-wrap; margin: 6px 0 0 0; }}
+    </style>
+</head>
+<body>
+    <h1>Project Audit Report: {folder_name}</h1>
+    <div class="meta">Target: {folder_name} | Files: {total_files} ({total_lines} lines) | Generated: {time.strftime("%Y-%m-%d %H:%M:%S")}</div>
+
+    <div class="summary-box">
+        <table>
+            <tr>
+                <td><strong>Project Grade:</strong> <strong>{health_grade}</strong> ({overall_status})</td>
+                <td><strong>Total Files Audited:</strong> {total_files} ({clean_files} clean, {vulnerable_files} with issues)</td>
+            </tr>
+            <tr>
+                <td><strong>Total Issues Found:</strong> {total_issues} ({total_fatal} critical)</td>
+                <td><strong>System Design Flaws:</strong> {total_design}</td>
+            </tr>
+            <tr>
+                <td><strong>Concurrency / Race Flaws:</strong> {total_race}</td>
+                <td><strong>High-Entropy Secrets:</strong> {total_secrets}</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>File-by-File Status</h2>
+    <table>
+        <thead>
+            <tr><th>File Path</th><th>Status</th><th>Lines</th><th>Issues</th></tr>
+        </thead>
+        <tbody>
+            {"".join(rows_summary)}
+        </tbody>
+    </table>
+
+    <h2>Diagnostic Findings & Fix Recipes</h2>
+    <table>
+        <thead>
+            <tr><th style="width: 30%;">File / Location</th><th>Finding & Recommendation</th></tr>
+        </thead>
+        <tbody>
+            {detail_content}
+        </tbody>
+    </table>
+</body>
+</html>
+"""
+    with open(save_path, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+@mcp.tool()
+def run_folder_audit(
+    directory_path: Optional[str] = None,
+    files_data: Optional[List[Dict[str, Any]]] = None,
+    folder_name: Optional[str] = None,
+    auto_generate_html: bool = True
+) -> Dict[str, Any]:
+    """Audit an entire folder or multi-file project for architecture flaws, race conditions, and security issues."""
+    files_to_audit = []
+    root_name = folder_name or "Project"
+
+    if files_data and isinstance(files_data, list):
+        for item in files_data:
+            path = item.get("path", "")
+            content = item.get("content", "")
+            if not path or not content:
+                continue
+            ext = os.path.splitext(path)[1].lower()
+            if ext in FOLDER_ALLOWED_EXTS:
+                files_to_audit.append({
+                    "path": path,
+                    "content": content,
+                    "size": item.get("size", len(content.encode("utf-8", errors="ignore"))),
+                    "lines": item.get("lines", len(content.splitlines()))
+                })
+    elif directory_path:
+        abs_dir = os.path.abspath(directory_path)
+        if not os.path.isdir(abs_dir):
+            return {"success": False, "error": f"Directory not found: {directory_path}"}
+        root_name = os.path.basename(abs_dir) or "Project"
+        for root, dirs, files in os.walk(abs_dir):
+            dirs[:] = [d for d in dirs if d.lower() not in FOLDER_IGNORE_DIRS and not d.startswith(".")]
+            for f in files:
+                ext = os.path.splitext(f)[1].lower()
+                if ext in FOLDER_ALLOWED_EXTS:
+                    full_p = os.path.join(root, f)
+                    rel_p = os.path.relpath(full_p, abs_dir).replace("\\", "/")
+                    try:
+                        with open(full_p, "r", encoding="utf-8", errors="ignore") as fh:
+                            content = fh.read()
+                        files_to_audit.append({
+                            "path": rel_p,
+                            "content": content,
+                            "size": os.path.getsize(full_p),
+                            "lines": len(content.splitlines())
+                        })
+                    except Exception:
+                        pass
+    else:
+        return {"success": False, "error": "Either 'directory_path' or 'files_data' must be provided."}
+
+    if not files_to_audit:
+        return {"success": False, "error": f"No code files found in '{root_name}' matching supported extensions."}
+
+    files_to_audit = files_to_audit[:500]
+
+    file_results = []
+    total_issues = 0
+    total_fatal = 0
+    total_race = 0
+    total_design = 0
+    total_smells = 0
+    total_secrets = 0
+    total_lines = 0
+    total_bytes = 0
+    action_items = []
+
+    for file_info in files_to_audit:
+        rel_path = file_info["path"]
+        content = file_info["content"]
+        size = file_info.get("size", 0)
+        lines = file_info.get("lines", 0)
+        total_lines += lines
+        total_bytes += size
+
+        system_design_res = audit_system_design_flaws(file_path=rel_path, code_content=content)
+        multitap_res = stress_test_multitap_vulnerability(file_path=rel_path, code_content=content)
+        smells_res = explain_code_issues(file_path=rel_path, code_content=content)
+        ml_res = run_ml_audit(content)
+
+        entropy_findings = ml_res.get("shannon_entropy_findings", [])
+        fatal_count = (
+            system_design_res.get("system_design_flaws_count", 0) +
+            multitap_res.get("vulnerability_count", 0) +
+            smells_res.get("critical_blockers", 0) +
+            (1 if len(entropy_findings) > 0 else 0)
+        )
+        file_issues_count = (
+            system_design_res.get("system_design_flaws_count", 0) +
+            multitap_res.get("vulnerability_count", 0) +
+            smells_res.get("total_issues", 0) +
+            len(entropy_findings)
+        )
+
+        total_fatal += fatal_count
+        total_issues += file_issues_count
+        total_race += multitap_res.get("vulnerability_count", 0)
+        total_design += system_design_res.get("system_design_flaws_count", 0)
+        total_smells += smells_res.get("total_issues", 0)
+        total_secrets += len(entropy_findings)
+
+        if fatal_count > 0:
+            file_status = "CRITICAL"
+        elif file_issues_count > 0:
+            file_status = "WARNING"
+        else:
+            file_status = "PASSED"
+
+        findings = []
+        for fl in system_design_res.get("flaws", []):
+            findings.append({
+                "type": "design",
+                "severity": fl.get("severity", "CRITICAL"),
+                "badge": fl.get("badge", "[DESIGN]"),
+                "line": fl.get("line", 1),
+                "title": fl.get("title", ""),
+                "plain_english": fl.get("plain_english_explanation", ""),
+                "risk": fl.get("production_risk", ""),
+                "fix": fl.get("how_to_fix", ""),
+                "snippet": fl.get("code_snippet", "")
+            })
+            action_items.append(f"[{rel_path}:{fl.get('line', 1)}] {fl.get('badge')}: {fl.get('title')}")
+
+        for vuln in multitap_res.get("vulnerabilities", []):
+            findings.append({
+                "type": "concurrency",
+                "severity": "CRITICAL",
+                "badge": "[RACE-CONDITION]",
+                "line": vuln.get("line", 1),
+                "title": vuln.get("flaw_type", "Concurrency Flaw"),
+                "plain_english": vuln.get("plain_english_explanation", ""),
+                "risk": vuln.get("production_risk", ""),
+                "fix": vuln.get("how_to_fix", ""),
+                "snippet": vuln.get("code_snippet", "")
+            })
+            action_items.append(f"[{rel_path}:{vuln.get('line', 1)}] [RACE-CONDITION]: {vuln.get('flaw_type')}")
+
+        for smell in smells_res.get("issues", []):
+            findings.append({
+                "type": "smell",
+                "severity": smell.get("severity", "WARNING"),
+                "badge": smell.get("badge", "[SMELL]"),
+                "line": smell.get("line", 1),
+                "title": smell.get("title", ""),
+                "plain_english": smell.get("plain_english_explanation", ""),
+                "risk": smell.get("production_risk", ""),
+                "fix": smell.get("how_to_fix", ""),
+                "snippet": smell.get("code_snippet", "")
+            })
+            if smell.get("severity") == "CRITICAL":
+                action_items.append(f"[{rel_path}:{smell.get('line', 1)}] {smell.get('badge')}: {smell.get('title')}")
+
+        for ent in entropy_findings:
+            findings.append({
+                "type": "entropy",
+                "severity": "CRITICAL",
+                "badge": "[SECRET-EXPOSURE]",
+                "line": ent.get("line", 1),
+                "title": "High Entropy Token Detected",
+                "plain_english": "Shannon entropy scanner detected a potential hardcoded API key, token, or secret.",
+                "risk": "Credentials exposed in source code control.",
+                "fix": "Move secret to an environment variable or secret vault.",
+                "snippet": ent.get("token", "")[:30] + "..."
+            })
+            action_items.append(f"[{rel_path}:{ent.get('line', 1)}] [SECRET-EXPOSURE]: High entropy token")
+
+        file_results.append({
+            "path": rel_path,
+            "filename": os.path.basename(rel_path),
+            "status": file_status,
+            "fatal_flaws": fatal_count,
+            "total_issues": file_issues_count,
+            "lines": lines,
+            "size": size,
+            "findings": findings
+        })
+
+    clean_files = sum(1 for f in file_results if f["status"] == "PASSED")
+    vulnerable_files = len(file_results) - clean_files
+
+    if total_fatal == 0 and total_issues == 0:
+        health_grade = "GRADE A"
+        overall_status = "PASS"
+    elif total_fatal == 0:
+        health_grade = "GRADE B"
+        overall_status = "WARNINGS"
+    elif total_fatal <= 3:
+        health_grade = "GRADE C"
+        overall_status = "ACTION_REQUIRED"
+    else:
+        health_grade = "GRADE F"
+        overall_status = "CRITICAL_BLOCKED"
+
+    html_report_path = None
+    if auto_generate_html:
+        html_report_path = os.path.join(BASE_DIR, "cherm_audit_report.html")
+        try:
+            _generate_folder_html_report(
+                save_path=html_report_path,
+                folder_name=root_name,
+                health_grade=health_grade,
+                overall_status=overall_status,
+                total_files=len(file_results),
+                clean_files=clean_files,
+                vulnerable_files=vulnerable_files,
+                total_issues=total_issues,
+                total_fatal=total_fatal,
+                total_race=total_race,
+                total_design=total_design,
+                total_smells=total_smells,
+                total_secrets=total_secrets,
+                total_lines=total_lines,
+                file_results=file_results
+            )
+        except Exception:
+            pass
+
+    _record_audit_event("run_folder_audit", root_name, {
+        "status": overall_status,
+        "health_grade": health_grade,
+        "total_files": len(file_results),
+        "total_issues": total_issues
+    })
+
+    return {
+        "success": True,
+        "folder_name": root_name,
+        "health_grade": health_grade,
+        "overall_status": overall_status,
+        "summary": {
+            "total_files_scanned": len(file_results),
+            "clean_files_count": clean_files,
+            "vulnerable_files_count": vulnerable_files,
+            "total_issues_found": total_issues,
+            "fatal_critical_flaws": total_fatal,
+            "multitap_concurrency_flaws": total_race,
+            "system_design_flaws": total_design,
+            "code_smells_and_antipatterns": total_smells,
+            "high_entropy_secrets_found": total_secrets,
+            "total_lines_scanned": total_lines,
+            "total_bytes_scanned": total_bytes
+        },
+        "file_results": file_results,
+        "quick_action_items": action_items[:12],
+        "html_dashboard_report": html_report_path
+    }
+
+
 if __name__ == "__main__":
     mcp.run()

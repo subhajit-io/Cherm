@@ -58,26 +58,34 @@ Cherm operates in three seamless modalities:
 ---
 
 ### 2. Localhost Web GUI (`http://localhost:3690`)
-*Minimalist, zero-slop drag-and-drop code auditor running locally in your browser with `python cherm.py --gui`.*
+*Minimalist, zero-slop drag-and-drop code & project auditor running locally in your browser with `python cherm.py --gui`. Supports single files or entire repository folders.*
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  Cherm — Code Auditor                                        localhost:3690  │
+│  Cherm — Code & Project Auditor                              localhost:3690  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  [ Drag & Drop (File or Folder) ]   [ Local Directory Scan ]   [ Snippet ]   │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐     │
-│                         [ ↑ Drag & Drop Code File ]                          │
+│                     [ 📁 Drag & Drop File OR Full Folder ]                   │
 │                                                                              │
-│                   Drag and drop your code file here to audit                 │
-│              or click to browse (.py, .js, .ts, .go, .sql, etc.)             │
+│             Drop any single file or drag an entire project folder            │
+│            [ 📄 Browse Single File ]     [ 📁 Browse Full Folder ]           │
 │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘     │
 │                                                                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│  ARCHITECTURE GRADE: [ GRADE A ]   Status: PASS (Clean)                      │
-│  • Total Issues: 0       • Race Conditions: 0       • ML Defect Risk: 4.2%   │
-│  • Fatal Flaws:  0       • Design Flaws:    0       • Code Smells:    0      │
+│  📁 PROJECT: my-next-app (16 code files • 2,410 lines • 120 KB)              │
+│  [ ⚡ Run Full Project Audit (16 files) ]                                     │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  PROJECT GRADE: [ GRADE A ]   Status: 16/16 Files Clean • PASS               │
+│  • Files Audited: 16     • Vulnerable Files: 0     • Total Issues: 0         │
+│  • Fatal Flaws:   0      • Concurrency Flaws: 0    • Design Flaws: 0         │
 │                                                                              │
-│  [ OK ] Clean code — no architectural bottlenecks or vulnerabilities found.  │
+│  FILE BREAKDOWN:                                                             │
+│  [PASS]     src/app/checkout/page.tsx                     (140 lines • Clean)│
+│  [PASS]     src/lib/auth.ts                               (88 lines • Clean) │
+│  [PASS]     src/components/Header.tsx                     (62 lines • Clean) │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -193,10 +201,11 @@ Add Cherm to your AI assistant's configuration file:
 
 ---
 
-## 🛠️ The 7 Cherm MCP Tools
+## 🛠️ The 8 Cherm MCP Tools
 
 | Tool Name | Scope & Detection Capabilities |
 | :--- | :--- |
+| **`run_folder_audit`** | Full project & folder pipeline: scans entire directories or multi-file uploads (up to 500 files), calculating project health grade, per-file issue breakdown, and comprehensive HTML report. |
 | **`run_all_in_one_check`** | Full audit pipeline: system design flaws, race conditions, AST code smells, ML defect risk score, and standalone HTML report. |
 | **`audit_system_design_flaws`** | Architectural vulnerabilities: BOLA/IDOR object exposure, database connection pool exhaustion, missing transaction rollbacks, CORS wildcards, and unhandled network timeouts. |
 | **`explain_code_issues`** | AST anti-patterns: mutable default arguments (state leakage), bare `except:` clauses swallowing SIGTERM, and silent error suppression (`except: pass`) with exact fix recipes. |
