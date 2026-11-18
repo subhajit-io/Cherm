@@ -229,14 +229,21 @@ def color(pair_num: int) -> int:
 # This function is for: Returns an icon for a given file type.
 def _file_icon(filename: str) -> str:
     ext = os.path.splitext(filename)[1].lower()
+    fn_lower = filename.lower()
+    if "next.config" in fn_lower:
+        return "[next]"
+    if fn_lower == "package.json":
+        return "[npm] "
+
     icons = {
-        ".py": "[py]", ".js": "[js]", ".ts": "[ts]", ".java": "[java]",
-        ".c": "[c] ", ".cpp": "[cpp]", ".go": "[go]", ".rs": "[rs]",
-        ".rb": "[rb]", ".php": "[php]", ".kt": "[kt]", ".swift": "[swift]",
-        ".sh": "[sh]", ".bash": "[bash]", ".ps1": "[ps1]", ".pl": "[pl]",
-        ".r": "[r] ", ".html": "[html]", ".htm": "[htm]", ".css": "[css]",
-        ".json": "[json]", ".yaml": "[yaml]", ".yml": "[yml]", ".md": "[md]",
-        ".sql": "[sql]", ".xml": "[xml]", ".txt": "[txt]",
+        ".py": "[py] ", ".js": "[node]", ".ts": "[ts]  ", ".java": "[java]",
+        ".jsx": "[next]", ".tsx": "[next]", ".mjs": "[node]", ".cjs": "[node]",
+        ".c": "[c]  ", ".cpp": "[cpp] ", ".go": "[go] ", ".rs": "[rs] ",
+        ".rb": "[rb] ", ".php": "[php] ", ".kt": "[kt] ", ".swift": "[swift]",
+        ".sh": "[sh] ", ".bash": "[bash]", ".ps1": "[ps1]", ".pl": "[pl] ",
+        ".r": "[r]  ", ".html": "[html]", ".htm": "[htm]", ".css": "[css] ",
+        ".json": "[json]", ".yaml": "[yaml]", ".yml": "[yml]", ".md": "[md]  ",
+        ".sql": "[sql] ", ".xml": "[xml] ", ".txt": "[txt] ",
     }
     return icons.get(ext, "[file]")
 
@@ -478,22 +485,70 @@ def get_commands_for_file(filepath: str) -> list:
             entry(f"Execute File ({filename})",            "code",       shell_cmd(run)),
             entry(f"Speed & Complexity ({filename})",      "complexity", run, file=filepath),
         ]
-    elif ext == ".js":
+    elif ext in (".js", ".mjs", ".cjs"):
         run = f'node "{filepath}"'
         cmds += [
-            entry(f"Check Syntax ({filename})",       "code",       shell_cmd(f'node --check "{filepath}"')),
-            entry(f"Scan Functions ({filename})",     "scan",       filepath),
-            entry(f"Execute File ({filename})",       "code",       shell_cmd(run)),
-            entry(f"Speed & Complexity ({filename})", "complexity", run, file=filepath),
+            entry(f"Node.js Syntax Check ({filename})",   "code",       shell_cmd(f'node --check "{filepath}"')),
+            entry(f"Scan Functions & Exports ({filename})", "scan",     filepath),
+            entry(f"Execute with Node ({filename})",       "code",       shell_cmd(run)),
+            entry(f"Speed & Complexity ({filename})",     "complexity", run, file=filepath),
         ]
+        # Check for Node.js / NPM project context
+        for d in [file_dir, os.path.dirname(file_dir), os.path.dirname(os.path.dirname(file_dir))]:
+            pkg = os.path.join(d, "package.json")
+            if os.path.exists(pkg):
+                cmds += [
+                    entry(f"NPM Security Audit ({os.path.basename(d)})", "code", shell_cmd(f'cd "{d}" && npm audit')),
+                    entry(f"Run NPM Tests ({os.path.basename(d)})",     "code", shell_cmd(f'cd "{d}" && npm test')),
+                ]
+                break
     elif ext == ".ts":
-        run = f'ts-node "{filepath}"'
+        run = f'npx tsx "{filepath}"'
         cmds += [
-            entry(f"Type Check ({filename})",         "code",       shell_cmd(f'tsc --noEmit "{filepath}"')),
-            entry(f"Scan Functions ({filename})",     "scan",       filepath),
-            entry(f"Execute File ({filename})",       "code",       shell_cmd(run)),
-            entry(f"Speed & Complexity ({filename})", "complexity", run, file=filepath),
+            entry(f"TypeScript Type Check ({filename})",  "code",       shell_cmd(f'npx tsc --noEmit "{filepath}"')),
+            entry(f"Scan Functions & Types ({filename})", "scan",       filepath),
+            entry(f"Execute with TSX/Node ({filename})",   "code",       shell_cmd(run)),
+            entry(f"Speed & Complexity ({filename})",     "complexity", run, file=filepath),
         ]
+    elif ext in (".jsx", ".tsx"):
+        is_next = False
+        check_dirs = [file_dir, os.path.dirname(file_dir), os.path.dirname(os.path.dirname(file_dir))]
+        next_root = None
+        for d in check_dirs:
+            if any(os.path.exists(os.path.join(d, cfg)) for cfg in ("next.config.js", "next.config.mjs", "next.config.ts")):
+                is_next = True
+                next_root = d
+                break
+            pkg = os.path.join(d, "package.json")
+            if os.path.exists(pkg):
+                try:
+                    with open(pkg, "r", encoding="utf-8", errors="ignore") as f:
+                        if '"next"' in f.read():
+                            is_next = True
+                            next_root = d
+                            break
+                except Exception:
+                    pass
+
+        if not is_next and ("/app/" in filepath.replace("\\", "/") or "/pages/" in filepath.replace("\\", "/")):
+            is_next = True
+
+        if is_next:
+            cmds += [
+                entry(f"Next.js Lint ({filename})",           "code",       shell_cmd(f'npx next lint --file "{filepath}"')),
+                entry(f"Next.js TypeScript Check ({filename})","code",      shell_cmd('npx tsc --noEmit')),
+                entry(f"Scan Components & Hooks ({filename})","scan",       filepath),
+            ]
+            if next_root:
+                cmds += [
+                    entry("Next.js Build Test (npx next build)", "code",   shell_cmd(f'cd "{next_root}" && npx next build')),
+                    entry("NPM Security Audit",                  "code",   shell_cmd(f'cd "{next_root}" && npm audit')),
+                ]
+        else:
+            cmds += [
+                entry(f"React TypeScript Check ({filename})", "code",       shell_cmd(f'npx tsc --noEmit "{filepath}"')),
+                entry(f"Scan React Components ({filename})",  "scan",       filepath),
+            ]
     elif ext == ".java":
         class_name = filename.replace(".java", "")
         compile_c  = f'javac -Xlint "{filepath}"'
@@ -658,17 +713,17 @@ def scan_functions(stdscr, filepath: str):
                    r"auto|public|private|protected|static|override|final)\s+(\w+)\s*\([^)]*\)\s*(?:const\s*)?\{?")
         items_found = list(dict.fromkeys(re.findall(pattern, content)))
         label = "functions/methods"
-    elif ext == ".js":
+    elif ext in (".js", ".mjs", ".cjs"):
         named   = re.findall(r"function\s+(\w+)\s*\(", content)
         arrow   = re.findall(r"(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(", content)
         class_m = re.findall(r"^\s+(?:async\s+)?(\w+)\s*\([^)]*\)\s*\{", content, re.MULTILINE)
         items_found = list(dict.fromkeys(named + arrow + class_m))
-        label = "functions/arrows"
-    elif ext == ".ts":
-        pattern = r"(?:function\s+(\w+)|(?:async\s+)?(\w+)\s*\([^)]*\)\s*:\s*\w+\s*\{)"
+        label = "functions/exports"
+    elif ext in (".ts", ".tsx", ".jsx"):
+        pattern = r"(?:export\s+(?:default\s+)?(?:async\s+)?function\s+(\w+)|function\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>|(?:export\s+)?(?:const|let)\s+(\w+)\s*:\s*\w+|type\s+(\w+)\s*=|interface\s+(\w+))"
         raw = re.findall(pattern, content)
-        items_found = list(dict.fromkeys([g[0] or g[1] for g in raw if g[0] or g[1]]))
-        label = "functions/methods"
+        items_found = list(dict.fromkeys([next(x for x in g if x) for g in raw if any(g)]))
+        label = "components/handlers/types"
     elif ext == ".go":
         items_found = re.findall(r"^func\s+(?:\([^)]+\)\s+)?(\w+)\s*\(", content, re.MULTILINE)
         label = "functions"
@@ -2587,9 +2642,12 @@ def dead_code_detector(stdscr, filepath: str):
 
     else:
         lang_cfg = {
-            ".js":  (r"function\s+(\w+)\s*\(|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(",
-                     r"\b(\w+)\s*\("),
-            ".ts":  (r"function\s+(\w+)\s*\(",    r"\b(\w+)\s*\("),
+            ".js":  (r"function\s+(\w+)\s*\(|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(", r"\b(\w+)\s*\("),
+            ".mjs": (r"function\s+(\w+)\s*\(|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(", r"\b(\w+)\s*\("),
+            ".cjs": (r"function\s+(\w+)\s*\(|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\(", r"\b(\w+)\s*\("),
+            ".ts":  (r"function\s+(\w+)\s*\(|(?:const|let)\s+(\w+)\s*=",    r"\b(\w+)\b"),
+            ".tsx": (r"(?:function\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)", r"\b(\w+)\b"),
+            ".jsx": (r"(?:function\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)", r"\b(\w+)\b"),
             ".rb":  (r"def\s+([\w!?]+)",          r"\b([\w!?]+)\s*[\(\.]"),
             ".go":  (r"func\s+(?:\([^)]+\)\s+)?(\w+)\s*\(", r"\b(\w+)\s*\("),
             ".rs":  (r"fn\s+(\w+)\s*[(<]",        r"\b(\w+)\s*[(!<]"),

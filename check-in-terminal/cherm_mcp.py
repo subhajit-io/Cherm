@@ -37,7 +37,8 @@ def _get_hash(content: str) -> str:
 
 def _resolve_content(file_path: Optional[str], code_content: Optional[str]) -> tuple[str, str]:
     if code_content is not None and code_content.strip():
-        return code_content, "raw_content"
+        source = os.path.basename(file_path) if file_path else "raw_content"
+        return code_content, source
     if file_path and os.path.isfile(file_path):
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read(), os.path.abspath(file_path)
@@ -201,6 +202,145 @@ class NaturalReviewVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+def scan_node_next_code_issues(lines: List[str], content: str) -> List[Dict[str, Any]]:
+    """Specialized static analysis for Node.js, Next.js, React, and TypeScript."""
+    issues = []
+    has_use_client = bool(re.search(r"^\s*['\"]use client['\"]", content, re.MULTILINE))
+
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if stripped.startswith(("//", "/*", "*")):
+            continue
+
+        # 1. Missing 'use client' in Next.js when using React hooks
+        if not has_use_client and re.search(r"\b(?:useState|useEffect|useContext|useReducer|useSearchParams|usePathname|useRouter)\s*\(", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NEXTJS-ARCH] Missing 'use client' Directive",
+                "rule": "NEXT_MISSING_USE_CLIENT",
+                "severity": "CRITICAL",
+                "title": "Client-Side Hook Used in Default Next.js Server Component",
+                "plain_english_explanation": "Next.js App Router defaults all components to Server Components. Using React state/lifecycle hooks without 'use client' at the top of the file causes Next.js build or runtime crashes.",
+                "production_risk": "Build failure or 500 error on Next.js production deployments.",
+                "how_to_fix": "Add 'use client'; as the first line of this file, or move the interactive state logic to a dedicated client component.",
+                "code_snippet": stripped[:80]
+            })
+
+        # 2. Synchronous file I/O blocking Node.js event loop
+        if re.search(r"\bfs\.(?:readFileSync|writeFileSync|existsSync|appendFileSync|readdirSync)\s*\(", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NODEJS-PERF] Event Loop Starvation (Sync I/O)",
+                "rule": "NODE_SYNC_FS_IN_SERVER",
+                "severity": "HIGH",
+                "title": "Synchronous File I/O in Node.js Server Handler",
+                "plain_english_explanation": "Synchronous operations like fs.readFileSync block the single-threaded Node.js event loop until disk I/O finishes.",
+                "production_risk": "Under concurrent traffic, all incoming HTTP requests stall, creating severe latency spikes and gateway timeouts.",
+                "how_to_fix": "Use async file operations: import { promises as fs } from 'fs'; const data = await fs.readFile(path);",
+                "code_snippet": stripped[:80]
+            })
+
+        # 3. Accidental secret leak via NEXT_PUBLIC_
+        if re.search(r"NEXT_PUBLIC_[A-Za-z0-9_]*(?:SECRET|PRIVATE|TOKEN|PASSWORD|API_KEY|AUTH_SECRET|DATABASE_URL)", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NEXTJS-SECURITY] NEXT_PUBLIC Secret Leak",
+                "rule": "NEXT_PUBLIC_SECRET_LEAK",
+                "severity": "CRITICAL",
+                "title": "Private Secret Exposed to Browser Client via NEXT_PUBLIC_ Prefix",
+                "plain_english_explanation": "Variables prefixed with NEXT_PUBLIC_ are baked into client-side JavaScript bundles downloaded by anyone visiting your site.",
+                "production_risk": "Attacker views browser source bundles in DevTools and exfiltrates private keys or database credentials.",
+                "how_to_fix": "Remove NEXT_PUBLIC_ prefix so the variable stays strictly server-side, and access via process.env.SECRET in server code.",
+                "code_snippet": stripped[:80]
+            })
+
+        # 4. Command injection via child_process.exec
+        if re.search(r"(?:child_process\.)?exec\s*\(\s*`[^`]*\$\{", stripped) or re.search(r"(?:child_process\.)?exec\s*\(\s*['\"][^'\"]*['\"]\s*\+", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NODEJS-SECURITY] Arbitrary Command Injection",
+                "rule": "NODE_UNSAFE_COMMAND_EXEC",
+                "severity": "CRITICAL",
+                "title": "Dynamic String Concatenation in child_process.exec()",
+                "plain_english_explanation": "Executing shell commands constructed from dynamic string templates or concatenation opens your server to command injection.",
+                "production_risk": "Attackers can inject shell metacharacters (; & | `) to execute arbitrary commands as the Node.js user.",
+                "how_to_fix": "Use child_process.execFile() or spawn() with arguments passed as an array: execFile('binary', [arg1, arg2]);",
+                "code_snippet": stripped[:80]
+            })
+
+        # 5. Path traversal via path.join / resolve
+        if re.search(r"path\.(?:join|resolve)\s*\([^)]*(?:req\.params|req\.query|req\.body|searchParams)", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NODEJS-SECURITY] Directory Traversal (LFI)",
+                "rule": "NODE_PATH_TRAVERSAL",
+                "severity": "CRITICAL",
+                "title": "Unsanitized Path Concatenation in File Operation",
+                "plain_english_explanation": "Resolving file paths directly from user-supplied parameters without boundary validation allows path traversal attacks.",
+                "production_risk": "Attackers can pass '../../' to read or overwrite arbitrary server files (like .env or system files).",
+                "how_to_fix": "Validate that the resolved path starts with the allowed root directory: const safe = path.resolve(ROOT, file); if (!safe.startsWith(ROOT)) throw new Error('Forbidden');",
+                "code_snippet": stripped[:80]
+            })
+
+        # 6. dangerouslySetInnerHTML without sanitization
+        if "dangerouslySetInnerHTML" in stripped and "sanitize" not in stripped.lower():
+            issues.append({
+                "line": i,
+                "badge": "[REACT/NEXTJS] Unsanitized HTML (XSS)",
+                "rule": "REACT_DANGEROUSLY_SET_INNER_HTML",
+                "severity": "HIGH",
+                "title": "Raw HTML Rendered via dangerouslySetInnerHTML",
+                "plain_english_explanation": "Injecting unsanitized HTML directly into the DOM bypasses React's automatic JSX escaping.",
+                "production_risk": "Stored or reflected Cross-Site Scripting (XSS) allowing session hijacking or credential theft.",
+                "how_to_fix": "Sanitize HTML using DOMPurify before rendering: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(dirtyHtml) }}",
+                "code_snippet": stripped[:80]
+            })
+
+        # 7. Unsafe eval or Function constructor
+        if re.search(r"\beval\s*\(|new\s+Function\s*\(", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[NODEJS-SECURITY] Dynamic Code Evaluation",
+                "rule": "NODE_INSECURE_EVAL",
+                "severity": "CRITICAL",
+                "title": "Use of eval() or new Function() Constructor",
+                "plain_english_explanation": "eval() compiles and runs dynamic strings in the local scope, bypassing static compiler checks and security boundaries.",
+                "production_risk": "Remote Code Execution (RCE) if user input reaches the eval string.",
+                "how_to_fix": "Refactor to use JSON.parse() or dedicated domain-specific parsers instead of eval().",
+                "code_snippet": stripped[:80]
+            })
+
+        # 8. Empty catch block
+        if re.search(r"catch\s*\([^)]*\)\s*\{\s*\}", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[JS/TS-QUALITY] Silent Exception Swallowing",
+                "rule": "JS_EMPTY_CATCH",
+                "severity": "MEDIUM",
+                "title": "Empty Catch Block Silencing Errors",
+                "plain_english_explanation": "Catching exceptions with an empty body suppresses errors without logging or handling them.",
+                "production_risk": "Application enters a broken or inconsistent state while remaining silent, making debugging near impossible.",
+                "how_to_fix": "Log the error or rethrow: catch (err) { console.error('Failed operation:', err); throw err; }",
+                "code_snippet": stripped[:80]
+            })
+
+        # 9. Legacy var usage
+        if re.search(r"\bvar\s+\w+\s*=", stripped):
+            issues.append({
+                "line": i,
+                "badge": "[JS/TS-QUALITY] Legacy 'var' Declaration",
+                "rule": "JS_VAR_DECLARATION",
+                "severity": "LOW",
+                "title": "Function-Scoped 'var' Used Instead of 'const' / 'let'",
+                "plain_english_explanation": "Variables declared with var are hoisted and function-scoped rather than block-scoped, leading to variable shadowing and race conditions in loops.",
+                "production_risk": "Unexpected variable overwrites and state mutations across asynchronous loops.",
+                "how_to_fix": "Replace 'var' with 'const' for immutable bindings, or 'let' for mutable variables.",
+                "code_snippet": stripped[:80]
+            })
+
+    return issues
+
+
 @mcp.tool()
 def explain_code_issues(file_path: Optional[str] = None, code_content: Optional[str] = None) -> Dict[str, Any]:
     """Static code review that explains issues with production impact and exact fix recipes."""
@@ -222,8 +362,10 @@ def explain_code_issues(file_path: Optional[str] = None, code_content: Optional[
         visitor = NaturalReviewVisitor(lines)
         visitor.visit(tree)
         issues.extend(visitor.issues)
-    except SyntaxError as se:
-        return {"success": False, "error": f"SyntaxError parsing code: {se}"}
+    except SyntaxError:
+        # Non-Python or JS/TS/Node/Next.js code: run specialized JavaScript & Next.js rules
+        node_next_issues = scan_node_next_code_issues(lines, content)
+        issues.extend(node_next_issues)
 
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
@@ -488,6 +630,61 @@ SYSTEM_DESIGN_RULES = [
         "explanation": "Storing passwords with plain SHA-256 without a dynamic salt or key stretching. Modern GPUs compute over 10 billion SHA-256 hashes per second.",
         "hack_scenario": "If the database is leaked, rainbow tables and Hashcat easily crack all plain SHA-256 passwords in seconds.",
         "architectural_fix": "Replace with salted, memory-hard algorithms: Argon2id or bcrypt (cost factor >= 12)."
+    },
+    # --- NODE.JS & NEXT.JS ARCHITECTURAL & SECURITY RULES ---
+    {
+        "id": "NEXTJS_SECRET_EXPOSURE",
+        "badge": "[NEXTJS-SECURITY] Public Secret Exposure",
+        "pattern": r'NEXT_PUBLIC_[A-Za-z0-9_]*(?:SECRET|PRIVATE|TOKEN|PASSWORD|API_KEY|AUTH_SECRET|DATABASE_URL)',
+        "title": "Sensitive Secret Exposed to Browser Client via NEXT_PUBLIC_ Prefix",
+        "explanation": "Next.js inlines variables prefixed with NEXT_PUBLIC_ directly into client-side JS bundles sent to the browser.",
+        "hack_scenario": "Attacker opens DevTools Sources and extracts your private database connection string or Stripe secret key from the client bundle.",
+        "architectural_fix": "Remove NEXT_PUBLIC_ prefix so the key remains strictly on the server (Node/Edge runtime). Access via process.env.SECRET in Server Components or Route Handlers."
+    },
+    {
+        "id": "NODEJS_SYNC_IO_STARVATION",
+        "badge": "[NODEJS-PERF] Event Loop Starvation (Sync I/O)",
+        "pattern": r'\bfs\.(?:readFileSync|writeFileSync|existsSync|readdirSync|appendFileSync)\s*\(',
+        "title": "Synchronous File I/O in Node.js Server Handler",
+        "explanation": "Calling fs.*Sync blocks the single-threaded Node.js event loop during disk reads/writes, stopping all concurrent requests.",
+        "hack_scenario": "Under a burst of traffic, readFileSync on a large file spikes latency from 15ms to 12,000ms, causing 504 Gateway Timeouts across your cluster.",
+        "architectural_fix": "Use async file operations: import { promises as fs } from 'fs'; await fs.readFile(path);"
+    },
+    {
+        "id": "NODEJS_COMMAND_INJECTION",
+        "badge": "[NODEJS-SECURITY] Remote Command Injection",
+        "pattern": r'(?i)(?:child_process\.)?exec\s*\(\s*`[^`]*\$\{|(?:child_process\.)?exec\s*\(\s*[\'"][^\'"]*[\'"]\s*\+',
+        "title": "Arbitrary Shell Command Injection via child_process.exec()",
+        "explanation": "Passing dynamic template strings or concatenated variables to child_process.exec() invokes a system shell.",
+        "hack_scenario": "An attacker passes '; rm -rf /' or '& whoami' into user input, achieving full remote code execution on the hosting container.",
+        "architectural_fix": "Use child_process.execFile() or spawn() with arguments separated as an array: execFile('tool', [param1, param2]);"
+    },
+    {
+        "id": "NEXTJS_UNPROTECTED_SERVER_ACTION",
+        "badge": "[NEXTJS-SECURITY] Unprotected Server Action",
+        "pattern": r'(?i)(?:[\'"]use server[\'"]).*(?:delete|update|remove|insert|drop|transfer|withdraw)',
+        "title": "Next.js Server Action Modifying State Without Auth Verification",
+        "explanation": "Next.js Server Actions generate public HTTP POST endpoints reachable by direct fetch or curl requests outside the UI.",
+        "hack_scenario": "An unauthenticated attacker sends a direct POST request to the action endpoint, modifying or deleting database records without logging in.",
+        "architectural_fix": "Enforce session authentication at the top of the action: const session = await auth(); if (!session?.user) throw new Error('Unauthorized');"
+    },
+    {
+        "id": "NEXTJS_MISSING_USE_CLIENT",
+        "badge": "[NEXTJS-ARCH] Missing 'use client' Directive",
+        "pattern": r'(?i)^(?!.*[\'"]use client[\'"]).*\b(?:useState|useEffect|useContext|useReducer)\s*\(',
+        "title": "React Hook Used in Default Server Component",
+        "explanation": "Next.js App Router renders all components as Server Components by default. React state hooks are disallowed on the server.",
+        "hack_scenario": "Component crashes during build or server rendering with React Hook invariant violation, resulting in a 500 error page for users.",
+        "architectural_fix": "Add 'use client'; as the first line of the component, or encapsulate state logic in a dedicated client sub-component."
+    },
+    {
+        "id": "REACT_DANGEROUSLY_SET_INNER_HTML",
+        "badge": "[REACT/NEXTJS] Stored / Reflected XSS",
+        "pattern": r'dangerouslySetInnerHTML\s*=\s*\{\s*__html:',
+        "title": "Unsanitized HTML Injected into DOM via dangerouslySetInnerHTML",
+        "explanation": "Bypasses React's automatic string encoding, injecting raw HTML markup directly into the browser DOM.",
+        "hack_scenario": "An attacker submits user profile data containing <img src=x onerror=alert(document.cookie)>, hijacking user sessions.",
+        "architectural_fix": "Sanitize with DOMPurify before passing: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userHtml) }}"
     }
 ]
 
@@ -1015,9 +1212,9 @@ def run_all_in_one_check(
     except Exception as e:
         return {"success": False, "error": f"Target resolution failed: {e}"}
 
-    system_design_res = audit_system_design_flaws(code_content=content)
-    multitap_res = stress_test_multitap_vulnerability(code_content=content)
-    smells_res = explain_code_issues(code_content=content)
+    system_design_res = audit_system_design_flaws(file_path=target_file, code_content=content)
+    multitap_res = stress_test_multitap_vulnerability(file_path=target_file, code_content=content)
+    smells_res = explain_code_issues(file_path=target_file, code_content=content)
     ml_res = run_ml_audit(content)
 
     entropy_findings = ml_res.get("shannon_entropy_findings", [])

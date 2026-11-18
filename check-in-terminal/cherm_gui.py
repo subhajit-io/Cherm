@@ -514,7 +514,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
     <header>
         <div class="brand">
             <h1>Cherm</h1>
-            <p>Static Architecture & Security Auditor</p>
+            <p>Static Architecture & Security Auditor (Python, Node.js, Next.js, Go, SQL)</p>
         </div>
         <div class="port-badge">
             <span class="dot"></span>
@@ -539,7 +539,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
                 <div class="dropzone-title">Drag & drop your code file here</div>
-                <div class="dropzone-sub">Supports .py, .js, .ts, .go, .sql, .rs, .java, .cpp, etc.</div>
+                <div class="dropzone-sub">Supports .py, .js, .jsx, .ts, .tsx, .mjs, .cjs, .go, .sql, .rs, .java (Node.js & Next.js ready)</div>
                 <button type="button" class="btn-browse" onclick="openFilePicker(event)">Browse File from Disk</button>
                 <input type="file" id="file-input" style="display:none" onchange="onFileChosen(event)">
             </div>
@@ -570,7 +570,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 
         <!-- 2. Paste Mode -->
         <div id="paste-mode" class="paste-panel">
-            <textarea id="paste-code" placeholder="Paste source code snippet here (e.g. Python function, SQL queries, JS controller)..."></textarea>
+            <textarea id="paste-code" placeholder="Paste source code snippet here (e.g. Next.js component, Node.js server route, Python function, SQL queries)..."></textarea>
             <div class="action-row">
                 <button id="btn-paste-check" class="btn-check" onclick="runPasteAudit()">
                     ⚡ Run Cherm Security Audit
@@ -711,14 +711,43 @@ INDEX_HTML = r"""<!DOCTYPE html>
         loadedFilename = file.name;
         fileNameEl.textContent = file.name;
 
-        const ext = file.name.split('.').pop() || 'FILE';
-        extBadgeEl.textContent = ext.substring(0, 4);
+        const lowerName = file.name.toLowerCase();
+        let badge = 'FILE';
+        if (lowerName.endsWith('.tsx') || lowerName.endsWith('.jsx')) {
+            badge = 'NEXT';
+        } else if (lowerName.endsWith('.ts')) {
+            badge = 'TS';
+        } else if (lowerName.endsWith('.js') || lowerName.endsWith('.mjs') || lowerName.endsWith('.cjs')) {
+            badge = 'NODE';
+        } else if (lowerName.endsWith('.py')) {
+            badge = 'PY';
+        } else if (lowerName.endsWith('.go')) {
+            badge = 'GO';
+        } else if (lowerName.endsWith('.sql')) {
+            badge = 'SQL';
+        } else if (lowerName.endsWith('.rs')) {
+            badge = 'RUST';
+        } else if (lowerName.endsWith('.json')) {
+            badge = 'JSON';
+        } else {
+            badge = (file.name.split('.').pop() || 'FILE').toUpperCase().substring(0, 4);
+        }
+        extBadgeEl.textContent = badge;
 
         const reader = new FileReader();
         reader.onload = function(evt) {
             loadedCode = evt.target.result || '';
             const lines = loadedCode.split('\n').length;
             fileStatsEl.textContent = formatBytes(file.size) + ' • ' + lines + ' lines';
+
+            // Check if JavaScript/TypeScript file contains Next.js or React markers
+            if (loadedCode.includes("'use client'") || loadedCode.includes('"use client"') ||
+                loadedCode.includes("'use server'") || loadedCode.includes('"use server"') ||
+                loadedCode.includes('next/')) {
+                if (badge === 'NODE' || badge === 'TS' || badge === 'JS') {
+                    extBadgeEl.textContent = 'NEXT';
+                }
+            }
 
             // Show preview (first 15 lines)
             const previewLines = loadedCode.split('\n').slice(0, 15).join('\n');
@@ -773,7 +802,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             const res = await fetch('/api/audit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code, filename: filename })
+                body: JSON.stringify({ code: code, filename: filename, file_path: filename })
             });
 
             if (!res.ok) {
@@ -943,7 +972,7 @@ class ChermRequestHandler(BaseHTTPRequestHandler):
                 return
 
             code = data.get("code")
-            file_path = data.get("file_path")
+            file_path = data.get("file_path") or data.get("filename")
 
             if not code and not file_path:
                 self._send_json({"error": "No code content provided"}, 400)
