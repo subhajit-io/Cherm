@@ -75,6 +75,33 @@ INDEX_HTML = r"""<!DOCTYPE html>
         }
 
         /* Top Header */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-main);
+            background: #ffffff;
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--border-hover);
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+
         header {
             display: flex;
             align-items: center;
@@ -800,9 +827,19 @@ INDEX_HTML = r"""<!DOCTYPE html>
             <h1>Cherm</h1>
             <p>Static Architecture & Security Auditor (Python, Node.js, Next.js, Go, SQL)</p>
         </div>
-        <div class="port-badge">
-            <span class="dot"></span>
-            <span>localhost:3690</span>
+        <div class="header-actions">
+            <a href="https://cherm-documentation.vercel.app" target="_blank" rel="noopener noreferrer" class="nav-btn" title="Cherm Documentation">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <span>Documentation</span>
+            </a>
+            <a href="https://findrrsubhajit.runs-on.dev" target="_blank" rel="noopener noreferrer" class="nav-btn" title="Subhajit Das Portfolio">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Portfolio</span>
+            </a>
+            <div class="port-badge">
+                <span class="dot"></span>
+                <span>localhost:3690</span>
+            </div>
         </div>
     </header>
 
@@ -826,10 +863,10 @@ INDEX_HTML = r"""<!DOCTYPE html>
                 
                 <div class="dropzone-actions">
                     <button type="button" class="btn-browse" onclick="openFolderPicker(event)" style="background:var(--text-main); color:#ffffff; border-color:var(--text-main); font-weight:700;">
-                        📁 Choose Full Folder
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:-2px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>Choose Full Folder
                     </button>
                     <button type="button" class="btn-browse" onclick="openFilePicker(event)">
-                        📄 Choose Single File
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:-2px;"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Choose Single File
                     </button>
                 </div>
                 
@@ -860,7 +897,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 
                 <div class="action-row" style="margin-top: 14px;">
                     <button id="btn-run-check" class="btn-check" onclick="runSingleFileAudit()">
-                        ⚡ Run Cherm Security Audit
+                        Run Cherm Security Audit
                     </button>
                     <span id="audit-timing" style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);"></span>
                 </div>
@@ -891,7 +928,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 
                 <div class="action-row">
                     <button id="btn-folder-check" class="btn-check" onclick="runFolderAuditAction()">
-                        ⚡ Run Full Project Audit
+                        Run Full Project Audit
                     </button>
                     <span id="folder-timing" style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);"></span>
                 </div>
@@ -915,7 +952,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             <textarea id="paste-code" placeholder="Paste source code snippet here (e.g. Next.js component, Node.js server route, Python function, SQL queries)..."></textarea>
             <div class="action-row">
                 <button id="btn-paste-check" class="btn-check" onclick="runPasteAudit()">
-                    ⚡ Run Cherm Security Audit
+                    Run Cherm Security Audit
                 </button>
                 <span id="paste-timing" style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);"></span>
             </div>
@@ -1297,7 +1334,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 
         folderNameEl.textContent = name;
         folderStatsEl.textContent = files.length + ' code files • ' + totalLines.toLocaleString() + ' lines • ' + formatBytes(totalBytes);
-        btnFolderCheck.textContent = '⚡ Run Full Project Audit (' + files.length + ' files)';
+        btnFolderCheck.textContent = 'Run Full Project Audit (' + files.length + ' files)';
         folderTimingEl.textContent = 'Folder loaded. Ready to audit.';
 
         renderFolderFilesList(files);

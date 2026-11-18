@@ -68,7 +68,68 @@
             display: none;
         }
 
-        /* Dark Mode Toggle Button */
+        
+        /* Top Navigation Bar */
+        .top-nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 1000;
+        }
+
+        .top-nav-brand {
+            font-family: monospace;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .top-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        body {
+            padding-top: 48px;
+        }
+
+        .theme-btn {
+            display: none !important;
+        }
+
+/* Dark Mode Toggle Button */
         .theme-btn {
             position: fixed;
             top: 1rem;
@@ -535,7 +596,32 @@
 <body>
 
     <input type="checkbox" id="theme-toggle">
-    <label for="theme-toggle" class="theme-btn" title="Toggle Dark/Light Mode">🌓 Mode</label>
+    
+    <!-- Top Navigation Header -->
+    <header class="top-nav-bar">
+        <div class="top-nav-left">
+            <span class="top-nav-brand">CHERM DOCS</span>
+        </div>
+        <div class="top-nav-right">
+            <a href="https://findrrsubhajit.runs-on.dev" target="_blank" rel="noopener noreferrer" class="top-btn" title="View Creator Portfolio">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Portfolio</span>
+            </a>
+            <a href="http://localhost:3690" target="_blank" rel="noopener noreferrer" class="top-btn" title="Open Localhost GUI">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span>Local GUI</span>
+            </a>
+            <a href="https://github.com/subhajit-io/Cherm" target="_blank" rel="noopener noreferrer" class="top-btn" title="GitHub Repository">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                <span>GitHub</span>
+            </a>
+            <label for="theme-toggle" class="top-btn theme-toggle-btn" title="Toggle Theme">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <span>Theme</span>
+            </label>
+        </div>
+    </header>
+
 
     <!-- Nav radio buttons -->
     <input type="radio" name="nav" id="p-home" checked>
@@ -575,37 +661,37 @@
         <p class="sub">Local Code Quality &amp; Security Auditor</p>
 
         <p class="nav-cat">Start Here</p>
-        <label for="p-home">⚡ What is Cherm?</label>
-        <label for="p-how">🔄 How It Works</label>
-        <label for="p-quickstart">🚀 60-Second Quickstart</label>
+        <label for="p-home">What is Cherm?</label>
+        <label for="p-how">How It Works</label>
+        <label for="p-quickstart">60-Second Quickstart</label>
 
         <p class="nav-cat">The 3 Modalities</p>
-        <label for="p-webgui">🌐 Web GUI (Port 3690)</label>
-        <label for="p-mcp">🤖 AI FastMCP Server</label>
-        <label for="p-terminal">⌨️ Terminal Companion (TUI)</label>
+        <label for="p-webgui">Web GUI (Port 3690)</label>
+        <label for="p-mcp">AI FastMCP Server</label>
+        <label for="p-terminal">Terminal Companion (TUI)</label>
 
         <p class="nav-cat">What Cherm Detects</p>
-        <label for="p-concurrency">⚡ Concurrency &amp; Multi-Tap</label>
-        <label for="p-sysdesign">🏛️ System Design &amp; Scaling</label>
-        <label for="p-nodenext">🟩 Node.js &amp; Next.js Rules</label>
-        <label for="p-entropy">🔑 Shannon Entropy Secrets</label>
+        <label for="p-concurrency">Concurrency &amp; Multi-Tap</label>
+        <label for="p-sysdesign">System Design &amp; Scaling</label>
+        <label for="p-nodenext">Node.js &amp; Next.js Rules</label>
+        <label for="p-entropy">Shannon Entropy Secrets</label>
 
         <p class="nav-cat">Deep Technical Reference</p>
-        <label for="p-shadow">🛡️ Shadow Copy Isolation</label>
-        <label for="p-speed">⏱️ Speed &amp; Big-O Complexity</label>
-        <label for="p-crosscheck">🧪 CrossCheckV200 Fuzzer</label>
-        <label for="p-deadcode">🔍 Dead Code Detection</label>
-        <label for="p-magic">🔢 Magic Numbers Detection</label>
-        <label for="p-stats">📊 File Statistics Engine</label>
-        <label for="p-pentest">🛡️ Full Security Pentest</label>
-        <label for="p-owasp">🔒 Security Audit (OWASP)</label>
-        <label for="p-secrets">🔎 Fast Secret Scanner</label>
-        <label for="p-exec">▶️ Execute File / Sandbox Run</label>
-        <label for="p-api">📡 API Status Scanner</label>
-        <label for="p-view">📄 View Raw File</label>
-        <label for="p-copy">📋 Copy Path to Clipboard</label>
-        <label for="p-gitcmd">🌿 Git Command Center</label>
-        <label for="p-diff">📝 File Diff Viewer</label>
+        <label for="p-shadow">Shadow Copy Isolation</label>
+        <label for="p-speed">Speed &amp; Big-O Complexity</label>
+        <label for="p-crosscheck">CrossCheckV200 Fuzzer</label>
+        <label for="p-deadcode">Dead Code Detection</label>
+        <label for="p-magic">Magic Numbers Detection</label>
+        <label for="p-stats">File Statistics Engine</label>
+        <label for="p-pentest">Full Security Pentest</label>
+        <label for="p-owasp">Security Audit (OWASP)</label>
+        <label for="p-secrets">Fast Secret Scanner</label>
+        <label for="p-exec">Execute File / Sandbox Run</label>
+        <label for="p-api">API Status Scanner</label>
+        <label for="p-view">View Raw File</label>
+        <label for="p-copy">Copy Path to Clipboard</label>
+        <label for="p-gitcmd">Git Command Center</label>
+        <label for="p-diff">File Diff Viewer</label>
     </div>
 
     <!-- Main Content Container -->
@@ -635,17 +721,17 @@
 
             <div class="grid-3">
                 <div class="card">
-                    <span class="card-icon">⚡</span>
+                    <span class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
                     <div class="card-title">Concurrency &amp; Multi-Tap</div>
                     <p class="card-desc">Simulates 50 rapid simultaneous clicks on checkout, payments, or votes. Flags missing debounce, idempotency keys, and database locks before double-spending occurs.</p>
                 </div>
                 <div class="card">
-                    <span class="card-icon">🏛️</span>
+                    <span class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></span>
                     <div class="card-title">System Design Flaws</div>
                     <p class="card-desc">Catches architectural bottlenecks: unbounded queries pulling 500k rows into RAM (OOM), raw unpooled database connections, and wildcard CORS openings.</p>
                 </div>
                 <div class="card">
-                    <span class="card-icon">🔒</span>
+                    <span class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
                     <div class="card-title">100% Private &amp; Local</div>
                     <p class="card-desc">Zero code leaves your machine. No cloud API calls, no third-party accounts, and zero token costs. All AST and entropy analysis runs on local CPU.</p>
                 </div>
@@ -727,7 +813,7 @@
             </div>
 
             <div class="alert alert-success">
-                <strong>🛡️ The Shadow Copy Guarantee:</strong> When running in terminal mode, Cherm creates an isolated SHA-256 shadow copy in a temporary sandbox. Your original source files are never locked, written to, or corrupted.
+                <strong>The Shadow Copy Guarantee:</strong> When running in terminal mode, Cherm creates an isolated SHA-256 shadow copy in a temporary sandbox. Your original source files are never locked, written to, or corrupted.
             </div>
         </div>
 
@@ -782,19 +868,19 @@
 
             <div class="grid-2">
                 <div class="card">
-                    <div class="card-title">📁 Full Folder Drag &amp; Drop</div>
+                    <div class="card-title">Full Folder Drag &amp; Drop</div>
                     <p class="card-desc">Drag an entire folder directly into the browser. Cherm recursively traverses directory trees using the HTML5 File System API, auto-filtering <code>node_modules</code>, <code>.git</code>, and build caches.</p>
                 </div>
                 <div class="card">
-                    <div class="card-title">⚡ Instant Project Health Grade</div>
+                    <div class="card-title">Instant Project Health Grade</div>
                     <p class="card-desc">Calculates overall project grade (Grade A, B, C, F) and reports total fatal flaws, concurrency risks, system design smells, and exposed credentials.</p>
                 </div>
                 <div class="card">
-                    <div class="card-title">🔍 Interactive File Tree &amp; Previews</div>
+                    <div class="card-title">Interactive File Tree &amp; Previews</div>
                     <p class="card-desc">Click any file in the sidebar tree to see its line count, size, highlighted status badge, and line-by-line findings with exact code fixes.</p>
                 </div>
                 <div class="card">
-                    <div class="card-title">📊 Downloadable HTML Reports</div>
+                    <div class="card-title">Downloadable HTML Reports</div>
                     <p class="card-desc">Generate portable, self-contained HTML audit dashboards that you can share with team members or attach to pull requests.</p>
                 </div>
             </div>
@@ -1864,7 +1950,7 @@ IMPAIRED_MOVE_SPEED  = 2.0   # units per frame when low health</pre>
             </div>
 
             <div class="tip-box">
-                <strong>💡 Best Practice:</strong> Group related constants at the top of your file under a comment block
+                <strong> Best Practice:</strong> Group related constants at the top of your file under a comment block
                 like <code># ─── CONSTANTS ───</code>. When a new developer joins the team, they can read all the
                 configuration values of the system at a glance in one place without hunting through function
                 implementations.
@@ -2921,7 +3007,7 @@ ANOTHER  = config.get("api.key")</pre>
                 can manually select and copy it using your SSH client's terminal selection.</p>
 
             <div class="tip-box">
-                <strong>💡 Pro Tip:</strong> On Linux, if you regularly need clipboard support over SSH, launch your SSH
+                <strong> Pro Tip:</strong> On Linux, if you regularly need clipboard support over SSH, launch your SSH
                 session with X11 forwarding enabled: <code>ssh -X user@server</code>. This tunnels the X11 display
                 protocol over SSH, allowing clipboard access from the remote server.
             </div>
@@ -3198,7 +3284,7 @@ ANOTHER  = config.get("api.key")</pre>
                 Git repository for the Diff Viewer to function.</p>
 
             <div class="tip-box">
-                <strong>💡 Build the Pre-Commit Review Habit:</strong> Make it a personal rule that you always open the
+                <strong> Build the Pre-Commit Review Habit:</strong> Make it a personal rule that you always open the
                 Diff Viewer before every Git Add. It takes 30 seconds and catches the kinds of mistakes that are
                 embarrassing to have in the permanent commit history of a team project. Over time, this habit
                 significantly reduces the quality and frequency of "oops" commits.
