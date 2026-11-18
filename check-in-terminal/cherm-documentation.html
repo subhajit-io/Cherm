@@ -1,615 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cherm Documentation - The Definitive Guide</title>
+    <title>Cherm Documentation — Local Code & Architecture Auditor</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #ffffff;
-            color: #111;
-            line-height: 1.9;
+        :root {
+            --bg: #ffffff;
+            --surface: #f8fafc;
+            --sidebar-bg: #f1f5f9;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-light: #e0f2fe;
+            --card-bg: #ffffff;
+            --code-bg: #0f172a;
+            --code-text: #e2e8f0;
+            --tag-bg: #f1f5f9;
+            --tag-text: #475569;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+        }
+
+        #theme-toggle:checked ~ * {
+            --bg: #0b0f19;
+            --surface: #111827;
+            --sidebar-bg: #0d1322;
+            --border: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --accent-light: #082f49;
+            --card-bg: #111827;
+            --code-bg: #030712;
+            --code-text: #f3f4f6;
+            --tag-bg: #1e293b;
+            --tag-text: #cbd5e1;
+            --danger-bg: #450a0a;
+            --warning-bg: #451a03;
+            --success-bg: #022c22;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.7;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        input[type="radio"] {
+        input[type="radio"], input[type="checkbox"] {
             display: none;
         }
 
+        /* Dark Mode Toggle Button */
+        .theme-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1.5rem;
+            z-index: 1000;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            user-select: none;
+        }
+
+        /* Sidebar */
         .sidebar {
-            width: 300px;
+            width: 320px;
             height: 100vh;
-            background-color: #f7f7f7;
-            border-right: 1px solid #e0e0e0;
-            padding: 3rem 1rem 2rem 1rem;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 1rem 3rem 1rem;
             overflow-y: auto;
             flex-shrink: 0;
-            box-sizing: border-box;
+        }
+
+        .sidebar-brand {
+            background: #000;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .brand-ascii {
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            display: block;
         }
 
         .sidebar h1 {
-            font-size: 1.4rem;
-            margin: 0 0 0.3rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+            color: var(--text-main);
         }
 
         .sidebar .sub {
             font-size: 0.8rem;
-            color: #888;
-            margin: 0 0 1.2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e0e0e0;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
         }
 
         .nav-cat {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #999;
-            margin: 1.2rem 0 0.4rem 0.4rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 1.2rem 0 0.4rem 0.5rem;
         }
 
         .sidebar label {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             padding: 0.45rem 0.8rem;
-            color: #0366d6;
-            font-size: 0.9rem;
+            color: var(--text-main);
+            font-size: 0.88rem;
             cursor: pointer;
-            border-radius: 5px;
-            margin-bottom: 0.1rem;
+            border-radius: 6px;
+            margin-bottom: 0.15rem;
+            transition: all 0.15s ease;
         }
 
         .sidebar label:hover {
-            background: #e8f0fe;
+            background: var(--accent-light);
+            color: var(--accent);
         }
 
-        #p-home:checked~.sidebar label[for="p-home"],
-        #p-shadow:checked~.sidebar label[for="p-shadow"],
-        #p-speed:checked~.sidebar label[for="p-speed"],
-        #p-crosscheck:checked~.sidebar label[for="p-crosscheck"],
-        #p-deadcode:checked~.sidebar label[for="p-deadcode"],
-        #p-magic:checked~.sidebar label[for="p-magic"],
-        #p-stats:checked~.sidebar label[for="p-stats"],
-        #p-pentest:checked~.sidebar label[for="p-pentest"],
-        #p-owasp:checked~.sidebar label[for="p-owasp"],
-        #p-secrets:checked~.sidebar label[for="p-secrets"],
-        #p-exec:checked~.sidebar label[for="p-exec"],
-        #p-api:checked~.sidebar label[for="p-api"],
-        #p-view:checked~.sidebar label[for="p-view"],
-        #p-copy:checked~.sidebar label[for="p-copy"],
-        #p-gitcmd:checked~.sidebar label[for="p-gitcmd"],
-        #p-diff:checked~.sidebar label[for="p-diff"] {
-            background: #0366d6;
-            color: #fff;
+        /* Active radio highlights in sidebar */
+        #p-home:checked ~ .sidebar label[for="p-home"],
+        #p-how:checked ~ .sidebar label[for="p-how"],
+        #p-quickstart:checked ~ .sidebar label[for="p-quickstart"],
+        #p-webgui:checked ~ .sidebar label[for="p-webgui"],
+        #p-mcp:checked ~ .sidebar label[for="p-mcp"],
+        #p-terminal:checked ~ .sidebar label[for="p-terminal"],
+        #p-concurrency:checked ~ .sidebar label[for="p-concurrency"],
+        #p-sysdesign:checked ~ .sidebar label[for="p-sysdesign"],
+        #p-nodenext:checked ~ .sidebar label[for="p-nodenext"],
+        #p-entropy:checked ~ .sidebar label[for="p-entropy"],
+        #p-shadow:checked ~ .sidebar label[for="p-shadow"],
+        #p-speed:checked ~ .sidebar label[for="p-speed"],
+        #p-crosscheck:checked ~ .sidebar label[for="p-crosscheck"],
+        #p-deadcode:checked ~ .sidebar label[for="p-deadcode"],
+        #p-magic:checked ~ .sidebar label[for="p-magic"],
+        #p-stats:checked ~ .sidebar label[for="p-stats"],
+        #p-pentest:checked ~ .sidebar label[for="p-pentest"],
+        #p-owasp:checked ~ .sidebar label[for="p-owasp"],
+        #p-secrets:checked ~ .sidebar label[for="p-secrets"],
+        #p-exec:checked ~ .sidebar label[for="p-exec"],
+        #p-api:checked ~ .sidebar label[for="p-api"],
+        #p-view:checked ~ .sidebar label[for="p-view"],
+        #p-copy:checked ~ .sidebar label[for="p-copy"],
+        #p-gitcmd:checked ~ .sidebar label[for="p-gitcmd"],
+        #p-diff:checked ~ .sidebar label[for="p-diff"] {
+            background: var(--accent);
+            color: #ffffff;
             font-weight: 600;
         }
 
+        /* Content Area */
         .content {
             flex-grow: 1;
-            padding: 5rem 5rem 3rem 5rem;
+            padding: 3.5rem 4.5rem 5rem 4.5rem;
             overflow-y: auto;
             height: 100vh;
-            box-sizing: border-box;
         }
 
         .page {
             display: none;
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
-            padding-bottom: 10rem;
+            padding-bottom: 6rem;
+            animation: fadeIn 0.18s ease-in-out;
         }
 
-        #p-home:checked~.content #pg-home,
-        #p-shadow:checked~.content #pg-shadow,
-        #p-speed:checked~.content #pg-speed,
-        #p-crosscheck:checked~.content #pg-crosscheck,
-        #p-deadcode:checked~.content #pg-deadcode,
-        #p-magic:checked~.content #pg-magic,
-        #p-stats:checked~.content #pg-stats,
-        #p-pentest:checked~.content #pg-pentest,
-        #p-owasp:checked~.content #pg-owasp,
-        #p-secrets:checked~.content #pg-secrets,
-        #p-exec:checked~.content #pg-exec,
-        #p-api:checked~.content #pg-api,
-        #p-view:checked~.content #pg-view,
-        #p-copy:checked~.content #pg-copy,
-        #p-gitcmd:checked~.content #pg-gitcmd,
-        #p-diff:checked~.content #pg-diff {
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Show active page */
+        #p-home:checked ~ .content #pg-home,
+        #p-how:checked ~ .content #pg-how,
+        #p-quickstart:checked ~ .content #pg-quickstart,
+        #p-webgui:checked ~ .content #pg-webgui,
+        #p-mcp:checked ~ .content #pg-mcp,
+        #p-terminal:checked ~ .content #pg-terminal,
+        #p-concurrency:checked ~ .content #pg-concurrency,
+        #p-sysdesign:checked ~ .content #pg-sysdesign,
+        #p-nodenext:checked ~ .content #pg-nodenext,
+        #p-entropy:checked ~ .content #pg-entropy,
+        #p-shadow:checked ~ .content #pg-shadow,
+        #p-speed:checked ~ .content #pg-speed,
+        #p-crosscheck:checked ~ .content #pg-crosscheck,
+        #p-deadcode:checked ~ .content #pg-deadcode,
+        #p-magic:checked ~ .content #pg-magic,
+        #p-stats:checked ~ .content #pg-stats,
+        #p-pentest:checked ~ .content #pg-pentest,
+        #p-owasp:checked ~ .content #pg-owasp,
+        #p-secrets:checked ~ .content #pg-secrets,
+        #p-exec:checked ~ .content #pg-exec,
+        #p-api:checked ~ .content #pg-api,
+        #p-view:checked ~ .content #pg-view,
+        #p-copy:checked ~ .content #pg-copy,
+        #p-gitcmd:checked ~ .content #pg-gitcmd,
+        #p-diff:checked ~ .content #pg-diff {
             display: block;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            color: var(--text-main);
+            font-weight: 700;
         }
 
         .page h2 {
-            font-size: 2.6rem;
-            border-bottom: 3px solid #f0f0f0;
-            padding-bottom: 0.8rem;
-            margin-top: 0;
+            font-size: 2.3rem;
+            letter-spacing: -0.6px;
             margin-bottom: 0.5rem;
-            letter-spacing: -0.5px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.6rem;
         }
 
-        .page .tagline {
+        .tagline {
             font-size: 1.15rem;
-            color: #666;
-            margin-bottom: 3rem;
-            border-bottom: 1px solid #f4f4f4;
-            padding-bottom: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-weight: 400;
         }
 
         .page h3 {
-            font-size: 1.55rem;
-            margin-top: 3.5rem;
-            margin-bottom: 1rem;
-            color: #111;
-            border-left: 4px solid #0366d6;
-            padding-left: 1rem;
+            font-size: 1.45rem;
+            margin-top: 2.5rem;
+            margin-bottom: 0.9rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 0.8rem;
         }
 
         .page h4 {
-            font-size: 1.2rem;
-            margin-top: 2.5rem;
+            font-size: 1.15rem;
+            margin-top: 1.8rem;
             margin-bottom: 0.6rem;
-            color: #222;
-            font-weight: 700;
-        }
-
-        .page h5 {
-            font-size: 1rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.4rem;
-            color: #444;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
 
         .page p {
-            font-size: 1.1rem;
-            margin-bottom: 1.6rem;
-            color: #333;
+            margin-bottom: 1.2rem;
+            color: var(--text-main);
+            font-size: 1.02rem;
         }
 
-        .page ul,
-        .page ol {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 2rem;
-            padding-left: 2rem;
+        .page ul, .page ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.8rem;
         }
 
         .page li {
-            margin-bottom: 0.8rem;
-        }
-
-        code {
-            background: #f5f5f5;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9em;
-            color: #c7254e;
-        }
-
-        pre {
-            background: #f6f8fa;
-            border: 1px solid #e1e4e8;
-            border-radius: 8px;
-            padding: 1.5rem;
-            overflow-x: auto;
-            font-family: monospace;
-            font-size: 0.93em;
-            line-height: 1.6;
-            margin: 0 0 2rem;
-            color: #24292e;
-        }
-
-        .terminal {
-            background: #1a1a2e;
-            color: #e0e0e0;
-            border-radius: 10px;
-            padding: 1.5rem 2rem;
-            font-family: monospace;
-            font-size: 0.93rem;
-            line-height: 1.7;
-            margin: 0 0 2.5rem;
-            white-space: pre-wrap;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-        }
-
-        .terminal .ok {
-            color: #4ec9b0;
-        }
-
-        .terminal .warn {
-            color: #dcdcaa;
-        }
-
-        .terminal .fail {
-            color: #f44747;
-        }
-
-        .terminal .info {
-            color: #569cd6;
-        }
-
-        .terminal .dim {
-            color: #888;
-        }
-
-        .terminal .green {
-            color: #6a9955;
-        }
-
-        .alert {
-            border-radius: 8px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 2.5rem;
-            font-size: 1.05rem;
-        }
-
-        .alert-warn {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-left: 5px solid #f59e0b;
-            color: #92400e;
-        }
-
-        .alert-danger {
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-            border-left: 5px solid #e11d48;
-            color: #881337;
-        }
-
-        .alert-info {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-left: 5px solid #2563eb;
-            color: #1e3a5f;
-        }
-
-        .alert-success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-left: 5px solid #16a34a;
-            color: #14532d;
-        }
-
-        .alert strong {
-            display: block;
-            font-size: 1.1rem;
             margin-bottom: 0.5rem;
+            font-size: 1.02rem;
         }
 
-        .prereq-box {
-            background: #f0f4ff;
-            border: 1px solid #c7d2fe;
+        /* Visual Components */
+        .badge-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+
+        .badge-accent { background: var(--accent-light); color: var(--accent); }
+        .badge-success { background: var(--success-bg); color: var(--success); }
+        .badge-warning { background: var(--warning-bg); color: var(--warning); }
+        .badge-danger { background: var(--danger-bg); color: var(--danger); }
+        .badge-neutral { background: var(--tag-bg); color: var(--tag-text); }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 3rem;
+            padding: 1.4rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
-        .prereq-box h4 {
-            color: #3730a3;
-            margin-top: 0;
-            font-size: 1.15rem;
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
-        .prereq-box ul {
+        .card-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: var(--text-main);
+        }
+
+        .card-desc {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.55;
             margin-bottom: 0;
         }
 
-        .tip-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+        /* Stepper Workflow */
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .step-row {
+            display: flex;
+            gap: 1.2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1.2rem 1.8rem;
-            margin-bottom: 2rem;
+            padding: 1.4rem;
         }
 
-        .tip-box strong {
-            color: #15803d;
-        }
-
-        .compare-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2.5rem;
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            flex-shrink: 0;
             font-size: 1rem;
         }
 
-        .compare-table th {
-            background: #f0f4ff;
-            color: #3730a3;
-            padding: 0.8rem 1rem;
-            text-align: left;
-            border: 1px solid #c7d2fe;
+        .step-body h4 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .step-body p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Alerts & Callouts */
+        .alert {
+            padding: 1.2rem 1.5rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background: var(--accent-light);
+            color: var(--text-main);
             font-size: 0.95rem;
         }
 
-        .compare-table td {
-            padding: 0.8rem 1rem;
-            border: 1px solid #e5e7eb;
-            vertical-align: top;
+        .alert-warning {
+            border-left-color: var(--warning);
+            background: var(--warning-bg);
         }
 
-        .compare-table tr:nth-child(even) td {
-            background: #fafafa;
+        .alert-danger {
+            border-left-color: var(--danger);
+            background: var(--danger-bg);
         }
 
-        .step-list {
-            counter-reset: steps;
-            list-style: none;
-            padding-left: 0;
+        .alert-success {
+            border-left-color: var(--success);
+            background: var(--success-bg);
         }
 
-        .step-list li {
-            counter-increment: steps;
-            padding: 1rem 1rem 1rem 3.5rem;
-            position: relative;
-            margin-bottom: 1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1.05rem;
-        }
-
-        .step-list li::before {
-            content: counter(steps);
-            position: absolute;
-            left: 1rem;
-            top: 1rem;
-            width: 1.6rem;
-            height: 1.6rem;
-            background: #0366d6;
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
-
-        .faq-q {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #111;
-            margin-top: 2rem;
-            margin-bottom: 0.4rem;
-        }
-
-        .faq-a {
-            font-size: 1.05rem;
-            color: #444;
-            padding-left: 1rem;
-            border-left: 3px solid #e0e0e0;
-            margin-bottom: 1.5rem;
-        }
-
-        .divider {
-            border: none;
-            border-top: 2px solid #f0f0f0;
-            margin: 3rem 0;
-        }
-
-        .label {
-            display: inline-block;
-            background: #e0e7ff;
-            color: #3730a3;
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
+        /* Code snippets */
+        code {
+            background: var(--tag-bg);
+            color: var(--accent);
+            padding: 0.2rem 0.4rem;
             border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
+            font-family: monospace;
+            font-size: 0.9em;
         }
 
-        .badge-new {
-            background: #dcfce7;
-            color: #15803d;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.1rem 0.5rem;
-            border-radius: 9999px;
-            margin-left: 0.4rem;
-            vertical-align: middle;
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem 1.4rem;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin: 1rem 0 1.6rem;
         }
 
-        .quote-block {
-            border-left: 4px solid #0366d6;
-            padding: 1rem 1.5rem;
-            background: #f8faff;
-            margin-bottom: 2rem;
-            font-style: italic;
-            font-size: 1.05rem;
-            color: #444;
-            border-radius: 0 8px 8px 0;
+        /* Flaw Card */
+        .flaw-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow: hidden;
         }
 
-        /* Dark Mode Toggle Styles */
-        #theme-toggle {
-            display: none;
-        }
-
-        .theme-btn {
-            position: fixed;
-            top: 1.5rem;
-            right: 2rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 1000;
-            user-select: none;
-            background: #f0f0f0;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
+        .flaw-header {
+            padding: 0.8rem 1.2rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
+            justify-content: space-between;
         }
 
-        .theme-btn:hover {
-            transform: scale(1.1);
+        .flaw-body {
+            padding: 1.2rem;
         }
 
-        #theme-toggle:checked~.theme-btn {
-            background: #2a2a35;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        .flaw-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
         }
 
-        #theme-toggle:checked~.sidebar {
-            background-color: #181825;
-            border-right-color: #313244;
+        .flaw-text {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 1rem;
         }
 
-        #theme-toggle:checked~.sidebar h1 {
-            color: #cdd6f4;
+        /* Quickstart Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--accent);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            transition: background 0.15s ease;
         }
 
-        #theme-toggle:checked~.sidebar .sub {
-            color: #a6adc8;
-            border-bottom-color: #313244;
+        .btn:hover {
+            background: var(--accent-hover);
         }
 
-        #theme-toggle:checked~.sidebar .nav-cat {
-            color: #6c7086;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
         }
 
-        #theme-toggle:checked~.sidebar label {
-            color: #89b4fa;
+        .btn-outline:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
-        #theme-toggle:checked~.sidebar label:hover {
-            background: #313244;
-        }
-
-        #theme-toggle:checked~.content {
-            background-color: #0f111a;
-            color: #e4e4e7;
-        }
-
-        #theme-toggle:checked~.content .page h2,
-        #theme-toggle:checked~.content .page h3,
-        #theme-toggle:checked~.content .page h4,
-        #theme-toggle:checked~.content .page h5,
-        #theme-toggle:checked~.content .faq-q {
-            color: #cdd6f4;
-        }
-
-        #theme-toggle:checked~.content .page p,
-        #theme-toggle:checked~.content .page li,
-        #theme-toggle:checked~.content .page .tagline,
-        #theme-toggle:checked~.content .faq-a {
-            color: #a6adc8;
-        }
-
-        #theme-toggle:checked~.content .page h2,
-        #theme-toggle:checked~.content .page .tagline {
-            border-bottom-color: #313244;
-        }
-
-        #theme-toggle:checked~.content .divider {
-            border-top-color: #313244;
-        }
-
-        #theme-toggle:checked~.content code {
-            background: #313244;
-            color: #f38ba8;
-        }
-
-        #theme-toggle:checked~.content pre {
-            background: #11111b;
-            border-color: #313244;
-            color: #cdd6f4;
-        }
-
-        #theme-toggle:checked~.content .prereq-box {
-            background: #1e1e2e;
-            border-color: #89b4fa;
-        }
-
-        #theme-toggle:checked~.content .prereq-box h4 {
-            color: #89b4fa;
-        }
-
-        #theme-toggle:checked~.content .tip-box {
-            background: #182e23;
-            border-color: #a6e3a1;
-        }
-
-        #theme-toggle:checked~.content .tip-box strong {
-            color: #a6e3a1;
-        }
-
-        #theme-toggle:checked~.content .alert-warn {
-            background: #332701;
-            border-color: #f9e2af;
-            color: #f9e2af;
-        }
-
-        #theme-toggle:checked~.content .alert-danger {
-            background: #3a151b;
-            border-color: #f38ba8;
-            color: #f38ba8;
-        }
-
-        #theme-toggle:checked~.content .alert-info {
-            background: #111b3d;
-            border-color: #89b4fa;
-            color: #89b4fa;
-        }
-
-        #theme-toggle:checked~.content .alert-success {
-            background: #182e23;
-            border-color: #a6e3a1;
-            color: #a6e3a1;
-        }
-
-        #theme-toggle:checked~.content .compare-table th {
-            background: #1e1e2e;
-            color: #89b4fa;
-            border-color: #313244;
-        }
-
-        #theme-toggle:checked~.content .compare-table td {
-            border-color: #313244;
-        }
-
-        #theme-toggle:checked~.content .compare-table tr:nth-child(even) td {
-            background: #181825;
-        }
-
-        #theme-toggle:checked~.content .step-list li {
-            border-color: #313244;
-        }
-
-        #theme-toggle:checked~.content .label {
-            background: #1e1e2e;
-            color: #89b4fa;
-        }
-
-        #theme-toggle:checked~.content .quote-block {
-            background: #1e1e2e;
-            color: #a6adc8;
-            border-color: #89b4fa;
+        @media (max-width: 860px) {
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; height: auto; }
+            .content { padding: 2rem 1.5rem; height: auto; overflow: visible; }
         }
     </style>
 </head>
-
 <body>
 
     <input type="checkbox" id="theme-toggle">
-    <label for="theme-toggle" class="theme-btn" title="Toggle Dark Mode">🌓</label>
+    <label for="theme-toggle" class="theme-btn" title="Toggle Dark/Light Mode">🌓 Mode</label>
 
+    <!-- Nav radio buttons -->
     <input type="radio" name="nav" id="p-home" checked>
+    <input type="radio" name="nav" id="p-how">
+    <input type="radio" name="nav" id="p-quickstart">
+    <input type="radio" name="nav" id="p-webgui">
+    <input type="radio" name="nav" id="p-mcp">
+    <input type="radio" name="nav" id="p-terminal">
+    <input type="radio" name="nav" id="p-concurrency">
+    <input type="radio" name="nav" id="p-sysdesign">
+    <input type="radio" name="nav" id="p-nodenext">
+    <input type="radio" name="nav" id="p-entropy">
+
+    <!-- Deep Reference Radios -->
     <input type="radio" name="nav" id="p-shadow">
     <input type="radio" name="nav" id="p-speed">
     <input type="radio" name="nav" id="p-crosscheck">
@@ -626,268 +566,431 @@
     <input type="radio" name="nav" id="p-gitcmd">
     <input type="radio" name="nav" id="p-diff">
 
+    <!-- Sidebar Navigation -->
     <div class="sidebar">
-        <div style="background: #000; padding: 15px 0; border-radius: 6px; text-align: center; margin-bottom: 12px;">
-            <span
-                style="color: #0f0; font-family: monospace; font-size: 11px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 4px #0f0, 0 0 8px #0f0;">(
-                | - | [ - | ~ | \ / | ;</span>
+        <div class="sidebar-brand">
+            <span class="brand-ascii">( | - | [ - | ~ | \ / | ;</span>
         </div>
         <h1>Cherm</h1>
-        <p class="sub">The Definitive Documentation</p>
-        <label for="p-home">Introduction &amp; Warnings</label>
-        <label for="p-shadow">Shadow Copy Architecture</label>
-        <p class="nav-cat">Code Analysis</p>
-        <label for="p-speed">Speed &amp; Complexity Test</label>
-        <label for="p-crosscheck">CrossCheckV200 Engine</label>
-        <label for="p-deadcode">Find Dead Code</label>
-        <label for="p-magic">Detect Magic Numbers</label>
-        <label for="p-stats">View File Statistics</label>
-        <p class="nav-cat">Security</p>
-        <label for="p-pentest">Full Security Pentest</label>
-        <label for="p-owasp">Security Audit (OWASP)</label>
-        <label for="p-secrets">Scan for Secrets</label>
-        <p class="nav-cat">Utilities</p>
-        <label for="p-exec">Execute File / Run</label>
-        <label for="p-api">API Status Scanner</label>
-        <label for="p-view">View Raw File</label>
-        <label for="p-copy">Copy Path to Clipboard</label>
-        <p class="nav-cat">Git Integration</p>
-        <label for="p-gitcmd">Git Command Center</label>
-        <label for="p-diff">File Diff Viewer</label>
+        <p class="sub">Local Code Quality &amp; Security Auditor</p>
+
+        <p class="nav-cat">Start Here</p>
+        <label for="p-home">⚡ What is Cherm?</label>
+        <label for="p-how">🔄 How It Works</label>
+        <label for="p-quickstart">🚀 60-Second Quickstart</label>
+
+        <p class="nav-cat">The 3 Modalities</p>
+        <label for="p-webgui">🌐 Web GUI (Port 3690)</label>
+        <label for="p-mcp">🤖 AI FastMCP Server</label>
+        <label for="p-terminal">⌨️ Terminal Companion (TUI)</label>
+
+        <p class="nav-cat">What Cherm Detects</p>
+        <label for="p-concurrency">⚡ Concurrency &amp; Multi-Tap</label>
+        <label for="p-sysdesign">🏛️ System Design &amp; Scaling</label>
+        <label for="p-nodenext">🟩 Node.js &amp; Next.js Rules</label>
+        <label for="p-entropy">🔑 Shannon Entropy Secrets</label>
+
+        <p class="nav-cat">Deep Technical Reference</p>
+        <label for="p-shadow">🛡️ Shadow Copy Isolation</label>
+        <label for="p-speed">⏱️ Speed &amp; Big-O Complexity</label>
+        <label for="p-crosscheck">🧪 CrossCheckV200 Fuzzer</label>
+        <label for="p-deadcode">🔍 Dead Code Detection</label>
+        <label for="p-magic">🔢 Magic Numbers Detection</label>
+        <label for="p-stats">📊 File Statistics Engine</label>
+        <label for="p-pentest">🛡️ Full Security Pentest</label>
+        <label for="p-owasp">🔒 Security Audit (OWASP)</label>
+        <label for="p-secrets">🔎 Fast Secret Scanner</label>
+        <label for="p-exec">▶️ Execute File / Sandbox Run</label>
+        <label for="p-api">📡 API Status Scanner</label>
+        <label for="p-view">📄 View Raw File</label>
+        <label for="p-copy">📋 Copy Path to Clipboard</label>
+        <label for="p-gitcmd">🌿 Git Command Center</label>
+        <label for="p-diff">📝 File Diff Viewer</label>
     </div>
 
+    <!-- Main Content Container -->
     <div class="content">
 
         <!-- ================================================================
-         HOME / INTRODUCTION
-    ================================================================ -->
+             1. WHAT IS CHERM? (HOME)
+        ================================================================ -->
         <div id="pg-home" class="page">
-            <h2>Welcome to Cherm</h2>
-            <p class="tagline">A terminal-based code inspection suite built for developers who want real analysis, fast
-                — without loading a graphical IDE.</p>
+            <h2>What is Cherm?</h2>
+            <p class="tagline">An offline code quality, concurrency, and architecture auditor built to catch production-breaking bugs before you commit.</p>
 
-            <p>Cherm is a terminal application written in Python that runs entirely inside a standard terminal window
-                using the <code>curses</code> library. It gives you a navigable filesystem browser and, for any file you
-                hover over, an instant menu of powerful developer operations ranging from static analysis and security
-                pentesting to Git integration and direct execution.</p>
-            <p>The philosophy behind Cherm is simple: <strong>you should be able to understand the quality, security,
-                    and behavior of your code without leaving the command line.</strong> Traditional code analysis
-                involves installing heavy IDEs, writing separate test files, configuring linters manually, or relying on
-                expensive paid SaaS tools. Cherm removes that friction entirely and puts a comprehensive analysis
-                toolkit directly into your terminal workflow.</p>
-            <p>Cherm was built to answer a specific frustration: "I have a Python file I'm about to commit. Is it safe?
-                Is it efficient? Does it have dead code? Did I leave a hardcoded password in there?" You can answer all
-                of those questions in under 60 seconds using Cherm, without ever opening a browser, an IDE, or writing
-                any configuration files.</p>
-
-            <h3>Who is Cherm built for?</h3>
-            <p>Cherm is built for intermediate to advanced software developers who are comfortable with the command
-                line, understand fundamental Python programming concepts, and want a rapid inspection layer between
-                writing code and committing it. It is not a replacement for a full IDE such as VS Code, PyCharm, or
-                IntelliJ. It is a dedicated inspection and analysis augmentation tool — think of it as a linter, a
-                security scanner, and a test runner bundled together with a minimal terminal UI.</p>
-            <p>It is equally useful for:</p>
-            <ul>
-                <li><strong>Solo developers</strong> who work fast and want automated quality checks as a second pair of
-                    eyes before committing.</li>
-                <li><strong>Team leads and code reviewers</strong> who want a quick structural overview of an unfamiliar
-                    file before diving into a code review.</li>
-                <li><strong>Students learning to code</strong> who want instant, machine-generated feedback on the
-                    quality and correctness robustness of their functions.</li>
-                <li><strong>Security-conscious developers</strong> who want a last-chance pre-commit sweep for hardcoded
-                    credentials and injection vulnerabilities.</li>
-                <li><strong>Developers on remote servers</strong> via SSH who don't have a graphical interface and need
-                    terminal-native analysis tools.</li>
-            </ul>
-
-            <h3>Installation Guide</h3>
-            <p>You can run Cherm in two ways: either as a standalone application or directly from the source code.</p>
-
-            <h4>Method 1: Install as a Standalone App</h4>
-            <ol>
-                <li>Go to the <a href="https://github.com/subhajit-io/Cherm/releases" target="_blank">Cherm GitHub
-                        Releases page</a>.</li>
-                <li>Download the latest <code>.zip</code> or <code>.exe</code> file.</li>
-                <li><strong>Important:</strong> Because Cherm is not a digitally signed executable, Windows SmartScreen
-                    may show a warning saying "Windows protected your PC". To proceed, click <strong>More info</strong>,
-                    and then click <strong>Run anyway</strong>.</li>
-            </ol>
-
-            <h4>Method 2: Run from Source in your IDE</h4>
-            <ol>
-                <li>Go to the <a href="https://github.com/subhajit-io/Cherm" target="_blank">Github page of Cherm</a>.
-                </li>
-                <li>Copy or clone all the files and folders from the repository.</li>
-                <li>Open the folder in your IDE of choice (like VS Code, PyCharm, etc.).</li>
-                <li>Run <code>python cherm.py</code> directly from your terminal.</li>
-            </ol>
-
-            <hr class="divider">
-
-            <div class="alert alert-danger">
-                <strong>⚠️ CRITICAL: CHERM HAS NO ARTIFICIAL INTELLIGENCE — READ THIS BEFORE ANYTHING ELSE</strong>
-                This is the single most important concept to understand before using Cherm. Every single analysis engine
-                inside Cherm — security scanning, complexity analysis, dead code detection, fuzzing — operates using one
-                of three mechanisms: <strong>Abstract Syntax Tree (AST) parsing</strong>, <strong>Regular Expressions
-                    (Regex)</strong>, or <strong>rigid algorithmic heuristics</strong>. None of these are Artificial
-                Intelligence. None of them understand your code the way a human does.
-                <br><br>
-                Cherm is a static code inspector. It reads the text and structure of your code and applies fixed rules.
-                It has no concept of what your application is <em>supposed</em> to do. It cannot reason about business
-                logic, intent, runtime context, or the broader system your code operates in.
-                <br><br>
-                <strong>False Positives:</strong> Cherm will sometimes flag safe, correct, intentional code as a
-                problem. A randomly generated UUID might be flagged as a "secret key." A function called dynamically via
-                <code>getattr()</code> might be flagged as "dead code." A loop that always runs exactly 3 times
-                regardless of input size might be flagged as O(N²) complexity. <strong>Do not blindly delete or change
-                    code because Cherm flagged it.</strong>
-                <br><br>
-                <strong>False Negatives:</strong> Cherm will sometimes completely miss real bugs, real security
-                vulnerabilities, and real performance problems. A creatively constructed SQL injection that doesn't
-                match the regex pattern will sail through undetected. A function that crashes only under a very specific
-                combination of three runtime conditions may pass all 202 fuzz tests. A real secret key that uses a
-                variable name Cherm doesn't recognize (like <code>ak</code> instead of <code>api_key</code>) will not be
-                flagged.
-                <br><br>
-                <strong>Always use your own developer judgement. Cherm narrows your search — it does not replace your
-                    thinking.</strong> Basic to intermediate coding knowledge is an absolute requirement for
-                interpreting Cherm's output responsibly.
+            <div class="badge-strip">
+                <span class="badge badge-accent">100% Offline</span>
+                <span class="badge badge-success">Zero Cloud Telemetry</span>
+                <span class="badge badge-neutral">Web GUI (Port 3690)</span>
+                <span class="badge badge-neutral">FastMCP 2.0 Bridge</span>
+                <span class="badge badge-neutral">Terminal TUI</span>
+                <span class="badge badge-warning">Zero Config</span>
             </div>
 
-            <h3>Prerequisite Knowledge — What you must know before using Cherm</h3>
-            <p>Cherm's output is written for an audience that already understands software development fundamentals.
-                Before relying on Cherm's results, you should be comfortable with all of the following:</p>
+            <p><strong>Most developers rely on standard linters (ESLint, Flake8, Prettier).</strong> But linters only check syntax and formatting — they don't know if your database query will crash your server under a traffic burst, or if your checkout button can be rage-clicked 50 times to steal money.</p>
 
-            <div class="prereq-box">
-                <h4>Core Prerequisites</h4>
-                <ul>
-                    <li><strong>Python fundamentals:</strong> You can read and understand Python code including
-                        functions, classes, exceptions, modules, decorators, and list/dictionary comprehensions. You can
-                        read a full Python traceback and identify which line caused the error and why.</li>
-                    <li><strong>Big-O Notation:</strong> You understand what O(1), O(log N), O(N), O(N log N), O(N²)
-                        mean intuitively and can reason about how algorithm performance scales with input size.</li>
-                    <li><strong>Exception handling:</strong> You understand what <code>ZeroDivisionError</code>,
-                        <code>AttributeError</code>, <code>TypeError</code>, <code>IndexError</code>,
-                        <code>ValueError</code>, and <code>KeyError</code> mean and what coding mistake typically causes
-                        each one.
-                    </li>
-                    <li><strong>Security basics:</strong> You know what SQL Injection, Command Injection, and hardcoded
-                        secrets are, why they are dangerous, and what the correct alternatives are (parameterized
-                        queries, environment variables).</li>
-                    <li><strong>Git version control:</strong> You understand staging, committing, HEAD, branching at a
-                        conceptual level, and what <code>git restore</code> does destructively.</li>
-                    <li><strong>Terminal/command line:</strong> You are comfortable running programs in a terminal,
-                        understanding exit codes, and reading command output including errors written to stderr.</li>
-                    <li><strong>Abstract Syntax Trees (AST) conceptually:</strong> You understand that source code can
-                        be parsed into a tree structure representing its grammar without executing it, and that static
-                        analysis tools use this to inspect code without running it.</li>
-                </ul>
+            <p>On the other hand, <strong>cloud security tools (SonarQube, Snyk, Veracode)</strong> are slow, expensive, require uploading your source code to third-party servers, and only run after you push to CI/CD.</p>
+
+            <p><strong>Cherm bridges this gap.</strong> It is a lightweight, zero-configuration auditor that inspects your code's <strong>architecture, race conditions, event loop bottlenecks, and credential leaks</strong> locally in milliseconds right on your laptop.</p>
+
+            <div class="grid-3">
+                <div class="card">
+                    <span class="card-icon">⚡</span>
+                    <div class="card-title">Concurrency &amp; Multi-Tap</div>
+                    <p class="card-desc">Simulates 50 rapid simultaneous clicks on checkout, payments, or votes. Flags missing debounce, idempotency keys, and database locks before double-spending occurs.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🏛️</span>
+                    <div class="card-title">System Design Flaws</div>
+                    <p class="card-desc">Catches architectural bottlenecks: unbounded queries pulling 500k rows into RAM (OOM), raw unpooled database connections, and wildcard CORS openings.</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🔒</span>
+                    <div class="card-title">100% Private &amp; Local</div>
+                    <p class="card-desc">Zero code leaves your machine. No cloud API calls, no third-party accounts, and zero token costs. All AST and entropy analysis runs on local CPU.</p>
+                </div>
             </div>
 
-            <h3>Full Keyboard Navigation Reference</h3>
-            <p>Cherm is 100% keyboard-driven. No mouse interaction is supported. Here is the complete keyboard reference
-                for every context within Cherm:</p>
+            <h3>The 3 Ways to Use Cherm</h3>
+            <p>Cherm adapts to your preferred developer workflow without forcing you into a single interface:</p>
 
-            <h4>In the File Browser</h4>
-            <ul>
-                <li><strong>↑ / ↓ Arrow Keys:</strong> Move the highlight cursor up and down through the file and
-                    directory list.</li>
-                <li><strong>ENTER:</strong> If the highlighted item is a directory, navigate into it. If it is a file,
-                    open the Action Menu for that file.</li>
-                <li><strong>← Arrow / Backspace:</strong> Navigate up to the parent directory.</li>
-                <li><strong>B:</strong> Bookmark or un-bookmark the currently highlighted file. Bookmarked files appear
-                    pinned at the top of the browser in a dedicated section with a [*] indicator.</li>
-                <li><strong>SPACE:</strong> Toggle multi-select mode. Pressing SPACE marks the highlighted file with a
-                    [v] checkbox indicator. You can continue navigating and pressing SPACE to collect multiple files for
-                    batch operations.</li>
-                <li><strong>M:</strong> Switch from multi-select mode back to single-file mode.</li>
-                <li><strong>ESC:</strong> Exit Cherm cleanly, triggering the shadow file cleanup before returning to the
-                    normal terminal prompt.</li>
-            </ul>
-
-            <h4>In the Action Menu</h4>
-            <ul>
-                <li><strong>↑ / ↓ Arrow Keys:</strong> Move through the list of available actions for the selected file.
-                </li>
-                <li><strong>ENTER:</strong> Execute the highlighted action.</li>
-                <li><strong>Q:</strong> Go back to the file browser without executing any action.</li>
-            </ul>
-
-            <h4>In Results Screens</h4>
-            <ul>
-                <li><strong>↑ / ↓ Arrow Keys:</strong> Scroll through long result output.</li>
-                <li><strong>Q or ENTER:</strong> Exit the result screen and return to the file's Action Menu.</li>
-            </ul>
-
-            <h3>Recommended Workflow</h3>
-            <p>Here is the workflow that extracts maximum value from Cherm in a typical development session:</p>
-
-            <ol class="step-list">
-                <li>Open Cherm in a second terminal pane alongside your code editor. Navigate to your project's source
-                    directory.</li>
-                <li>Write code in your editor. Save the file.</li>
-                <li>Switch to Cherm, navigate to the file you just edited, and open its Action Menu.</li>
-                <li>Run <strong>Scan Functions</strong> first to verify the file's structure looks as you expect.</li>
-                <li>Run <strong>CrossCheckV200</strong> to fuzz-test all functions for edge-case crashes. Fix any
-                    crashes it finds.</li>
-                <li>Run <strong>Security Audit (OWASP)</strong> for a fast sanity check on security patterns.</li>
-                <li>Run <strong>Scan for Secrets</strong> to verify no credentials are in the file before committing.
-                </li>
-                <li>Open the <strong>Diff Viewer</strong> to review exactly what changed compared to HEAD.</li>
-                <li>Use the <strong>Git Command Center</strong> to stage and commit the file directly from Cherm.</li>
-            </ol>
-
-            <h3>Common Mistakes When Using Cherm</h3>
-
-            <div class="faq-q">Mistake 1: Treating every Cherm finding as a confirmed bug</div>
-            <div class="faq-a">Cherm uses rigid rules. Some findings are false positives. Always read the finding,
-                understand what code it flagged, and make a human judgement about whether the finding represents a real
-                problem in your specific context before acting on it.</div>
-
-            <div class="faq-q">Mistake 2: Running Cherm on the wrong file</div>
-            <div class="faq-a">Make sure you are inspecting the file you just edited, not an old version or a different
-                file with a similar name. Check the "Last Modified" timestamp shown in File Statistics to confirm you
-                are looking at the right version.</div>
-
-            <div class="faq-q">Mistake 3: Using Cherm as the only security gate</div>
-            <div class="faq-a">Cherm's security tools are fast sanity checks, not a replacement for a professional
-                security audit. For applications that handle real user data, payment information, or authentication, you
-                should additionally engage professional code review, penetration testing, and tools like SonarQube or
-                Snyk in your CI/CD pipeline.</div>
-
-            <div class="faq-q">Mistake 4: Assuming CrossCheckV200 passing means the code is correct</div>
-            <div class="faq-a">CrossCheckV200 only verifies that your functions don't <em>crash</em>. It does not verify
-                they return the <em>correct</em> result. A function that always returns <code>None</code> regardless of
-                input will pass every CrossCheckV200 test case. Correctness testing requires you to write explicit
-                assertions.</div>
-
-            <h3>Frequently Asked Questions</h3>
-
-            <div class="faq-q">Does Cherm modify my source files?</div>
-            <div class="faq-a">No. All analysis tools operate on shadow copies of your files. Your originals are never
-                touched. The only operations that interact with your originals are: Execute (reads it), Git operations
-                (reads/modifies via Git), and Open in Editor. See the Shadow Copy Architecture page for full details.
+            <div class="step-container">
+                <div class="step-row">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <h4>Localhost Web GUI (Port 3690)</h4>
+                        <p>Drag &amp; drop a single file, code snippet, or an <strong>entire project folder</strong> (up to 500 files). Explore the interactive file tree, preview source code, and run a 1-click full audit with Health Grades (Grade A to F).</p>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <h4>AI Model Context Protocol (MCP) Server</h4>
+                        <p>Plugs directly into <strong>Claude Desktop, Cursor, Antigravity, and Gemini</strong>. When an AI agent generates code, it can call Cherm's deterministic local tools to audit the code before writing to disk.</p>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <h4>Interactive Terminal Companion (TUI)</h4>
+                        <p>Runs offline in any terminal window or SSH session using <code>curses</code>. Provides keyboard-driven file navigation, an AST fuzzer, and shadow copy isolation so target files are never modified.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="faq-q">Does Cherm require an internet connection?</div>
-            <div class="faq-a">No, except for the API Status Scanner (which is the entire point of that tool) and Safety
-                in the Full Pentest (which checks vulnerabilities against an online database). Every other feature in
-                Cherm is fully offline.</div>
-
-            <div class="faq-q">Can Cherm analyze files in languages other than Python?</div>
-            <div class="faq-a">Partially. File Statistics, View Raw File, Scan for Secrets, and the OWASP audit work on
-                any text file. CrossCheckV200 has a stdin/stdout mode for compiled languages. Scan Functions only works
-                on Python files. Complexity analysis is Python-optimized but produces approximate results on other
-                C-style languages.</div>
-
-            <div class="faq-q">Why does Cherm use curses instead of a regular GUI?</div>
-            <div class="faq-a">Curses allows Cherm to run in any terminal environment — local, SSH, screen/tmux
-                sessions, Docker containers, and CI environments — without requiring a display server, graphics driver,
-                or window manager. This makes Cherm accessible in environments where no graphical interface exists.
+            <div style="margin-top: 2rem;">
+                <label for="p-how" class="btn">See How It Works →</label>
+                <label for="p-quickstart" class="btn btn-outline" style="margin-left: 0.5rem;">60-Second Quickstart</label>
             </div>
         </div>
 
         <!-- ================================================================
+             2. HOW CHERM WORKS
+        ================================================================ -->
+        <div id="pg-how" class="page">
+            <h2>How Cherm Works</h2>
+            <p class="tagline">A peek under the hood: how Cherm parses, stress-tests, and grades code in milliseconds without running untrusted code.</p>
+
+            <div class="step-container">
+                <div class="step-row">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <h4>Step 1: Intelligent Ingestion &amp; Context Filtering</h4>
+                        <p>You drop a file, point to a folder, or let an AI agent trigger an audit. Cherm immediately prunes build cache directories (<code>.wrangler</code>, <code>.vercel</code>, <code>.next</code>, <code>node_modules</code>, <code>dist</code>) and skips non-code assets (markdown, images, JSON configs) so you get zero false positives.</p>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <h4>Step 2: 4-Layer Inspection Engine</h4>
+                        <p>Every genuine code file passes through four specialized deterministic analyzers:</p>
+                        <ul style="margin: 0.8rem 0 0; padding-left: 1.2rem; font-size: 0.92rem;">
+                            <li><strong>Abstract Syntax Tree (AST) &amp; Grammar Analyzer:</strong> Evaluates code hierarchy and structural complexity without executing dangerous code.</li>
+                            <li><strong>Concurrency &amp; Multi-Tap Simulator:</strong> Identifies state-mutating operations (orders, payments, bookings, likes) and checks for button debouncing, idempotency keys, and database row locking.</li>
+                            <li><strong>System Design &amp; Runtime Engine:</strong> Evaluates database pooling, query pagination, CORS headers, and Node.js event-loop blocking operations.</li>
+                            <li><strong>Shannon Entropy Secret Scanner:</strong> Uses mathematical entropy ($H = -\sum p \log_2 p$) to spot high-randomness tokens (API keys, private tokens) while intelligently ignoring import paths and URLs.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <h4>Step 3: Actionable Production Diagnostics</h4>
+                        <p>Cherm doesn't just output cryptic error codes like <code>ERR_042</code>. Every finding provides:</p>
+                        <ul style="margin: 0.8rem 0 0; padding-left: 1.2rem; font-size: 0.92rem;">
+                            <li><strong>Plain English Explanation:</strong> Why this pattern is dangerous in real life.</li>
+                            <li><strong>Production Risk Scenario:</strong> What breaks when 200 users hit this simultaneously.</li>
+                            <li><strong>Exact Fix Recipe:</strong> Drop-in code snippet showing the defensive architecture.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <strong>🛡️ The Shadow Copy Guarantee:</strong> When running in terminal mode, Cherm creates an isolated SHA-256 shadow copy in a temporary sandbox. Your original source files are never locked, written to, or corrupted.
+            </div>
+        </div>
+
+        <!-- ================================================================
+             3. 60-SECOND QUICKSTART
+        ================================================================ -->
+        <div id="pg-quickstart" class="page">
+            <h2>60-Second Quickstart</h2>
+            <p class="tagline">Get up and running with Cherm on your machine in under one minute.</p>
+
+            <h3>1. Prerequisites</h3>
+            <p>Cherm requires <strong>Python 3.10+</strong>. It runs on Windows, macOS, and Linux with zero mandatory cloud dependencies.</p>
+
+            <h3>2. Launch the Web GUI (Recommended)</h3>
+            <p>Start the minimalist Web GUI on port 3690:</p>
+            <pre><code>python checkinterminal/cherm_gui.py --port 3690</code></pre>
+            <p>Open <a href="http://localhost:3690" target="_blank"><strong>http://localhost:3690</strong></a> in your browser. Drag and drop any project folder or single file to view the instant health audit.</p>
+
+            <h3>3. Connect to Claude Desktop or Cursor (MCP)</h3>
+            <p>Add Cherm to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
+            <pre><code>{
+  "mcpServers": {
+    "cherm": {
+      "command": "python",
+      "args": ["C:/Antigravity program/checkinterminal/cherm_mcp.py"]
+    }
+  }
+}</code></pre>
+            <p>Your AI assistant can now run comprehensive audits on your code before proposing changes.</p>
+
+            <h3>4. Run the Terminal Companion (TUI)</h3>
+            <p>If you prefer working strictly in your terminal or over SSH:</p>
+            <pre><code>python checkinterminal/cherm.py</code></pre>
+            <p>Use your arrow keys to navigate files, press <strong>ENTER</strong> to open the action menu, and audit instantly.</p>
+        </div>
+
+        <!-- ================================================================
+             4. LOCALHOST WEB GUI
+        ================================================================ -->
+        <div id="pg-webgui" class="page">
+            <h2>Localhost Web GUI (Port 3690)</h2>
+            <p class="tagline">A clean, distraction-free visual dashboard for project-wide inspection.</p>
+
+            <div class="badge-strip">
+                <span class="badge badge-accent">Drag &amp; Drop Entire Folders</span>
+                <span class="badge badge-success">Folder Tree Explorer</span>
+                <span class="badge badge-neutral">Per-File Previews</span>
+                <span class="badge badge-warning">Zero Neon / Pure Focus Theme</span>
+            </div>
+
+            <p>The Cherm Web GUI provides a frictionless way to inspect code without memorizing CLI flags or terminal shortcuts. It runs a lightweight standard-library HTTP server on <strong><code>http://localhost:3690</code></strong>.</p>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📁 Full Folder Drag &amp; Drop</div>
+                    <p class="card-desc">Drag an entire folder directly into the browser. Cherm recursively traverses directory trees using the HTML5 File System API, auto-filtering <code>node_modules</code>, <code>.git</code>, and build caches.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">⚡ Instant Project Health Grade</div>
+                    <p class="card-desc">Calculates overall project grade (Grade A, B, C, F) and reports total fatal flaws, concurrency risks, system design smells, and exposed credentials.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">🔍 Interactive File Tree &amp; Previews</div>
+                    <p class="card-desc">Click any file in the sidebar tree to see its line count, size, highlighted status badge, and line-by-line findings with exact code fixes.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Downloadable HTML Reports</div>
+                    <p class="card-desc">Generate portable, self-contained HTML audit dashboards that you can share with team members or attach to pull requests.</p>
+                </div>
+            </div>
+
+            <h3>Running the GUI</h3>
+            <pre><code># Start on default port 3690:
+python checkinterminal/cherm_gui.py
+
+# Specify a custom port or headless mode:
+python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
+        </div>
+
+        <!-- ================================================================
+             5. AI FASTMCP SERVER
+        ================================================================ -->
+        <div id="pg-mcp" class="page">
+            <h2>AI Model Context Protocol (MCP) Server</h2>
+            <p class="tagline">Turn Claude, Cursor, Antigravity, and Gemini into rigorous code quality auditors.</p>
+
+            <p>LLMs are notoriously prone to generating subtle concurrency race conditions, unpooled database connections, and event loop bottlenecks. While an LLM might generate code that *looks* right, Cherm gives your AI assistant deterministic local tools to test its own code before showing it to you.</p>
+
+            <h3>Available MCP Tools</h3>
+            <ul>
+                <li><code>run_folder_audit(directory_path, files_data)</code>: Audits an entire project (up to 500 files), returning health grade and prioritized action items.</li>
+                <li><code>stress_test_multitap_vulnerability(file_path, code_content)</code>: Simulates 50 rapid parallel clicks on sensitive operations to detect missing debounce or DB locking.</li>
+                <li><code>audit_system_design_flaws(file_path, code_content)</code>: Scans for IDOR, unpooled connections, unbounded pagination, and CORS issues.</li>
+                <li><code>explain_code_issues(file_path, code_content)</code>: AST code smell reviewer with production impact and exact fix recipes.</li>
+                <li><code>run_ml_audit(code_content)</code>: Shannon entropy secret detector and Halstead software science complexity metrics.</li>
+            </ul>
+        </div>
+
+        <!-- ================================================================
+             6. TERMINAL COMPANION (TUI)
+        ================================================================ -->
+        <div id="pg-terminal" class="page">
+            <h2>Terminal Companion (TUI)</h2>
+            <p class="tagline">The classic keyboard-driven curses interface for terminal enthusiasts and SSH environments.</p>
+
+            <p>Cherm's TUI is designed to run with zero dependencies outside the standard library. It works seamlessly over remote SSH connections, inside Docker containers, and in local terminal panes.</p>
+
+            <h3>Key Features in the TUI:</h3>
+            <ul>
+                <li><strong>Interactive File Browser:</strong> Arrow-key navigation through your project directory with instant file info.</li>
+                <li><strong>CrossCheckV200 AST Fuzzer:</strong> Feeds boundary inputs (null, extreme integers, unicode strings, empty lists) into functions to discover unhandled edge-case crashes.</li>
+                <li><strong>Speed &amp; Big-O Static Estimation:</strong> Estimates algorithmic time complexity ($O(1)$, $O(N)$, $O(N^2)$) by analyzing nested loop structures and recursion.</li>
+                <li><strong>Shadow Copy Sandbox:</strong> All executions and tests run inside isolated temporary files, protecting your original code.</li>
+            </ul>
+
+            <pre><code>python checkinterminal/cherm.py</code></pre>
+        </div>
+
+        <!-- ================================================================
+             7. CONCURRENCY & MULTI-TAP ATTACKS
+        ================================================================ -->
+        <div id="pg-concurrency" class="page">
+            <h2>Concurrency &amp; Multi-Tap Attacks</h2>
+            <p class="tagline">How Cherm detects double-spending, inventory depletion, and duplicate mutation vulnerabilities.</p>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">[CONCURRENCY] Multi-Tap Vulnerability</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Simulated: 50 taps in 1.0s</span>
+                </div>
+                <div class="flaw-body">
+                    <div class="flaw-label">The Problem</div>
+                    <p class="flaw-text">A user or automated bot clicks a "Transfer Funds", "Claim Reward", or "Submit Order" button multiple times simultaneously. Because requests arrive in parallel, all threads read the starting balance before any thread writes the deduction.</p>
+
+                    <div class="flaw-label">Real-World Loss Scenario</div>
+                    <p class="flaw-text">Double-spending: A customer with $100 balance drains $500 by submitting 5 parallel checkout requests. Or duplicate promo coupons are redeemed 50 times before state locks.</p>
+
+                    <div class="flaw-label">The 3-Layer Defense Cherm Verifies</div>
+                    <ul style="font-size: 0.92rem; margin-bottom: 0;">
+                        <li><strong>Frontend:</strong> Immediate click debouncing or disabling button state (<code>isSubmitting = true</code>).</li>
+                        <li><strong>API Gateway:</strong> Mandatory <code>Idempotency-Key</code> header to deduplicate concurrent requests.</li>
+                        <li><strong>Database:</strong> Atomic SQL updates (<code>UPDATE balance = balance - 100 WHERE balance &gt;= 100</code>) or distributed locking (Redis Redlock).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             8. SYSTEM DESIGN & SCALING FLAWS
+        ================================================================ -->
+        <div id="pg-sysdesign" class="page">
+            <h2>System Design &amp; Scaling Flaws</h2>
+            <p class="tagline">Catches architectural bottlenecks that work in development but crash in production under load.</p>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">[DOS] Memory Explosion</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Unbounded Database Query</span>
+                </div>
+                <div class="flaw-body">
+                    <div class="flaw-label">Vulnerable Pattern</div>
+                    <pre><code># Fetches all rows without explicit pagination limit
+users = db.session.query(User).all()
+# or: SELECT * FROM transactions;</code></pre>
+                    <div class="flaw-label">Production Risk</div>
+                    <p class="flaw-text">Works fine with 50 mock users in local development. When the table grows to 500,000 records, this query attempts to deserialize 600MB of rows into server RAM, triggering the Linux kernel Out-Of-Memory (OOM) killer to terminate your application process.</p>
+                    <div class="flaw-label">Architectural Fix</div>
+                    <pre><code># Enforce strict cursor or page limits:
+query.paginate(page=page, per_page=min(per_page, 100))</code></pre>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-warning">[STABILITY] DB Connection Starvation</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Raw Unpooled Connection</span>
+                </div>
+                <div class="flaw-body">
+                    <div class="flaw-label">Vulnerable Pattern</div>
+                    <pre><code># Opening fresh connection per request without a pool
+conn = psycopg2.connect("postgresql://...")</code></pre>
+                    <div class="flaw-label">Production Risk</div>
+                    <p class="flaw-text">A sudden burst of 200 concurrent HTTP requests initiates 200 separate TCP handshakes to PostgreSQL. PostgreSQL reaches its default <code>max_connections = 100</code> limit and rejects all subsequent requests with connection refusal errors.</p>
+                    <div class="flaw-label">Architectural Fix</div>
+                    <pre><code># Use a managed connection pool singleton:
+engine = create_engine(url, pool_size=20, max_overflow=10)</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             9. NODE.JS & NEXT.JS RULES
+        ================================================================ -->
+        <div id="pg-nodenext" class="page">
+            <h2>Node.js &amp; Next.js Antipatterns</h2>
+            <p class="tagline">Dedicated static analysis for modern JavaScript, TypeScript, and Next.js full-stack applications.</p>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">[NODEJS-PERF] Event Loop Starvation</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Synchronous I/O in Server Handler</span>
+                </div>
+                <div class="flaw-body">
+                    <div class="flaw-label">Vulnerable Code</div>
+                    <pre><code>// Inside an Express route handler or Next.js Route Handler:
+const data = fs.readFileSync(filePath, 'utf-8');</code></pre>
+                    <div class="flaw-label">Production Impact</div>
+                    <p class="flaw-text">Node.js runs on a single-threaded event loop. Calling synchronous file I/O completely freezes the entire Node.js thread until disk read finishes. All incoming HTTP requests from other users stall, causing latency spikes from 15ms to 12,000ms and 504 Gateway Timeouts.</p>
+                    <div class="flaw-label">Architectural Fix</div>
+                    <pre><code>import { promises as fs } from 'fs';
+const data = await fs.readFile(filePath, 'utf-8');</code></pre>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">[NEXTJS-SECURITY] NEXT_PUBLIC Secret Leak</span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Client Bundle Exposure</span>
+                </div>
+                <div class="flaw-body">
+                    <div class="flaw-label">Vulnerable Code</div>
+                    <pre><code>// Exposing private secret key via NEXT_PUBLIC_
+const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
+                    <div class="flaw-label">Production Impact</div>
+                    <p class="flaw-text">Next.js bakes any variable starting with <code>NEXT_PUBLIC_</code> into the client-side JavaScript bundle downloaded by anyone visiting your site. An attacker opens Chrome DevTools Sources and extracts your private database connection string or Stripe secret key.</p>
+                    <div class="flaw-label">Architectural Fix</div>
+                    <p class="flaw-text">Remove the <code>NEXT_PUBLIC_</code> prefix so the variable stays strictly on the server (Node/Edge runtime). Access via <code>process.env.STRIPE_SECRET_KEY</code> in Server Components or Server Actions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             10. SHANNON ENTROPY SECRETS
+        ================================================================ -->
+        <div id="pg-entropy" class="page">
+            <h2>Shannon Entropy Secret Scanner</h2>
+            <p class="tagline">Mathematical entropy analysis to discover exposed API keys, private tokens, and credentials.</p>
+
+            <p>Traditional regex-based secret scanners look for patterns like <code>api_key = "..."</code>. But developers frequently name secrets <code>token</code>, <code>hash</code>, <code>auth</code>, or pass them bare into function calls.</p>
+
+            <p>Cherm uses <strong>Shannon Information Entropy</strong> to measure the unpredictability of every string literal in your code:</p>
+
+            <pre><code>H(X) = - \sum_{i=1}^n P(x_i) \log_2 P(x_i)</code></pre>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Human Text / Identifiers</div>
+                    <p class="card-desc">English words and standard identifiers exhibit low entropy (typically 2.2 to 3.4 bits). Cherm ignores them.</p>
+                </div>
+                <div class="card">
+                    <div class="card-title">Cryptographic Keys &amp; Tokens</div>
+                    <p class="card-desc">Base64 tokens, Stripe live keys (<code>sk_live_...</code>), JWTs, and AWS secrets have high randomness (&gt; 4.3 bits entropy). Cherm flags them immediately.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-tip">
+                <strong>Zero-False-Positive Filter:</strong> Cherm automatically ignores relative imports (<code>../functions/api</code>), package paths, and URLs so normal programming imports don't trigger false alarms.
+            </div>
+        </div>
+
+
+
+<!-- ================================================================
          SHADOW COPY ARCHITECTURE
     ================================================================ -->
         <div id="pg-shadow" class="page">
@@ -3118,6 +3221,32 @@ ANOTHER  = config.get("api.key")</pre>
         </div>
 
     </div><!-- end .content -->
-</body>
 
+    <script>
+        // URL Hash sync for seamless sharing and browser back/forward buttons
+        function syncNav() {
+            let hash = (window.location.hash || '#home').replace('#', '');
+            if (hash === '' || hash === 'what-is-cherm') hash = 'home';
+            if (hash === 'how-it-works') hash = 'how';
+            if (hash === 'web-gui') hash = 'webgui';
+            const radio = document.getElementById('p-' + hash);
+            if (radio) {
+                radio.checked = true;
+                const contentEl = document.querySelector('.content');
+                if (contentEl) contentEl.scrollTop = 0;
+            }
+        }
+
+        window.addEventListener('hashchange', syncNav);
+        window.addEventListener('DOMContentLoaded', () => {
+            syncNav();
+            document.querySelectorAll('.sidebar label').forEach(lbl => {
+                lbl.addEventListener('click', () => {
+                    const id = lbl.getAttribute('for').replace('p-', '');
+                    window.location.hash = id;
+                });
+            });
+        });
+    </script>
+</body>
 </html>
