@@ -2029,6 +2029,12 @@ def start_gui_server(port: int = 3690, open_browser: bool = True, in_background:
 
 if __name__ == "__main__":
     port_arg = 3690
-    if len(sys.argv) > 1 and sys.argv[1].isdigit():
-        port_arg = int(sys.argv[1])
-    start_gui_server(port=port_arg)
+    open_b = True
+    for idx, arg in enumerate(sys.argv):
+        if arg == "--port" and idx + 1 < len(sys.argv) and sys.argv[idx + 1].isdigit():
+            port_arg = int(sys.argv[idx + 1])
+        elif arg.isdigit():
+            port_arg = int(arg)
+        elif arg in ("--no-browser", "--headless"):
+            open_b = False
+    start_gui_server(port=port_arg, open_browser=open_b)
