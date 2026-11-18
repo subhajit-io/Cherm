@@ -1271,7 +1271,6 @@ INDEX_HTML = r"""<!DOCTYPE html>
         }
         setLoadedFolder(folderName, collected);
     }
-    }
 
     function setLoadedFolder(name, files) {
         singleFile = null;
@@ -1425,9 +1424,6 @@ INDEX_HTML = r"""<!DOCTYPE html>
     function loadFromLocalPath() {
         const pathVal = (document.getElementById('local-dir-path').value || '.').trim();
         loadLocalPath(pathVal);
-    }
-            loadingState.classList.remove('active');
-        }
     }
 
     // Single File Audit
