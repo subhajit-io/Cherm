@@ -45,30 +45,44 @@ def calculate_shannon_entropy(data: str) -> float:
         entropy -= p * math.log2(p)
     return entropy
 
-def extract_high_entropy_literals(source_code: str, min_len: int = 14, min_entropy: float = 3.75) -> List[Dict[str, Any]]:
-    """Extracts string literals and checks for obfuscated, random, or cryptographic tokens."""
+def extract_high_entropy_literals(source_code: str, min_len: int = 20, min_entropy: float = 4.3) -> List[Dict[str, Any]]:
+    """Extracts string literals and checks for obfuscated, random, or cryptographic tokens (avoiding paths and URLs)."""
     findings = []
     lines = source_code.splitlines()
     for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        # Skip import / export statements, require calls, and comments without secret keywords
+        if (stripped.startswith(("import ", "export ", "from ")) and " from " in stripped) or "require(" in stripped:
+            continue
+        if stripped.startswith(("#", "//", "/*", "*", "<!--")) and not re.search(r"(?i)(api[_-]?key|secret|token|password)", stripped):
+            continue
+
         # Extract quoted strings
-        literals = re.findall(r'["\']([^"\'\\]{14,})["\']', line)
+        literals = re.findall(r'["\']([^"\'\\]{18,})["\']', line)
         for lit in literals:
-            # Skip obvious URL patterns or simple human readable strings with many spaces
-            if lit.count(" ") > 3 or lit.startswith("http://") or lit.startswith("https://"):
+            # Skip obvious URL patterns, file paths, import paths, or human readable strings
+            if (
+                lit.count(" ") >= 2 or
+                lit.startswith(("http://", "https://", "postgresql://", "mysql://", "mongodb://", "file://", "./", "../", "/", "@/")) or
+                "/" in lit or "\\" in lit or
+                any(lit.lower().endswith(ext) for ext in [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs", ".json", ".css", ".html", ".png", ".jpg", ".svg", ".ico", ".woff", ".woff2", ".md"]) or
+                re.search(r'^[a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-zA-Z]{2,}$', lit)
+            ):
                 continue
+
+            # Skip common code/SQL keywords
+            if any(kw in lit.lower() for kw in ["describe", "endpoint", "function", "select ", "insert ", "update ", "delete ", "create table"]):
+                continue
+
             ent = calculate_shannon_entropy(lit)
-            if ent >= min_entropy:
-                token_preview = lit[:8] + "..." + lit[-4:] if len(lit) > 14 else lit
-                classification = (
-                    "CRITICAL_HIGH_ENTROPY_KEY" if ent > 4.3 and len(lit) >= 20
-                    else "SUSPICIOUS_TOKEN_OR_HASH"
-                )
+            if ent >= min_entropy and len(lit) >= min_len:
+                token_preview = lit[:6] + "..." + lit[-4:]
                 findings.append({
                     "line": i,
                     "token_preview": token_preview,
                     "length": len(lit),
                     "entropy": round(ent, 3),
-                    "classification": classification
+                    "classification": "CRITICAL_HIGH_ENTROPY_KEY"
                 })
     return findings
 

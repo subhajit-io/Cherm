@@ -989,8 +989,18 @@ INDEX_HTML = r"""<!DOCTYPE html>
 </div>
 
 <script>
-    const IGNORED_DIRS = ['node_modules', '.git', '.next', 'dist', 'build', 'out', 'venv', '.venv', 'env', '__pycache__', '.idea', '.vscode', 'coverage', '.turbo', '.cache', '.sst', 'target', 'vendor'];
-    const ALLOWED_EXTS = ['.py', '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.go', '.rs', '.java', '.sql', '.html', '.css', '.json', '.yaml', '.yml', '.c', '.cpp', '.h', '.sh', '.bash', '.ps1', '.md'];
+    const IGNORED_DIRS = [
+        'node_modules', '.git', '.next', 'dist', 'build', 'out',
+        'venv', '.venv', 'env', '__pycache__', '.idea', '.vscode',
+        'coverage', '.turbo', '.cache', '.sst', 'target', 'vendor',
+        '.wrangler', '.vercel', '.output', '.nuxt', '.astro',
+        '.svelte-kit', '.docusaurus', 'storybook-static'
+    ];
+    const ALLOWED_EXTS = [
+        '.py', '.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs',
+        '.go', '.rs', '.java', '.c', '.cpp', '.h', '.hpp',
+        '.sql', '.sh', '.bash', '.ps1'
+    ];
 
     let currentMode = 'drop'; // drop | local | paste
     let singleFile = null;    // { name, content, size, lines }
@@ -1060,9 +1070,10 @@ INDEX_HTML = r"""<!DOCTYPE html>
     }
 
     function isAllowedCodeFile(relPath, fileName) {
+        if (fileName.startsWith('.')) return false;
         const lower = fileName.toLowerCase();
         const parts = relPath.toLowerCase().replace(/\\/g, '/').split('/');
-        if (parts.some(p => IGNORED_DIRS.includes(p))) return false;
+        if (parts.some((p, idx) => idx < parts.length - 1 && (IGNORED_DIRS.includes(p) || (p.startsWith('.') && p !== '.')))) return false;
         const ext = '.' + lower.split('.').pop();
         return ALLOWED_EXTS.includes(ext);
     }
@@ -1190,7 +1201,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             });
         } else if (entry.isDirectory) {
             const dirName = entry.name.toLowerCase();
-            if (IGNORED_DIRS.includes(dirName)) {
+            if (IGNORED_DIRS.includes(dirName) || (dirName.startsWith('.') && dirName !== '.')) {
                 return [];
             }
             const dirReader = entry.createReader();

@@ -37,7 +37,7 @@ def _get_hash(content: str) -> str:
 
 def _resolve_content(file_path: Optional[str], code_content: Optional[str]) -> tuple[str, str]:
     if code_content is not None and code_content.strip():
-        source = os.path.basename(file_path) if file_path else "raw_content"
+        source = file_path if file_path else "raw_content"
         return code_content, source
     if file_path and os.path.isfile(file_path):
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -202,10 +202,12 @@ class NaturalReviewVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def scan_node_next_code_issues(lines: List[str], content: str) -> List[Dict[str, Any]]:
+def scan_node_next_code_issues(lines: List[str], content: str, file_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Specialized static analysis for Node.js, Next.js, React, and TypeScript."""
     issues = []
     has_use_client = bool(re.search(r"^\s*['\"]use client['\"]", content, re.MULTILINE))
+    fp_lower = (file_path or "").lower().replace("\\", "/")
+    is_cli_or_script = any(x in fp_lower for x in ["scripts/", "script/", "migrations/", "test/", "tests/", ".test.", ".spec.", ".config.", "tools/", "bin/"])
 
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
@@ -226,8 +228,8 @@ def scan_node_next_code_issues(lines: List[str], content: str) -> List[Dict[str,
                 "code_snippet": stripped[:80]
             })
 
-        # 2. Synchronous file I/O blocking Node.js event loop
-        if re.search(r"\bfs\.(?:readFileSync|writeFileSync|existsSync|appendFileSync|readdirSync)\s*\(", stripped):
+        # 2. Synchronous file I/O blocking Node.js event loop (skip for standalone scripts and tests)
+        if not is_cli_or_script and re.search(r"\bfs\.(?:readFileSync|writeFileSync|existsSync|appendFileSync|readdirSync)\s*\(", stripped):
             issues.append({
                 "line": i,
                 "badge": "[NODEJS-PERF] Event Loop Starvation (Sync I/O)",
@@ -350,7 +352,9 @@ def explain_code_issues(file_path: Optional[str] = None, code_content: Optional[
         return {"success": False, "error": str(e)}
 
     content_hash = _get_hash(content)
-    cache_key = f"explain:{content_hash}"
+    fp_clean = (source or "").lower().replace("\\", "/")
+    is_cli_or_script = any(x in fp_clean for x in ["scripts/", "script/", "migrations/", "test/", "tests/", ".test.", ".spec.", ".config.", "tools/", "bin/"])
+    cache_key = f"explain:{content_hash}:{is_cli_or_script}"
     if cache_key in _ANALYSIS_CACHE:
         return _ANALYSIS_CACHE[cache_key]
 
@@ -364,7 +368,7 @@ def explain_code_issues(file_path: Optional[str] = None, code_content: Optional[
         issues.extend(visitor.issues)
     except SyntaxError:
         # Non-Python or JS/TS/Node/Next.js code: run specialized JavaScript & Next.js rules
-        node_next_issues = scan_node_next_code_issues(lines, content)
+        node_next_issues = scan_node_next_code_issues(lines, content, file_path=source)
         issues.extend(node_next_issues)
 
     for i, line in enumerate(lines, 1):
@@ -697,7 +701,9 @@ def audit_system_design_flaws(file_path: Optional[str] = None, code_content: Opt
         return {"success": False, "error": str(e)}
 
     content_hash = _get_hash(content)
-    cache_key = f"sysdesign:{content_hash}"
+    fp_clean = (source or "").lower().replace("\\", "/")
+    is_cli_or_script = any(x in fp_clean for x in ["scripts/", "script/", "migrations/", "test/", "tests/", ".test.", ".spec.", ".config.", "tools/", "bin/"])
+    cache_key = f"sysdesign:{content_hash}:{is_cli_or_script}"
     if cache_key in _ANALYSIS_CACHE:
         return _ANALYSIS_CACHE[cache_key]
 
@@ -709,6 +715,9 @@ def audit_system_design_flaws(file_path: Optional[str] = None, code_content: Opt
         if stripped.startswith(("#", "//")):
             continue
         for rule in SYSTEM_DESIGN_RULES:
+            # Skip synchronous I/O or raw connection rules on test/migration/CLI helper scripts
+            if is_cli_or_script and rule.get("id") in ["NODEJS_SYNC_IO_STARVATION", "UNPOOLED_DB_CONNECTION", "UNBOUNDED_PAGINATION_DOS"]:
+                continue
             if re.search(rule["pattern"], stripped):
                 findings.append({
                     "line": i,
@@ -751,12 +760,26 @@ def stress_test_multitap_vulnerability(
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+    # Skip tests, docs, and migrations for UI click concurrency
+    fp_clean = (file_path or "").lower().replace("\\", "/")
+    if any(p in fp_clean for p in ["/test", ".test.", ".spec.", "/migrations/", "/scripts/"]):
+        return {
+            "success": True,
+            "source": source,
+            "simulated_taps_count": simulated_taps,
+            "multitap_safe": True,
+            "defense_audit": {"has_frontend_debounce_or_lock": True, "has_backend_idempotency_key": True, "has_database_or_distributed_locking": True},
+            "vulnerability_count": 0,
+            "verdict": "NOT APPLICABLE (TEST/MIGRATION SCRIPT)",
+            "detailed_scenarios": []
+        }
+
     sensitive_operations = [
-        ("payment", r"(?i)(charge|checkout|payment|pay|transfer|withdraw|deposit)"),
-        ("order", r"(?i)(create_order|place_order|submit_order|buy)"),
-        ("points_or_credits", r"(?i)(claim|redeem|add_credits|apply_coupon|voucher)"),
-        ("booking", r"(?i)(reserve|book_seat|book_slot|claim_seat)"),
-        ("voting_or_likes", r"(?i)(like|vote|upvote|follow|subscribe)")
+        ("payment", r"(?i)\b(?:process_payment|handle_payment|submit_payment|charge_card|transfer_funds|withdraw_balance|deposit_funds)\b"),
+        ("order", r"(?i)\b(?:create_order|place_order|submit_order|checkout_cart)\b"),
+        ("points_or_credits", r"(?i)\b(?:claim_reward|redeem_coupon|add_credits|apply_discount)\b"),
+        ("booking", r"(?i)\b(?:book_seat|book_slot|claim_seat|reserve_slot)\b"),
+        ("voting_or_likes", r"(?i)\b(?:upvote_post|downvote_post|submit_vote|like_post|follow_user)\b")
     ]
 
     has_debounce = bool(re.search(r'(?i)(debounce|throttle|disabled\s*=\s*true|is_submitting|is_loading)', content))
@@ -1297,14 +1320,15 @@ FOLDER_IGNORE_DIRS = {
     "node_modules", ".git", ".next", "dist", "build", "out",
     "venv", ".venv", "env", "__pycache__", ".idea", ".vscode",
     "coverage", ".turbo", ".cache", ".sst", "target", "vendor",
-    "bin", "obj", ".nuget", ".gradle"
+    "bin", "obj", ".nuget", ".gradle", ".wrangler", ".vercel",
+    ".output", ".nuxt", ".astro", ".svelte-kit", ".docusaurus",
+    "storybook-static"
 }
 
 FOLDER_ALLOWED_EXTS = {
     ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
     ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp",
-    ".sql", ".html", ".css", ".json", ".yaml", ".yml",
-    ".sh", ".bash", ".ps1", ".md"
+    ".sql", ".sh", ".bash", ".ps1"
 }
 
 
@@ -1439,11 +1463,17 @@ def run_folder_audit(
 
     if files_data and isinstance(files_data, list):
         for item in files_data:
-            path = item.get("path", "")
+            path = item.get("path", "").replace("\\", "/")
             content = item.get("content", "")
             if not path or not content:
                 continue
-            ext = os.path.splitext(path)[1].lower()
+            parts = [p.lower() for p in path.split("/") if p]
+            if any(d in FOLDER_IGNORE_DIRS or (d.startswith(".") and d != ".") for d in parts[:-1]):
+                continue
+            fname = parts[-1] if parts else ""
+            if fname.startswith("."):
+                continue
+            ext = os.path.splitext(fname)[1].lower()
             if ext in FOLDER_ALLOWED_EXTS:
                 files_to_audit.append({
                     "path": path,
@@ -1542,28 +1572,29 @@ def run_folder_audit(
                 "badge": fl.get("badge", "[DESIGN]"),
                 "line": fl.get("line", 1),
                 "title": fl.get("title", ""),
-                "plain_english": fl.get("plain_english_explanation", ""),
-                "risk": fl.get("production_risk", ""),
-                "fix": fl.get("how_to_fix", ""),
-                "snippet": fl.get("code_snippet", "")
+                "plain_english": fl.get("explanation") or fl.get("plain_english_explanation", ""),
+                "risk": fl.get("hack_scenario") or fl.get("production_risk", ""),
+                "fix": fl.get("architectural_fix") or fl.get("how_to_fix", ""),
+                "snippet": fl.get("snippet") or fl.get("code_snippet", "")
             })
             action_items.append(f"[{rel_path}:{fl.get('line', 1)}] {fl.get('badge')}: {fl.get('title')}")
 
-        for vuln in multitap_res.get("vulnerabilities", []):
+        for vuln in multitap_res.get("detailed_scenarios", []):
+            op_name = vuln.get("operation_detected", "concurrency operation")
             findings.append({
                 "type": "concurrency",
                 "severity": "CRITICAL",
-                "badge": "[RACE-CONDITION]",
+                "badge": vuln.get("badge", "[RACE-CONDITION]"),
                 "line": vuln.get("line", 1),
-                "title": vuln.get("flaw_type", "Concurrency Flaw"),
-                "plain_english": vuln.get("plain_english_explanation", ""),
-                "risk": vuln.get("production_risk", ""),
-                "fix": vuln.get("how_to_fix", ""),
-                "snippet": vuln.get("code_snippet", "")
+                "title": f"Multi-Tap Race Condition in '{op_name}'",
+                "plain_english": vuln.get("what_happens_under_burst", ""),
+                "risk": vuln.get("real_world_loss_scenario", ""),
+                "fix": vuln.get("fix_recipe", ""),
+                "snippet": op_name
             })
-            action_items.append(f"[{rel_path}:{vuln.get('line', 1)}] [RACE-CONDITION]: {vuln.get('flaw_type')}")
+            action_items.append(f"[{rel_path}] {vuln.get('badge')}: {op_name}")
 
-        for smell in smells_res.get("issues", []):
+        for smell in smells_res.get("findings", []):
             findings.append({
                 "type": "smell",
                 "severity": smell.get("severity", "WARNING"),
@@ -1579,16 +1610,17 @@ def run_folder_audit(
                 action_items.append(f"[{rel_path}:{smell.get('line', 1)}] {smell.get('badge')}: {smell.get('title')}")
 
         for ent in entropy_findings:
+            token_preview = ent.get("token_preview") or (ent.get("token", "")[:30] + "...")
             findings.append({
                 "type": "entropy",
                 "severity": "CRITICAL",
                 "badge": "[SECRET-EXPOSURE]",
                 "line": ent.get("line", 1),
-                "title": "High Entropy Token Detected",
-                "plain_english": "Shannon entropy scanner detected a potential hardcoded API key, token, or secret.",
+                "title": "High Entropy Secret / Key Detected",
+                "plain_english": f"Shannon entropy scanner detected a potential hardcoded token or secret ({ent.get('entropy', 0):.2f} bits entropy).",
                 "risk": "Credentials exposed in source code control.",
                 "fix": "Move secret to an environment variable or secret vault.",
-                "snippet": ent.get("token", "")[:30] + "..."
+                "snippet": token_preview
             })
             action_items.append(f"[{rel_path}:{ent.get('line', 1)}] [SECRET-EXPOSURE]: High entropy token")
 
