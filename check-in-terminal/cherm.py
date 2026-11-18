@@ -106,6 +106,9 @@ if getattr(sys, 'frozen', False):
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 BOOKMARKS_FILE = os.path.join(BASE_DIR, "cherm_bookmarks.json")
 CONFIG_FILE = os.path.join(BASE_DIR, "cherm_config.json")
 
@@ -899,275 +902,6 @@ def _smart_arg(param_name: str, annotation, default):
         if annotation is dict:  return {}
     return MagicMock()
 
-# This function is for: Runs the Meteor Dodge mini-game.
-def _gfg_car_race(stdscr, height: int, width: int,
-                  done_event, get_progress):
-    """
-    Terminal Turbo Race — spawns as a separate process to avoid GIL lag!
-    """
-    import os
-    import subprocess
-    import time
-    import curses
-
-    game_code = r'''
-import curses
-import time
-import random
-import sys
-import os
-
-# This function is for: Draws a centered string on the curses screen.
-def draw_centered(win, y, text, attr=0):
-    _, w = win.getmaxyx()
-    x = max(0, (w - len(text)) // 2)
-    try:
-        win.addstr(y, x, text, attr)
-    except Exception:
-        pass
-
-# This function is for: Main entry point for the curses application.
-def main(stdscr):
-    prog_file = sys.argv[1]
-    curses.curs_set(0)
-    
-    height, width = stdscr.getmaxyx()
-    HUD_ROWS   = 4
-    game_top   = HUD_ROWS
-    game_bot   = height - 5
-    game_w     = max(20, width)
-    
-    px         = game_w // 2
-    P_W        = 4
-    lives      = 5
-    score      = 0
-    high_score = 0
-    game_over  = False
-    cars       = []
-    frame      = 0
-    SPAWN      = 4
-    FALL_SPEED = 1
-    FRAME_DT   = 0.035
-    
-    prompted_finish = False
-    
-    # colors
-    curses.start_color()
-    curses.use_default_colors()
-    for i in range(1, 8):
-        curses.init_pair(i, i, -1)
-    # This function is for: Returns a curses color attribute.
-    def color(c): return curses.color_pair(c)
-    
-    stdscr.timeout(-1)
-    
-    # Track state outside the loop so a failed file read doesn't reset it
-    done, total, finished = 0, 1, 0
-    
-    car_art = [
-        " __ ",
-        "/_ \\",
-        "|\u2588_|",
-        "\\__/"
-    ]
-    
-    while True:
-        frame += 1
-        
-        # Read progress from file
-        try:
-            with open(prog_file, "r") as f:
-                data = f.read().strip().split(",")
-                if len(data) == 3:
-                    done = int(data[0])
-                    total = int(data[1])
-                    finished = int(data[2])
-        except Exception:
-            pass
-            
-        if finished:
-            pass  # User specifically requested NO reminder popup, just numbers.
-            
-        stdscr.timeout(int(FRAME_DT * 1000))
-        keys_pressed = []
-        key = stdscr.getch()
-        if key != -1:
-            keys_pressed.append(key)
-            stdscr.timeout(0)  # switch to non-blocking to drain the queue
-            while True:
-                k = stdscr.getch()
-                if k == -1: break
-                keys_pressed.append(k)
-                
-        quit_game = False
-        restart_game = False
-        for k in keys_pressed:
-            if k in (ord('q'), ord('Q')):
-                quit_game = True
-                break
-            if game_over:
-                if k in (ord('c'), ord('C')):
-                    restart_game = True
-                    break
-                    
-        if quit_game:
-            break
-            
-        if restart_game:
-            lives = 5
-            score = 0
-            cars.clear()
-            game_over = False
-            
-        if not game_over:
-            import ctypes
-            left_down  = (ctypes.windll.user32.GetAsyncKeyState(0x25) & 0x8000) != 0 or \
-                         (ctypes.windll.user32.GetAsyncKeyState(0x41) & 0x8000) != 0
-            right_down = (ctypes.windll.user32.GetAsyncKeyState(0x27) & 0x8000) != 0 or \
-                         (ctypes.windll.user32.GetAsyncKeyState(0x44) & 0x8000) != 0
-                         
-            if left_down:
-                px = max(2, px - 2)
-            elif right_down:
-                px = min(game_w - P_W - 2, px + 2)
-                
-            if frame % SPAWN == 0:
-                cars.append([random.randint(2, max(2, game_w - P_W - 2)), game_top, random.randint(1, 6)])
-                
-            alive = []
-            hit = False
-            for c in cars:
-                c[1] += FALL_SPEED
-                if c[1] >= game_bot - 3 and c[1] <= game_bot + 3:
-                    if (px <= c[0] <= px + P_W - 1) or (c[0] <= px <= c[0] + P_W - 1):
-                        hit = True
-                if c[1] > game_bot + 4:
-                    pass
-                else:
-                    alive.append(c)
-            cars = alive
-            
-            if hit:
-                lives -= 1
-                cars.clear()
-                if lives <= 0:
-                    game_over = True
-                    high_score = max(high_score, score)
-                    
-            score += 2
-            
-        stdscr.clear()
-        
-        # draw HUD
-        pct = int((done / total) * 100) if total else 0
-        bw = max(5, width - 30)  # Make progress bar width dynamic and smaller
-        fill = int((done / total) * bw) if total else 0
-        bar = "*" * fill + "." * (bw - fill)
-        try:
-            stdscr.move(0, 0); stdscr.clrtoeol()
-            draw_centered(stdscr, 0, f" CrossCheck [{bar}] {done}/{total} ", color(5) | curses.A_BOLD)
-            stdscr.move(1, 0); stdscr.clrtoeol()
-            draw_centered(stdscr, 1, "TURBO RACE  —  \u2190\u2192 / A D to steer", color(7))
-            stdscr.move(2, 0); stdscr.clrtoeol()
-            hearts = "\u2665 " * lives + "\u2661 " * max(0, 5 - lives)
-            draw_centered(stdscr, 2, f"Score: {score:>6}    High: {high_score:>6}    Lives: {hearts}", color(3) | curses.A_BOLD)
-            stdscr.move(3, 0); stdscr.clrtoeol()
-            stdscr.addstr(3, 0, "─" * (width - 1), color(7))
-        except Exception:
-            pass
-            
-        # draw road boundaries
-        for y in range(game_top, height - 1):
-            char1 = '.' if (y + frame) % 2 == 0 else '|'
-            char2 = '|' if (y + frame) % 2 == 0 else '.'
-            try:
-                stdscr.addch(y, 0, char1, color(7))
-                stdscr.addch(y, game_w, char2, color(7))
-            except Exception:
-                pass
-                
-        # traffic cars
-        for c in cars:
-            car_color = color(c[2]) if len(c) > 2 else color(1)
-            for i, line in enumerate(car_art):
-                if game_top <= c[1] + i < height - 1:
-                    try:
-                        stdscr.addstr(c[1] + i, c[0], line, car_color | curses.A_BOLD)
-                    except Exception:
-                        pass
-                    
-        # player
-        for i, line in enumerate(car_art):
-            try:
-                stdscr.addstr(game_bot + i, px, line, color(2) | curses.A_BOLD)
-            except Exception:
-                pass
-            
-        try:
-            stdscr.move(height - 1, 0); stdscr.clrtoeol()
-            if finished:
-                draw_centered(stdscr, height - 1, "FINISHED! Press 'Q' to exit to results.", color(3) | curses.A_BOLD)
-            else:
-                draw_centered(stdscr, height - 1, "Tests running... Press 'Q' to quit.", color(7))
-        except Exception:
-            pass
-            
-        if game_over:
-            try:
-                msg_box = [
-                    "┌──────────────────────────────────────┐",
-                    "│              GAME OVER               │",
-                    "│                                      │",
-                    f"│    Score: {score:<6} High Score: {high_score:<6} │",
-                    "│                                      │",
-                    "│  Press [C] to Play Again             │",
-                    "│  Press [Q] to Exit                   │",
-                    "└──────────────────────────────────────┘"
-                ]
-                box_top = height // 2 - 4
-                for i, line in enumerate(msg_box):
-                    draw_centered(stdscr, box_top + i, line, color(6) | curses.A_BOLD)
-            except Exception:
-                pass
-            
-        stdscr.refresh()
-
-if __name__ == "__main__":
-    curses.wrapper(main)
-'''
-
-    temp_py = "_temp_turbo_race.py"
-    temp_prog = "_temp_prog.txt"
-    
-    with open(temp_py, "w", encoding="utf-8") as f:
-        f.write(game_code)
-        
-    with open(temp_prog, "w", encoding="utf-8") as f:
-        f.write("0,0,0")
-
-    curses.endwin()
-    
-    proc = subprocess.Popen(["python", temp_py, temp_prog])
-    
-    while proc.poll() is None:
-        done, total = get_progress()
-        finished = 1 if done_event.is_set() else 0
-        try:
-            with open(temp_prog, "w", encoding="utf-8") as f:
-                f.write(f"{done},{total},{finished}")
-        except Exception:
-            pass
-        time.sleep(0.05)
-        
-    try:
-        os.remove(temp_py)
-        os.remove(temp_prog)
-    except Exception:
-        pass
-        
-    stdscr.clear()
-    stdscr.refresh()
-
 # This function is for: Runs the function-level test engine (CrossCheckV200).
 def _run_gfg_function_level(stdscr, filepath: str, height: int, width: int):
     import importlib.util, inspect as _inspect, ast as _ast
@@ -1438,31 +1172,11 @@ def _run_gfg_function_level(stdscr, filepath: str, height: int, width: int):
             pass
 
     stdscr.clear()
-    
     stdscr.nodelay(True)
-    answered = False
-    
-    while not _done_event.is_set():
-        prompt_text = "Play Terminal Turbo Race while waiting? [Y]es / [N]o" if not answered else None
-        _draw_loader(prompt_text)
-        
-        if not answered:
-            key = stdscr.getch()
-            if key in (ord('y'), ord('Y')):
-                stdscr.nodelay(False)
-                _gfg_car_race(
-                    stdscr, height, width,
-                    _done_event,
-                    lambda: (_state['done'], _state['total']),
-                )
-                stdscr.clear()
-                stdscr.nodelay(True)
-                answered = False
-                continue
-            elif key in (ord('n'), ord('N')):
-                answered = True
 
-        time.sleep(0.15)
+    while not _done_event.is_set():
+        _draw_loader()
+        time.sleep(0.1)
 
     stdscr.nodelay(False)
 
@@ -3167,6 +2881,11 @@ def show_results(stdscr, success: bool, target: str, status_code, output_text: s
             sys.exit(0)
         elif key in (curses.KEY_ENTER, 10, 13, ord("q"), ord("Q")):
             break
+        elif key in (ord("h"), ord("H")):
+            report_path = os.path.join(BASE_DIR, "cherm_audit_report.html")
+            if os.path.exists(report_path):
+                import webbrowser
+                webbrowser.open(f"file://{os.path.abspath(report_path)}")
         elif key == ord("?"):
             show_help_panel(stdscr)
         elif key == curses.KEY_UP and scroll > 0:
@@ -3625,6 +3344,242 @@ def draw_companion_face(stdscr):
         draw_centered(stdscr, 5, f"[{CURRENT_SUGGESTION}]", color(4) | curses.A_BOLD)
     draw_hline(stdscr, 6)
 
+# This function is for: Runs the Cherm MCP all-in-one AI audit on a target file.
+def run_mcp_audit_in_tui(win, filepath: str):
+    import webbrowser
+    win.clear()
+    h, w = win.getmaxyx()
+    draw_centered(win, max(1, h // 2 - 3), "Cherm MCP Pro  —  Running All-in-One AI Audit...", color(5) | curses.A_BOLD)
+    draw_centered(win, max(2, h // 2 - 1), f"Target: {os.path.basename(filepath)}", color(2))
+    draw_centered(win, max(3, h // 2 + 1), "Auditing System Design, IDOR, Concurrency, Smells & ML Anomalies...", color(4))
+    draw_centered(win, max(4, h // 2 + 3), "Please wait...", color(7))
+    win.refresh()
+
+    try:
+        if BASE_DIR not in sys.path:
+            sys.path.insert(0, BASE_DIR)
+        import cherm_mcp
+        result = cherm_mcp.run_all_in_one_check(file_path=filepath)
+    except Exception as e:
+        show_results(win, False, "Cherm MCP Audit", "ERROR", f"[FAIL] Could not run Cherm MCP audit:\n{e}")
+        return
+
+    summary = result.get("summary", {})
+    grade = result.get("health_grade", "N/A")
+    status = result.get("status", "UNKNOWN")
+    action_items = result.get("quick_action_items", [])
+    report_file = result.get("html_dashboard_report", "cherm_audit_report.html")
+    is_success = summary.get("fatal_critical_flaws", 0) == 0
+
+    lines = [
+        "=== CHERM MCP AUDITOR PRO — SYSTEM AUDIT REPORT ===",
+        f"Target File:  {filepath}",
+        f"Timestamp:    {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Health Grade: {grade}   |   Overall Status: {status}",
+        "-" * min(65, w - 4),
+        "METRICS & VULNERABILITY BREAKDOWN:",
+        f"  • Total Issues Found:           {summary.get('total_issues_found', 0)}",
+        f"  • Fatal / Critical Flaws:       {summary.get('fatal_critical_flaws', 0)}",
+        f"  • Multi-Tap / Race Conditions:  {summary.get('multitap_concurrency_flaws', 0)}",
+        f"  • System Design Bottlenecks:    {summary.get('system_design_flaws', 0)}",
+        f"  • Code Smells & Anti-patterns:  {summary.get('code_smells_and_antipatterns', 0)}",
+        f"  • High-Entropy Secrets/Tokens:  {summary.get('high_entropy_secrets_found', 0)}",
+        f"  • ML Defect Probability:        {summary.get('ml_vulnerability_probability', '0%')}",
+        f"  • ML Risk Score:                {summary.get('ml_risk_score', 0)} / 100",
+        "-" * min(65, w - 4),
+        "TOP ACTION ITEMS:",
+    ]
+    if action_items:
+        for it in action_items:
+            lines.append(f"  [!] {it}")
+    else:
+        lines.append("  [ OK ] No critical flaws or design vulnerabilities detected!")
+
+    lines.append("-" * min(65, w - 4))
+    if os.path.exists(report_file):
+        lines.append(f"Full Interactive HTML Dashboard: {os.path.abspath(report_file)}")
+        lines.append("Tip: Press [H] in results or open the file above to view visual breakdown.")
+
+    output_text = "\n".join(lines)
+    show_results(win, is_success, "Cherm MCP Pro Audit", grade, output_text)
+
+# This function is for: Displays the Cherm MCP Bridge status and management panel.
+def show_mcp_panel(win, filepath: str):
+    import webbrowser
+    if BASE_DIR not in sys.path:
+        sys.path.insert(0, BASE_DIR)
+        
+    mcp_installed = False
+    try:
+        import cherm_mcp
+        mcp_installed = True
+    except Exception:
+        mcp_installed = False
+
+    cherm_py_path = os.path.abspath(__file__)
+
+    while True:
+        win.clear()
+        h, w = win.getmaxyx()
+
+        title = "=== CHERM MCP BRIDGE (MODEL CONTEXT PROTOCOL) ==="
+        draw_centered(win, 1, title, color(5) | curses.A_BOLD)
+        draw_hline(win, 2)
+
+        y = 3
+        safe_addstr(win, y, 2, "MCP Server Status: ", color(6) | curses.A_BOLD)
+        if mcp_installed:
+            safe_addstr(win, y, 21, "[ ACTIVE & READY ]", color(2) | curses.A_BOLD)
+        else:
+            safe_addstr(win, y, 21, "[ MISSING DEPENDENCIES ] (Run: pip install -r requirements_mcp.txt)", color(3) | curses.A_BOLD)
+        y += 1
+
+        fname_disp = os.path.basename(filepath) if (filepath and isinstance(filepath, str)) else "None selected"
+        safe_addstr(win, y, 2, f"Active File: {fname_disp}", color(7))
+        y += 2
+
+        safe_addstr(win, y, 2, "REGISTERED AI TOOLS (Available to Claude, Cursor, Antigravity, Gemini):", color(4) | curses.A_BOLD)
+        y += 1
+        tools = [
+            ("run_all_in_one_check", "Full scan: system design, IDOR, race conditions, smells & ML risk"),
+            ("audit_system_design_flaws", "Detects BOLA/IDOR, pool starvation, CORS, unhandled timeouts"),
+            ("explain_code_issues", "AST smells, mutable defaults, bare excepts & exact fix recipes"),
+            ("stress_test_multitap_vulnerability", "Simulates concurrent multi-tap requests (double-spend / TOCTOU)"),
+            ("audit_sha256_cryptographic_integrity", "Cryptographic flaws, ECB modes, missing salts & timing leaks"),
+            ("audit_ml_defects", "Shannon entropy token scan & Halstead software science metrics"),
+            ("generate_html_audit_report", "Builds standalone visual HTML audit dashboard")
+        ]
+        for name, desc in tools:
+            if y >= h - 8:
+                break
+            safe_addstr(win, y, 4, f"• {name:<38} ", color(2) | curses.A_BOLD)
+            safe_addstr(win, y, 44, f"— {desc}"[:max(0, w - 46)], color(7))
+            y += 1
+
+        y += 1
+        if y < h - 7:
+            safe_addstr(win, y, 2, "AI AGENT CONFIGURATION (Claude / Cursor / Antigravity / Gemini CLI):", color(6) | curses.A_BOLD)
+            y += 1
+            config_sample = f'command: "python", args: ["{cherm_py_path}", "--mcp"]'
+            safe_addstr(win, y, 4, config_sample[:max(0, w - 6)], color(1))
+            y += 2
+
+        draw_hline(win, h - 3)
+        safe_addstr(win, h - 2, 2,
+                    "[A] Run Full MCP Audit Now  |  [H] Open HTML Report  |  [S] Start SSE Server  |  [Q/ESC] Back",
+                    color(5) | curses.A_BOLD)
+        win.refresh()
+
+        key = smart_getch(win)
+        if key in (27, ord('q'), ord('Q')):
+            break
+        elif key in (ord('a'), ord('A'), curses.KEY_ENTER, 10, 13):
+            if filepath and isinstance(filepath, str) and os.path.isfile(filepath):
+                run_mcp_audit_in_tui(win, filepath)
+            else:
+                show_results(win, False, "MCP Audit", "NO_FILE", "Please select a valid target file to audit.")
+        elif key in (ord('h'), ord('H')):
+            report_path = os.path.join(BASE_DIR, "cherm_audit_report.html")
+            if os.path.exists(report_path):
+                webbrowser.open(f"file://{os.path.abspath(report_path)}")
+            else:
+                show_results(win, False, "HTML Report", "NOT_FOUND", "No HTML audit report generated yet. Run [A] first.")
+        elif key in (ord('s'), ord('S')):
+            win.clear()
+            draw_centered(win, h // 2 - 2, "Starting Cherm MCP Server in SSE Mode...", color(5) | curses.A_BOLD)
+            draw_centered(win, h // 2, "Listening on http://127.0.0.1:8000/sse", color(2))
+            draw_centered(win, h // 2 + 2, "Launching background process...", color(6))
+            win.refresh()
+            time.sleep(1.0)
+            subprocess.Popen([sys.executable, cherm_py_path, "--mcp", "--transport", "sse", "--port", "8000"])
+            show_results(win, True, "Cherm MCP Server", "RUNNING", "Cherm MCP Server started on http://127.0.0.1:8000/sse\nReady for incoming SSE connections from AI agents.\nPress Enter or Q to return.")
+
+# This function is for: Runs Cherm as a Model Context Protocol (MCP) server for AI assistants.
+def run_mcp_server(args: list):
+    if BASE_DIR not in sys.path:
+        sys.path.insert(0, BASE_DIR)
+
+    transport = "stdio"
+    host = "0.0.0.0"
+    port = 8000
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in ("--transport", "-t") and i + 1 < len(args):
+            transport = args[i + 1].lower()
+            i += 2
+        elif arg == "--sse":
+            transport = "sse"
+            i += 1
+        elif arg == "--stdio":
+            transport = "stdio"
+            i += 1
+        elif arg in ("--host",) and i + 1 < len(args):
+            host = args[i + 1]
+            i += 2
+        elif arg in ("--port", "-p") and i + 1 < len(args):
+            try:
+                port = int(args[i + 1])
+            except ValueError:
+                port = 8000
+            i += 2
+        else:
+            i += 1
+
+    try:
+        import cherm_mcp
+    except ImportError as e:
+        sys.stderr.write(f"[Cherm MCP] Failed to import cherm_mcp: {e}\n")
+        sys.stderr.write("[Cherm MCP] Please ensure fastmcp is installed: pip install -r requirements_mcp.txt\n")
+        sys.exit(1)
+
+    try:
+        if transport == "sse":
+            sys.stderr.write(f"[Cherm MCP] Starting FastMCP server (SSE) on {host}:{port}...\n")
+            cherm_mcp.mcp.run(transport="sse", host=host, port=port)
+        else:
+            # Default stdio for Claude Desktop, Cursor, Antigravity, VS Code
+            cherm_mcp.mcp.run(transport="stdio")
+    except KeyboardInterrupt:
+        sys.stderr.write("\n[Cherm MCP] Server stopped by user.\n")
+        sys.exit(0)
+    except Exception as err:
+        sys.stderr.write(f"[Cherm MCP] Server error: {err}\n")
+        sys.exit(1)
+
+_gui_server_instance = None
+_gui_server_url = None
+
+# This function is for: Launches the Cherm Localhost Web GUI from the TUI.
+def launch_gui_from_tui(win):
+    global _gui_server_instance, _gui_server_url
+    try:
+        import cherm_gui
+        import webbrowser
+        if not _gui_server_instance:
+            _gui_server_instance, _gui_server_url = cherm_gui.start_gui_server(port=3690, open_browser=True, in_background=True)
+            url = _gui_server_url
+        else:
+            url = _gui_server_url
+            webbrowser.open(url)
+
+        show_results(
+            win,
+            True,
+            "Cherm Web GUI",
+            "RUNNING",
+            f"=== CHERM LOCALHOST WEB GUI ===\n\n"
+            f"[ OK ] Web GUI successfully launched!\n"
+            f"URL: {url}\n\n"
+            f"Your default browser has been opened automatically.\n"
+            f"You can now run deep audits, view architecture mindmaps,\n"
+            f"and configure MCP bridges directly from the browser.\n\n"
+            f"Press Enter or Q to return to the TUI (the GUI will keep running in the background)."
+        )
+    except Exception as e:
+        show_results(win, False, "Cherm Web GUI", "ERROR", f"Failed to start local GUI server:\n{e}")
+
 # This function is for: Builds the main action menu for a file.
 def build_menu(filepath) -> list:
     if isinstance(filepath, list):
@@ -3654,6 +3609,7 @@ def build_menu(filepath) -> list:
         {"name": "[*] Security Vulnerability Scan","action": "security",   "cmd": filepath},
         {"name": "[*] Multi-File Batch Checker",   "action": "multibatch", "cmd": None},
         {"name": "[*] FULL PENTEST  (Hackproof?)",  "action": "pentest",    "cmd": filepath},
+        {"name": "[*] Cherm MCP: Deep AI Audit",    "action": "mcp_audit",  "cmd": filepath},
         {"name": "-" * 32,                        "action": "separator",  "cmd": None},
         {"name": "<-- Back to Main Menu",          "action": "back",       "cmd": None},
     ]
@@ -3662,6 +3618,8 @@ def build_menu(filepath) -> list:
         {"name": "Language / Execution Tools",     "action": "submenu",    "items": lang_items},
         {"name": "General File Tools",             "action": "submenu",    "items": gen_items},
         {"name": "Advanced Analysis & Security",   "action": "submenu",    "items": sec_items},
+        {"name": "[*] Cherm MCP Bridge (AI Server)", "action": "mcp",      "cmd": filepath},
+        {"name": "[*] Launch Web GUI (localhost:3690)", "action": "gui",   "cmd": filepath},
         {"name": "-" * 32,                        "action": "separator",  "cmd": None},
         {"name": "Select Different File",          "action": "file",       "cmd": None},
         {"name": "Help  (?)",                      "action": "help",       "cmd": None},
@@ -3980,6 +3938,9 @@ def main(stdscr):
                 elif action == "diff":     diff_viewer(app_win, shadow_scmd)
                 elif action == "security": security_scan(app_win, shadow_scmd)
                 elif action == "pentest":  run_pentest(app_win, shadow_scmd)
+                elif action == "mcp":      show_mcp_panel(app_win, shadow_sfile)
+                elif action == "mcp_audit": run_mcp_audit_in_tui(app_win, shadow_sfile)
+                elif action == "gui":      launch_gui_from_tui(app_win)
                 elif action == "gfg":
                     run_gfg_tests(
                         app_win,
@@ -4025,13 +3986,52 @@ def check_permissions():
         time.sleep(1)
 
 if __name__ == "__main__":
+    raw_args = sys.argv[1:]
+
+    # Check for help flag
+    if any(a in ("-h", "--help", "help") for a in raw_args):
+        print("""Cherm — Interactive Terminal Companion & MCP Code Analyzer
+
+Usage:
+  python cherm.py [FILE]                  Launch Cherm interactive TUI
+  python cherm.py --mcp                   Start Cherm as an MCP server (stdio transport for AI agents)
+  python cherm.py --mcp --sse             Start Cherm MCP server in SSE mode (default port 8000)
+  python cherm.py --mcp --port <port>     Specify custom port for SSE transport
+  python cherm.py --gui                   Launch Localhost Web GUI in browser (default port 3690)
+  python cherm.py --gui --port <port>     Specify custom port for Web GUI
+  python cherm.py --help                  Show this help message
+
+In TUI Mode:
+  Select '[*] Cherm MCP Bridge (AI Server)' to inspect tools and run deep audits.
+  Select '[*] Launch Web GUI (localhost:3690)' to launch the browser interface.
+""")
+        sys.exit(0)
+
+    # Check for Web GUI mode
+    if any(a in ("--gui", "-g", "gui", "--web", "-w", "web") for a in raw_args):
+        gui_port = 3690
+        for i, a in enumerate(raw_args):
+            if a in ("--port", "-p") and i + 1 < len(raw_args) and raw_args[i + 1].isdigit():
+                gui_port = int(raw_args[i + 1])
+            elif a.isdigit():
+                gui_port = int(a)
+        import cherm_gui
+        cherm_gui.start_gui_server(port=gui_port, open_browser=True, in_background=False)
+        sys.exit(0)
+
+    # Check for MCP mode
+    if any(a in ("--mcp", "-m", "mcp") for a in raw_args):
+        mcp_args = [a for a in raw_args if a not in ("--mcp", "-m", "mcp")]
+        run_mcp_server(mcp_args)
+        sys.exit(0)
+
+    # Otherwise, run interactive TUI
     check_permissions()
     t = threading.Thread(target=companion_thread)
     t.daemon = True
     t.start()
     
     try:
-    
         curses.wrapper(main)
     except KeyboardInterrupt:
         pass

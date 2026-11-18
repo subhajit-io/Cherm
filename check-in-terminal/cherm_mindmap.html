@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherm + AI Hybrid Workflow - Architecture & Mindmap</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #ffffff;
+            color: #111111;
+            line-height: 1.5;
+        }
+        h1 { font-size: 22px; margin-bottom: 5px; }
+        .meta { font-size: 13px; color: #555555; margin-bottom: 25px; }
+        .mermaid-container {
+            border: 1px solid #dddddd;
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        .pipeline-box {
+            border: 1px solid #cccccc;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+        }
+        .pipeline-box h2 { font-size: 16px; margin-top: 0; margin-bottom: 10px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th { background-color: #eeeeee; }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .stage-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .stage-1 { background-color: #e0f2fe; color: #0369a1; }
+        .stage-2 { background-color: #fef3c7; color: #b45309; }
+        .stage-3 { background-color: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+
+    <h1>Cherm + AI Hybrid Verification Workflow</h1>
+    <div class="meta">Architecture: Static First -> AI Verification Filter -> Final Human Control</div>
+
+    <div class="mermaid-container">
+        <div class="mermaid">
+flowchart TD
+    UserStart(["1. User Requests Code Audit in Chat"]) --> Stage1
+
+    subgraph Stage1["STAGE 1: Deterministic Static Scan (Cherm MCP)"]
+        S1_Run["Cherm MCP executes run_all_in_one_check()"]
+        S1_AST["AST Engine: Code Smells & Leaks"]
+        S1_Sys["System Design: BOLA, N+1, Pools, CORS"]
+        S1_Multi["Multi-Tap Concurrency Stress Simulation"]
+        S1_Crypto["Crypto: Keys, Timing Attacks, SHA-256 Misuse"]
+        S1_HTML["Compiles Raw cherm_audit_report.html"]
+
+        S1_Run --> S1_AST
+        S1_Run --> S1_Sys
+        S1_Run --> S1_Multi
+        S1_Run --> S1_Crypto
+        S1_Run --> S1_HTML
+    end
+
+    Stage1 --> Stage2
+
+    subgraph Stage2["STAGE 2: AI Verification & Second Opinion Filter"]
+        AI_Review["AI (Antigravity) Inspects Cherm's Raw Findings"]
+        AI_Filter["Filter Out False Positives<br/>(e.g., safe middleware, intentional logic)"]
+        AI_Confirm["Confirm High-Confidence True Positives"]
+        AI_Context["Add Contextual Architectural Reasoning"]
+
+        AI_Review --> AI_Filter
+        AI_Review --> AI_Confirm
+        AI_Review --> AI_Context
+    end
+
+    Stage2 --> Stage3
+
+    subgraph Stage3["STAGE 3: User Control & Decision Gate"]
+        User_Report["AI presents clean verdict in chat:<br/>- Confirmed Bugs with Fixes<br/>- Dismissed False Positives"]
+        User_Gate{"User Approves Fixes?"}
+        User_Apply["AI applies approved edits to file"]
+        User_Dismiss["No changes made / Kept as-is"]
+
+        User_Report --> User_Gate
+        User_Gate -- "Yes, Apply" --> User_Apply
+        User_Gate -- "No / Adjust" --> User_Dismiss
+    end
+        </div>
+    </div>
+
+    <div class="pipeline-box">
+        <h2>3-Stage Hybrid Workflow Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Stage</th>
+                    <th style="width: 25%;">Component</th>
+                    <th style="width: 30%;">Responsibility</th>
+                    <th>User Experience & Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="stage-badge stage-1">STAGE 1</span></td>
+                    <td><strong>Cherm MCP (Static Engine)</strong></td>
+                    <td>Runs 100% deterministic AST & regex checks locally. Scans for multi-tap flaws, DB pool starvation, BOLA, crypto mistakes in &lt; 50ms with 0 tokens.</td>
+                    <td>Generates local raw findings and produces <code>cherm_audit_report.html</code>.</td>
+                </tr>
+                <tr>
+                    <td><span class="stage-badge stage-2">STAGE 2</span></td>
+                    <td><strong>AI Second Opinion Filter</strong></td>
+                    <td>Static linters lack semantic business context. The AI reads Cherm's raw findings against the actual codebase to eliminate false positives and validate real vulnerabilities.</td>
+                    <td>Refines the audit from raw pattern matches into high-confidence, verified actionable insights.</td>
+                </tr>
+                <tr>
+                    <td><span class="stage-badge stage-3">STAGE 3</span></td>
+                    <td><strong>Human Control Gate</strong></td>
+                    <td>The user has ultimate authority. The AI never mutates or overwrites source files without explicit confirmation.</td>
+                    <td>The user reviews confirmed items, chooses which fixes to accept, and gives permission to write.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

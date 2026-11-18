@@ -1,76 +1,262 @@
 <div align="center">
-  <div style="background-color: #000000; padding: 25px 50px; border-radius: 8px; display: inline-block; margin-bottom: 10px;">
-    <span style="color: #00FF00; font-family: monospace; font-size: 22px; font-weight: 900; letter-spacing: 3px; text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;">( | - | [ - | ~ | \ / | ;</span>
+  <div style="background-color: #0b0f19; padding: 24px 40px; border-radius: 12px; display: inline-block; margin-bottom: 12px; border: 1px solid #1e293b; box-shadow: 0 4px 20px rgba(0,255,128,0.15);">
+    <span style="color: #38bdf8; font-family: monospace; font-size: 26px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);">( | - | [ - | ~ | \ / | ;</span>
   </div>
   <h1>Cherm</h1>
+  <p><b>Interactive Terminal Companion • Model Context Protocol (MCP) Server • Localhost Web GUI</b></p>
+
+  <p>
+    <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
+    <img src="https://img.shields.io/badge/MCP-FastMCP%202.0-8A2BE2?style=for-the-badge&logo=anthropic&logoColor=white" alt="FastMCP 2.0">
+    <img src="https://img.shields.io/badge/GUI-Localhost%3A3690-00C781?style=for-the-badge" alt="Localhost 3690">
+    <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?style=for-the-badge" alt="Cross-Platform">
+    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
+  </p>
 </div>
 
-> **A terminal-based code inspection suite built for developers who want real analysis, fast — without loading a graphical IDE.**
+---
 
-Cherm is a powerful, entirely local static analysis and security toolkit designed to catch bugs, vulnerabilities, and messy code before you ever commit. It runs directly in your terminal using the `curses` library and features a live virtual companion that reacts to your code's health and your activity.
+> **A high-speed, local code analysis & system design inspection suite built for developers and AI agents alike — catching architectural flaws, race conditions, IDOR, and code smells before code is ever committed.**
 
-**Note on Development:** I am actively working on and updating this project. While the deepest analysis features (like the AST-based CrossCheckV200 and Bandit) are heavily optimized for Python right now, the application is built to support structural scanning, execution, and syntax checking for many other languages too.
+Cherm operates in three seamless modalities:
+1. **Interactive TUI**: Classic curses-based terminal companion with reactive ASCII avatar, AST fuzzer, and security suite.
+2. **MCP Server**: Zero-token FastMCP bridge enabling Claude Desktop, Cursor, Antigravity, and Gemini to execute deep deterministic audits on your code.
+3. **Localhost Web GUI**: Clean, distraction-free drag & drop code auditor running on **`http://localhost:3690`** for instant file inspection and findings.
 
 ---
 
-## The Cherm Philosophy
+## 📸 Snapshots & UI Tour
 
-Cherm is built to answer a specific frustration: *"I have a file I'm about to commit. Is it safe? Is it efficient? Does it have dead code?"* You can answer all of those questions in under 60 seconds without leaving your terminal workflow. 
+### 1. Interactive Terminal Companion (TUI)
+*Runs fully offline inside your terminal with zero IDE lag, instant keyboard navigation, and shadow copy safety.*
 
-**CRITICAL NOTE: No Artificial Intelligence.** 
-Every analysis engine inside Cherm operates using **Abstract Syntax Tree (AST) parsing**, **Regular Expressions (Regex)**, or **rigid algorithmic heuristics**. Cherm is a static inspector—it does not use AI to read your code. Always apply your own developer judgment, as rigid rules can occasionally produce false positives or false negatives.
-
----
-
-## Core Features
-
-### Full Penetration Test & Security
-*   **Full Security Pentest:** Automatically orchestrates `bandit` (Python deep scan), `semgrep` (Multi-language rules), and `safety` (Dependency CVEs) for a comprehensive sweep.
-*   **Security Audit (OWASP):** A zero-dependency regex audit for critical web vulnerabilities like SQL Injection, Command Injection, XSS, and SSRF.
-*   **Scan for Secrets:** Detects over 20 types of hardcoded API keys, passwords, and credentials (e.g., AWS Keys, GitHub PATs, Stripe keys) using structural patterns and Shannon Entropy analysis.
-
-### Code Quality & Performance
-*   **CrossCheckV200 Engine:** Automated function-level fuzz testing. It dynamically injects mock arguments into your Python functions to find edge-case crashes without writing a single test case.
-*   **Speed & Complexity Analysis:** Calculates a Messiness Score and estimates Big-O Time & Space complexity via AST structural analysis, combined with a real runtime execution benchmark.
-*   **Dead Code Detector:** Uses Python AST (and regex for other languages) to detect assigned-but-unused variables, unreachable logic, and uncalled functions.
-*   **Magic Number Detector:** Flags bare numeric literals that lack domain context and should be extracted into named constants.
-
-### Developer Utilities
-*   **Shadow Copy Architecture:** *Your original files are never locked or corrupted.* Cherm silently duplicates your file into a temporary `%TEMP%` directory and runs all analysis tools on the copy.
-*   **Interactive Git Command Center:** Stage files, restore changes, and write commit messages directly from the file browser without opening a separate terminal pane.
-*   **API Health Monitor:** Extracts all HTTP/HTTPS URLs from your code and fires concurrent health checks to verify which endpoints are alive and responsive.
-*   **Diff & Raw Viewers:** Review your working tree against Git `HEAD`, or use the integrated terminal pager to read files instantly.
-*   **Multi-File Batch Checker:** Run universal syntax and connection checks across multiple selected files simultaneously.
-
-### The Virtual Companion
-Cherm features a reactive ASCII companion face in the header. It becomes "happy" on success, "angry" or "sad" when finding vulnerabilities, "error" when processes fail, and "tired" (Zzz) if you leave the terminal idle for 30 minutes.
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  (•‿•)   Cherm Terminal Companion                 [Status: Optimal]          │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  TERMINAL CLOCK --                                                 __21:30:15│
+│  [P]  order_controller.py                             (src/api/v1)           │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                         Language / Execution Tools   >                       │
+│                         General File Tools           >                       │
+│                         Advanced Analysis & Security >                       │
+│                   [*]   Cherm MCP Bridge (AI Server)                         │
+│                   [*]   Launch Web GUI (localhost:3690)                      │
+│                   ────────────────────────────────────────────               │
+│                         Select Different File                                │
+│                         Help  (?)                                            │
+│                         Exit                                                 │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Up/Down:Nav  Enter:Run  B:Bookmark  ?:Help  Q:Back  ESC:Exit                │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Supported Languages
+### 2. Localhost Web GUI (`http://localhost:3690`)
+*Minimalist, zero-slop drag-and-drop code auditor running locally in your browser with `python cherm.py --gui`.*
 
-Cherm supports syntax checking, structure scanning, and analysis for a massive array of languages:
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Cherm — Code Auditor                                        localhost:3690  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐     │
+│                         [ ↑ Drag & Drop Code File ]                          │
+│                                                                              │
+│                   Drag and drop your code file here to audit                 │
+│              or click to browse (.py, .js, .ts, .go, .sql, etc.)             │
+│       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘     │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  ARCHITECTURE GRADE: [ GRADE A ]   Status: PASS (Clean)                      │
+│  • Total Issues: 0       • Race Conditions: 0       • ML Defect Risk: 4.2%   │
+│  • Fatal Flaws:  0       • Design Flaws:    0       • Code Smells:    0      │
+│                                                                              │
+│  [ OK ] Clean code — no architectural bottlenecks or vulnerabilities found.  │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧠 The 3-Stage Hybrid Review Pipeline
+
+Cherm combines deterministic static rules with external AI agent verification through the **Model Context Protocol (MCP)**:
+
+```mermaid
+flowchart TD
+    A["Raw Code / Commit Target"] --> B["Stage 1: Cherm Deterministic Engine"]
+    
+    subgraph S1["Stage 1: Deterministic Static Engine (Zero AI Tokens)"]
+        B --> B1["Multi-Tap Race Condition Fuzzer"]
+        B --> B2["System Design Flaw Scanner (IDOR, Pool Leaks)"]
+        B --> B3["AST Code Smell Detector & Fix Recipes"]
+        B --> B4["Halstead Complexity & Shannon Entropy"]
+    end
+    
+    B1 --> C["Consolidated Audit History & HTML Report"]
+    B2 --> C
+    B3 --> C
+    B4 --> C
+    
+    C --> D["Stage 2: AI Verification via MCP Bridge"]
+    
+    subgraph S2["Stage 2: Model Context Protocol (FastMCP)"]
+        D --> D1["Claude Desktop"]
+        D --> D2["Cursor IDE"]
+        D --> D3["Google Antigravity / Gemini CLI"]
+    end
+    
+    D1 --> E["Stage 3: Decision Gate & Fix Confirmation"]
+    D2 --> E
+    D3 --> E
+    
+    subgraph S3["Stage 3: Developer Control"]
+        E --> F["Confirmed Issues & Production Risks"]
+        E --> G["Dismissed False Positives"]
+        E --> H["Safe, User-Approved Fix Application"]
+    end
+```
+
+---
+
+## ⚡ Quick Start & CLI Usage
+
+### Launch Interactive Terminal TUI
+```bash
+# Open interactive file picker
+python cherm.py
+
+# Or launch targeted directly at a file
+python cherm.py src/auth.py
+```
+> *Note: The distracting mini-game has been cleanly removed to ensure fast, continuous, uninterrupted testing.*
+
+---
+
+### Launch Localhost Web GUI
+Launch the browser dashboard on port **`3690`** (`http://localhost:3690`):
+```bash
+# Starts server and automatically opens your default browser
+python cherm.py --gui
+
+# Or run directly on a custom port
+python cherm.py --gui --port 8080
+```
+*Or select `[*] Launch Web GUI (localhost:3690)` directly from the TUI main menu!*
+
+---
+
+### Launch Model Context Protocol (MCP) Server
+Enable AI assistants (Claude, Cursor, Antigravity) to query Cherm's static analyzer:
+```bash
+# Standard stdio mode (for Claude Desktop, Cursor, Antigravity)
+python cherm.py --mcp
+
+# Or SSE mode for remote/web access
+python cherm.py --mcp --sse --port 8000
+```
+
+---
+
+## 🤖 MCP AI Agent Configuration
+
+Add Cherm to your AI assistant's configuration file:
+
+### Claude Desktop (`claude_desktop_config.json`) / Cursor (`.cursor/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "cherm": {
+      "command": "python",
+      "args": ["<path-to-cherm>/cherm.py", "--mcp"]
+    }
+  }
+}
+```
+
+### Google Antigravity / Gemini CLI (`mcp_config.json`):
+```json
+{
+  "mcpServers": {
+    "cherm": {
+      "command": "python",
+      "args": ["C:/Antigravity program/checkinterminal/cherm.py", "--mcp"]
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ The 7 Cherm MCP Tools
+
+| Tool Name | Scope & Detection Capabilities |
+| :--- | :--- |
+| **`run_all_in_one_check`** | Full audit pipeline: system design flaws, race conditions, AST code smells, ML defect risk score, and standalone HTML report. |
+| **`audit_system_design_flaws`** | Architectural vulnerabilities: BOLA/IDOR object exposure, database connection pool exhaustion, missing transaction rollbacks, CORS wildcards, and unhandled network timeouts. |
+| **`explain_code_issues`** | AST anti-patterns: mutable default arguments (state leakage), bare `except:` clauses swallowing SIGTERM, and silent error suppression (`except: pass`) with exact fix recipes. |
+| **`stress_test_multitap_vulnerability`** | Concurrency simulation: checks for Check-Then-Act (TOCTOU) race conditions, double-spend vulnerabilities, and missing row-level locking (`SELECT ... FOR UPDATE`). |
+| **`audit_sha256_cryptographic_integrity`** | Cryptographic checks: weak hashing algorithms (MD5/SHA1), ECB block cipher modes, hardcoded IVs/salts, and timing side-channel leaks. |
+| **`audit_ml_defects`** | Machine learning metrics: Halstead software complexity, AST structural anomaly detection via Isolation Forest, and Shannon Entropy secret scanning. |
+| **`generate_html_audit_report`** | Generates a clean, professional, visual HTML report saved at `cherm_audit_report.html`. |
+
+---
+
+## 🛡️ Core Analysis Features
+
+### Security & Penetration Testing
+* **Full Pentest Suite:** Orchestrates `bandit` (Python deep scan), `semgrep` (multi-language security rules), and `safety` (dependency CVE check).
+* **OWASP Vulnerability Audit:** Zero-dependency static pattern audit for SQL Injection, Command Injection, XSS, Path Traversal, and SSRF.
+* **Shannon Entropy Secrets Detector:** Identifies high-entropy tokens, passwords, and API keys (AWS, GitHub PAT, Stripe, JWT) across source files.
+
+### Code Quality & AST Analysis
+* **CrossCheckV200 Engine:** Automated function-level fuzz testing with dynamic mock injection to catch unexpected edge-case crashes.
+* **Speed & Complexity Calculator:** Evaluates cyclomatic complexity, maximum nesting depth, and estimated Big-O Time & Space complexity.
+* **Dead Code & Magic Number Scanner:** Flags unused variables, unreachable branches, and bare numeric literals that belong in named constants.
+* **Shadow Copy Safety:** Original files are never modified or locked. All analysis runs inside an isolated shadow directory (`%TEMP%/cherm_shadow`).
+
+---
+
+## 🌐 Supported Languages
+
+Cherm supports syntax checking, structure scanning, and analysis for:
 **Python, JavaScript, TypeScript, Java, C, C++, Go, Rust, Ruby, PHP, Kotlin, Swift, Bash/Shell, PowerShell, Perl, R, HTML, CSS, JSON, YAML, Markdown, SQL**.
 
 ---
 
-## Installation & Usage
+## 📦 Requirements & Installation
 
-### Option 1: Standalone Executable (Windows) - Easiest
-No Python installation or terminal setup is required to run the standalone executable.
+```bash
+# Clone the repository
+git clone https://github.com/subhajit-io/Cherm.git
+cd Cherm/check-in-terminal
 
-1. Navigate to the **Releases** section on the right side of this GitHub repository.
-2. Download the `Cherm.zip` file attached to the latest release.
-3. Extract the `.zip` file to your computer.
-4. Double-click `cherm.exe` to run the application.
-5. **Note for Windows Users:** Because this is an indie open-source project, Windows SmartScreen may flag the `.exe` as an unrecognized app. If you see a blue "Windows protected your PC" screen, simply click **More info** and then **Run anyway** to launch Cherm.
+# Install dependencies for MCP and ML engines
+pip install -r requirements_mcp.txt
+```
 
-### Option 2: Run via Python (Development / IDE)
-**Prerequisites:** Python 3.x installed on your system.
+*Requirements include:* `fastmcp>=2.0.0`, `uvicorn>=0.30.0`, `pydantic>=2.0.0`, `scikit-learn>=1.4.0`, `numpy>=1.26.0`.
 
-1. Clone the repository and navigate to the folder.
-2. Run the application via your terminal or IDE:
-   ```bash
-   python cherm.py
+---
 
-For further information about this, go through the Cherm documentation page: [Cherm Documentation](https://cherm-documentation.vercel.app/)
+## ⌨️ Global Keyboard Shortcuts (TUI)
+
+| Key | Action |
+| :---: | :--- |
+| `Up` / `Down` | Navigate menu items and file lists |
+| `Enter` | Select file or run highlighted action |
+| `B` | Toggle bookmark on active file |
+| `H` | Open generated HTML audit report in browser |
+| `?` | Open interactive Help Panel |
+| `Q` | Back to previous menu or return from results |
+| `ESC` | Exit Cherm / Return to file selection |
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for details.
+Built with ❤️ by [Subhajit Das](https://github.com/subhajit-io).
