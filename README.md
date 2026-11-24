@@ -595,30 +595,45 @@ Cherm provides native syntax validation, structure mapping, AST inspection, and 
 
 ---
 
-## Download & Installation (Install Like a Language Package)
+## Download & Installation (Multi-Platform Releases & Installers)
 
-Cherm can be installed or downloaded in multiple ways depending on your development workflow:
+Cherm can be installed or downloaded for Windows, macOS, and Linux:
 
-### 1. Download Options
-* **Complete Suite (ZIP Archive)**:
-  [Download Cherm Bundle (.zip)](https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip) — Includes TUI companion, Web GUI, CLI engine, and FastMCP server.
-* **Standalone Script (`cherm.py`)**:
-  [Download cherm.py](https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py) — Zero-dependency standalone script running on any standard Python 3.10+ installation.
+### 1. Precompiled Native Binaries
+* **Windows (64-bit .exe)**:
+  [Download Cherm.exe](https://github.com/subhajit-io/Cherm/releases/latest/download/Cherm.exe) — Standalone native executable. Zero setup or Python environment needed.
+* **macOS (Apple Silicon & Intel)**:
+  [Download macOS ARM64 (M1/M2/M3/M4)](https://github.com/subhajit-io/Cherm/releases/latest/download/cherm-macos-arm64) | [Download macOS Intel x86_64](https://github.com/subhajit-io/Cherm/releases/latest/download/cherm-macos-x86_64) — Native macOS executables.
+* **Linux (x86_64)**:
+  [Download Linux Binary](https://github.com/subhajit-io/Cherm/releases/latest/download/cherm-linux-x86_64) — Self-contained ELF executable for Ubuntu, Debian, Fedora, Arch, CentOS.
+* **Source Bundle (ZIP Archive)**:
+  [Download Cherm Bundle (.zip)](https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip) — Complete source with TUI companion, Web GUI, CLI engine, and FastMCP server.
 
-### 2. Terminal One-Liners (Quick Install)
+### 2. Universal Automated Installers (One-Liner Install)
 
-#### Linux / macOS / WSL (curl)
+#### macOS & Linux (curl)
 ```bash
-# Download standalone cherm.py and run immediately:
-curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
-python cherm.py
+# Installs Cherm to ~/.local/bin/cherm and configures your PATH:
+curl -fsSL https://raw.githubusercontent.com/subhajit-io/Cherm/main/install.sh | bash
+
+# Test installation:
+cherm --help
 ```
 
 #### Windows (PowerShell)
 ```powershell
-# Download standalone cherm.py in PowerShell:
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" -OutFile "cherm.py"
-python cherm.py
+# Installs Cherm.exe and configures User PATH:
+irm https://raw.githubusercontent.com/subhajit-io/Cherm/main/install.ps1 | iex
+
+# Test installation:
+cherm --help
+```
+
+#### Python Direct Execution
+```bash
+# Run standalone script directly with Python:
+curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
+python cherm.py --help
 ```
 
 #### Git Clone (Full Development Suite)

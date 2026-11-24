@@ -119,7 +119,7 @@ def _collect_code_files(target_path: str, max_files: int = 300) -> List[str]:
 
 
 def _print_sep(title: str, target: str = ""):
-    sep = "─" * 70
+    sep = "-" * 70
     print(f"\n{sep}")
     if target:
         print(f"  CHERM {title.upper()}: {target}")
@@ -206,7 +206,7 @@ def cmd_complexity(args: list):
                     last_ind = ind
                     if curr_d > max_d: max_d = curr_d
 
-            time_c = "O(1)" if max_d == 0 else ("O(N)" if max_d == 1 else ("O(N²)" if max_d == 2 else f"O(N^{max_d})"))
+            time_c = "O(1)" if max_d == 0 else ("O(N)" if max_d == 1 else ("O(N^2)" if max_d == 2 else f"O(N^{max_d})"))
             space_c = "O(N)" if any(x in code for x in ["append(", "push(", "malloc", "new Array", "new List", "[]", "{}"]) else "O(1)"
             verdict = "Clean" if score < 15 else ("Moderate" if score < 30 else "High Complexity")
 
@@ -273,7 +273,7 @@ def cmd_deadcode(args: list):
         tag = "[PASS]" if r["passed"] else "[WARN]"
         print(f" {tag} {rel}: {r['dead_count']} unused function(s)")
         for d in r["dead_functions"][:5]:
-            print(f"        • Line {d['line']}: {d['name']}()")
+            print(f"        * Line {d['line']}: {d['name']}()")
     sys.exit(0)
 
 
@@ -314,7 +314,7 @@ def cmd_magic(args: list):
         tag = "[PASS]" if r["passed"] else "[WARN]"
         print(f" {tag} {rel}: {r.get('magic_count', 0)} magic number(s)")
         for m in r.get("magic_numbers", [])[:5]:
-            print(f"        • Line {m['line']}: Value '{m['value']}' in: {m['snippet']}")
+            print(f"        * Line {m['line']}: Value '{m['value']}' in: {m['snippet']}")
     sys.exit(0)
 
 
@@ -568,7 +568,7 @@ def cmd_sec(args: list):
         tag = "[PASS]" if r["passed"] else "[FAIL]"
         print(f" {tag} {rel}: {r['issue_count']} vulnerability pattern(s)")
         for iss in r["issues"][:5]:
-            print(f"        • Line {iss['line']}: {iss['issue']} [{iss['severity']}]")
+            print(f"        * Line {iss['line']}: {iss['issue']} [{iss['severity']}]")
             print(f"          Snippet: {iss['snippet']}")
     print(f"\nTotal Issues Found: {total_issues}\n")
     sys.exit(0 if total_issues == 0 else 1)
@@ -612,7 +612,7 @@ def cmd_secrets(args: list):
         tag = "[PASS]" if r["passed"] else "[ALERT]"
         print(f" {tag} {rel}: {r['secrets_count']} secret(s) found")
         for sc in r["secrets"][:5]:
-            print(f"        • Line {sc['line']}: {sc['type']} [{sc['severity']}]")
+            print(f"        * Line {sc['line']}: {sc['type']} [{sc['severity']}]")
     print(f"\nTotal Credentials/Tokens Discovered: {total_found}\n")
     sys.exit(0 if total_found == 0 else 1)
 
@@ -650,7 +650,7 @@ def cmd_crypto(args: list):
     print(f"  Integrity:    {health}")
     print(f"  Misuse Flaws: {len(issues)}")
     for fl in issues:
-        print(f"  • [{fl.get('severity')}] Line {fl.get('line')}: {fl.get('title')}")
+        print(f"  * [{fl.get('severity')}] Line {fl.get('line')}: {fl.get('title')}")
         print(f"    Issue: {fl.get('issue')}")
         print(f"    Fix:   {fl.get('fix')}\n")
     print()
@@ -680,7 +680,7 @@ def cmd_design(args: list):
         sev = fl.get("severity", "HIGH")
         cat = fl.get("category") or fl.get("type") or "Design Flaw"
         desc = fl.get("description") or fl.get("issue") or ""
-        print(f"  • [{sev}] Line {line}: {cat}")
+        print(f"  * [{sev}] Line {line}: {cat}")
         if desc:
             print(f"    {desc}\n")
     print()
@@ -709,7 +709,7 @@ def cmd_race(args: list):
         badge = hz.get("badge", "[CONCURRENCY]")
         op = hz.get("operation_detected", "")
         what = hz.get("what_happens_under_burst", "")
-        print(f"  • {badge} - {op}")
+        print(f"  * {badge} - {op}")
         if what:
             print(f"    Scenario: {what[:120]}...\n")
     print()
@@ -865,9 +865,9 @@ def cmd_check(args: list):
     if summary:
         print(f"  Files:        {summary.get('total_files_scanned', 1)} (Clean: {summary.get('clean_files_count', 0)})")
         print(f"  Total Flaws:  {summary.get('total_issues_found', 0)}")
-        print(f"  • Fatal Flaws:         {summary.get('fatal_critical_flaws', 0)}")
-        print(f"  • System Design Flaws: {summary.get('system_design_flaws', 0)}")
-        print(f"  • Anti-patterns:       {summary.get('code_smells_and_antipatterns', 0)}")
+        print(f"  * Fatal Flaws:         {summary.get('fatal_critical_flaws', 0)}")
+        print(f"  * System Design Flaws: {summary.get('system_design_flaws', 0)}")
+        print(f"  * Anti-patterns:       {summary.get('code_smells_and_antipatterns', 0)}")
     print()
     sys.exit(0 if res.get("success", False) else 1)
 
@@ -898,10 +898,10 @@ def cmd_audit(args: list):
     print(f"  HEALTH GRADE : [ {grade} ]  (Status: {status})")
     if summary:
         print(f"  Files Scanned: {summary.get('total_files_scanned', 1)} | Clean: {summary.get('clean_files_count', 0)} | Issues: {summary.get('total_issues_found', 0)}")
-        print(f"  • Fatal Architectural Flaws:    {summary.get('fatal_critical_flaws', 0)}")
-        print(f"  • Concurrency & Race Hazards:   {summary.get('multitap_concurrency_flaws', 0)}")
-        print(f"  • System Design Defects:        {summary.get('system_design_flaws', 0)}")
-        print(f"  • Code Smells & Anti-patterns:  {summary.get('code_smells_and_antipatterns', 0)}")
+        print(f"  * Fatal Architectural Flaws:    {summary.get('fatal_critical_flaws', 0)}")
+        print(f"  * Concurrency & Race Hazards:   {summary.get('multitap_concurrency_flaws', 0)}")
+        print(f"  * System Design Defects:        {summary.get('system_design_flaws', 0)}")
+        print(f"  * Code Smells & Anti-patterns:  {summary.get('code_smells_and_antipatterns', 0)}")
 
     rpt = res.get("html_dashboard_report")
     if rpt and os.path.isfile(rpt):
@@ -925,7 +925,7 @@ def cmd_ext(args: list):
             print(f"\n=== Cherm Connected Software Commands ===")
             print(f"Config: {cfg}\n")
             for c in cmds:
-                print(f" • [{c.get('id')}] {c.get('name')}")
+                print(f" * [{c.get('id')}] {c.get('name')}")
                 print(f"   Command:     {c.get('cmd')}")
                 print(f"   Files:       {', '.join(c.get('extensions', ['*']))}")
                 print(f"   Category:    {c.get('category', 'Custom')}\n")
@@ -1027,7 +1027,7 @@ def dispatch_command(cmd: str, args: list) -> bool:
 # HELP MENU
 # -------------------------------------------------------------
 def print_cherm_help():
-    print("""Cherm — Static Architecture & Code Inspection Suite
+    print("""Cherm -- Static Architecture & Code Inspection Suite
 
 Usage:
   python cherm.py <command> [target] [options]

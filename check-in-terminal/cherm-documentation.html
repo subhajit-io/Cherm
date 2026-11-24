@@ -924,37 +924,62 @@
             <h2>Download &amp; Installation</h2>
             <p class="tagline">Download Cherm for your environment as an instant ZIP, standalone script, or language package.</p>
 
-            <div class="cards-grid" style="margin: 2rem 0;">
+            <div class="cards-grid" style="margin: 2rem 0; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
                 <div class="card" style="border-top: 3px solid var(--accent);">
-                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
-                    <div class="card-title">Cherm Complete Bundle (ZIP)</div>
-                    <p class="card-desc">Download full Cherm suite with TUI companion, Web GUI, CLI engine, and MCP server.</p>
-                    <a href="https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip" class="btn" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download ZIP Archive (.zip)</a>
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
+                    <div class="card-title">Windows Standalone (.exe)</div>
+                    <p class="card-desc">Compiled native 64-bit binary. Zero Python or dependency setup required.</p>
+                    <a href="https://github.com/subhajit-io/Cherm/releases/latest/download/Cherm.exe" class="btn" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download Cherm.exe</a>
+                </div>
+
+                <div class="card" style="border-top: 3px solid #38bdf8;">
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></span>
+                    <div class="card-title">macOS Binary &amp; Installer</div>
+                    <p class="card-desc">Native binaries for Apple Silicon (M1/M2/M3/M4) and Intel x86_64.</p>
+                    <a href="https://github.com/subhajit-io/Cherm/releases/latest/download/cherm-macos-arm64" class="btn btn-outline" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download macOS Binary</a>
+                </div>
+
+                <div class="card" style="border-top: 3px solid #f97316;">
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
+                    <div class="card-title">Linux Standalone Binary</div>
+                    <p class="card-desc">Self-contained ELF executable for Ubuntu, Debian, Fedora, Arch, CentOS.</p>
+                    <a href="https://github.com/subhajit-io/Cherm/releases/latest/download/cherm-linux-x86_64" class="btn btn-outline" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download Linux Binary</a>
                 </div>
 
                 <div class="card" style="border-top: 3px solid var(--success);">
-                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
-                    <div class="card-title">Standalone Script (cherm.py)</div>
-                    <p class="card-desc">Single-file zero-dependency companion script that runs offline with standard Python.</p>
-                    <a href="https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download cherm.py</a>
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
+                    <div class="card-title">Full Source Bundle (.zip)</div>
+                    <p class="card-desc">Complete source with TUI companion, Web GUI, CLI engine, and MCP server.</p>
+                    <a href="https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip" class="btn btn-outline" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download Source (.zip)</a>
                 </div>
             </div>
 
-            <h3>Terminal One-Liners (Install like languages)</h3>
-            <p>Download and run Cherm instantly from your terminal without manual cloning:</p>
+            <h3>Automated Terminal Installers (Install Like a Language)</h3>
+            <p>Run Cherm globally from any terminal with a single copy-paste command (no manual git clone required):</p>
 
             <div class="code-box">
-                <div class="code-label">Linux / macOS / WSL (curl)</div>
-                <pre><code># Download standalone cherm.py and run:
-curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
-python cherm.py</code></pre>
+                <div class="code-label">macOS &amp; Linux (One-Liner curl installer)</div>
+                <pre><code># Installs Cherm to ~/.local/bin/cherm and configures your PATH:
+curl -fsSL https://raw.githubusercontent.com/subhajit-io/Cherm/main/install.sh | bash
+
+# Test installation:
+cherm --help</code></pre>
             </div>
 
             <div class="code-box">
-                <div class="code-label">Windows (PowerShell)</div>
-                <pre><code># Download standalone cherm.py in PowerShell:
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" -OutFile "cherm.py"
-python cherm.py</code></pre>
+                <div class="code-label">Windows (PowerShell One-Liner)</div>
+                <pre><code># Installs Cherm.exe and configures User PATH:
+irm https://raw.githubusercontent.com/subhajit-io/Cherm/main/install.ps1 | iex
+
+# Test installation:
+cherm --help</code></pre>
+            </div>
+
+            <div class="code-box">
+                <div class="code-label">Python / PIP Direct Execution</div>
+                <pre><code># Run directly via Python:
+curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
+python cherm.py --help</code></pre>
             </div>
 
             <div class="code-box">

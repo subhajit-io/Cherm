@@ -9,6 +9,15 @@ import curses
 import subprocess
 import os
 import sys
+
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 import urllib.request
 import urllib.error
 import re
@@ -4549,6 +4558,10 @@ def run_cli_ext(args: list):
 
 
 def launch_interactive_tui(target_file=None):
+    if not (sys.stdin and hasattr(sys.stdin, "isatty") and sys.stdin.isatty() and sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty()):
+        print("Note: Terminal Companion (TUI) requires an interactive terminal console.", file=sys.stderr)
+        print("For headless / scripting usage, run CLI commands: cherm --help", file=sys.stderr)
+        sys.exit(0)
     check_permissions()
     t = threading.Thread(target=companion_thread)
     t.daemon = True
@@ -4580,7 +4593,11 @@ if __name__ == "__main__":
     raw_args = sys.argv[1:]
 
     if not raw_args:
-        launch_interactive_tui()
+        if sys.stdin and hasattr(sys.stdin, "isatty") and sys.stdin.isatty() and sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+            launch_interactive_tui()
+        else:
+            print_cherm_help()
+            sys.exit(0)
 
     first = raw_args[0].lower()
 
