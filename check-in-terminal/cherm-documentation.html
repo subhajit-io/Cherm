@@ -59,9 +59,16 @@
             background-color: var(--bg);
             color: var(--text-main);
             line-height: 1.7;
-            display: flex;
+            display: grid;
+            grid-template-rows: 48px 1fr;
+            grid-template-columns: 320px 1fr;
+            grid-template-areas:
+                "nav nav"
+                "sidebar content";
             height: 100vh;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         input[type="radio"], input[type="checkbox"] {
@@ -71,10 +78,7 @@
         
         /* Top Navigation Bar */
         .top-nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            grid-area: nav;
             height: 48px;
             background: var(--card-bg);
             border-bottom: 1px solid var(--border);
@@ -121,10 +125,6 @@
             background: var(--accent-light);
         }
 
-        body {
-            padding-top: 48px;
-        }
-
         .theme-btn {
             display: none !important;
         }
@@ -150,8 +150,9 @@
 
         /* Sidebar */
         .sidebar {
+            grid-area: sidebar;
             width: 320px;
-            height: 100vh;
+            height: 100%;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             padding: 1.5rem 1rem 3rem 1rem;
@@ -256,10 +257,11 @@
 
         /* Content Area */
         .content {
+            grid-area: content;
             flex-grow: 1;
             padding: 3.5rem 4.5rem 5rem 4.5rem;
             overflow-y: auto;
-            height: 100vh;
+            height: 100%;
         }
 
         .page {
@@ -595,9 +597,44 @@
         }
 
         @media (max-width: 860px) {
-            body { flex-direction: column; height: auto; overflow: auto; }
-            .sidebar { width: 100%; height: auto; }
-            .content { padding: 2rem 1.5rem; height: auto; overflow: visible; }
+            body {
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                margin: 0;
+                padding: 0;
+            }
+            .top-nav-bar {
+                position: sticky;
+                top: 0;
+                height: auto;
+                min-height: 48px;
+                padding: 0.5rem 1rem;
+                flex-wrap: wrap;
+                gap: 8px;
+                z-index: 1000;
+            }
+            .top-nav-right {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                overflow: visible;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 1.5rem 1rem 2rem 1rem;
+            }
+            .content {
+                width: 100%;
+                height: auto;
+                overflow: visible;
+                padding: 2rem 1.25rem;
+            }
         }
     </style>
 </head>
