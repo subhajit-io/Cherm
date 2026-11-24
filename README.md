@@ -48,10 +48,9 @@ Cherm operates across three flexible modalities:
 │                         General File Tools           >                       │
 │                         Advanced Analysis & Security >                       │
 │                   [*]   Cherm MCP Bridge (AI Server)                         │
-│                   [*]   Launch Web GUI (localhost:3690)                      │
 │                   ────────────────────────────────────────────               │
 │                         Select Different File                                │
-│                         Help  (?)                                            │
+│                         Help & User Manual  (?)                              │
 │                         Exit                                                 │
 │                                                                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
@@ -147,6 +146,7 @@ python cherm.py gui
 # Or launch directly targeted at a file
 python cherm.py gui src/auth.py
 ```
+*(For complete keyboard shortcuts, screen walkthroughs, and in-app menu breakdowns, see the [Terminal Companion (TUI) User Manual](#️-terminal-companion-tui-user-manual--in-app-commands) below.)*
 
 ---
 
@@ -582,32 +582,158 @@ Cherm provides native syntax validation, structure mapping, AST inspection, and 
 
 ---
 
-## 📦 Requirements & Installation
+## 📥 Download & Installation (Install Like a Language Package)
 
+Cherm can be installed or downloaded in multiple ways depending on your development workflow:
+
+### 1. Download Options
+* **Complete Suite (ZIP Archive)**:
+  [Download Cherm Bundle (.zip)](https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip) — Includes TUI companion, Web GUI, CLI engine, and FastMCP server.
+* **Standalone Script (`cherm.py`)**:
+  [Download cherm.py](https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py) — Zero-dependency standalone script running on any standard Python 3.10+ installation.
+
+### 2. Terminal One-Liners (Quick Install)
+
+#### Linux / macOS / WSL (curl)
 ```bash
-# Clone the repository
-git clone https://github.com/subhajit-io/Cherm.git
-cd Cherm/check-in-terminal
-
-# Install dependencies for MCP and ML engines
-pip install -r requirements_mcp.txt
+# Download standalone cherm.py and run immediately:
+curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
+python cherm.py
 ```
 
-*Requirements include:* `fastmcp>=2.0.0`, `uvicorn>=0.30.0`, `pydantic>=2.0.0`, `scikit-learn>=1.4.0`, `numpy>=1.26.0`.
+#### Windows (PowerShell)
+```powershell
+# Download standalone cherm.py in PowerShell:
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" -OutFile "cherm.py"
+python cherm.py
+```
+
+#### Git Clone (Full Development Suite)
+```bash
+git clone https://github.com/subhajit-io/Cherm.git
+cd Cherm/check-in-terminal
+pip install -r requirements_mcp.txt
+python cherm.py
+```
+
+### 3. Language & Environment Tooling
+
+Cherm operates fully offline with native AST inspection. When language tools are installed on your system, Cherm seamlessly integrates with them:
+
+| Language / Tool | Installation Command | Cherm Feature Enabled |
+| :--- | :--- | :--- |
+| **Python MCP & ML** | `pip install -r requirements_mcp.txt` | FastMCP AI server, Isolation Forest ML anomaly scoring, Shannon entropy |
+| **Node.js & TypeScript** | `npm install -g typescript eslint` | `tsc --noEmit` type checking, ESLint integration |
+| **Python Pentest Suite** | `pip install bandit semgrep safety` | Automated security orchestration (`python cherm.py pentest`) |
+| **Go Toolchain** | `go install` | `go vet` and Go syntax verification |
+| **Rust Toolchain** | `rustup` | `rustc` and `cargo check` compiler validation |
 
 ---
 
-## ⌨️ Global Keyboard Shortcuts (TUI)
+## 🖥️ Terminal Companion (TUI) User Manual & In-App Commands
 
-| Key | Action |
-| :---: | :--- |
-| `Up` / `Down` | Navigate menu items and file lists |
-| `Enter` | Select file or run highlighted action |
-| `B` | Toggle bookmark on active file |
-| `H` | Open generated HTML audit report in browser |
-| `?` | Open interactive Help Panel |
-| `Q` | Back to previous menu or return from results |
-| `ESC` | Exit Cherm / Return to file selection |
+Cherm's Terminal Companion (TUI) is an interactive, curses-based developer environment engineered to run offline in any terminal or remote SSH session with zero UI lag and shadow-copy safety.
+
+### How to Launch the TUI
+```bash
+# 1. Open the interactive file browser (Default):
+python cherm.py
+
+# 2. Open via the gui subcommand:
+python cherm.py gui
+
+# 3. Launch directly targeted at a file:
+python cherm.py gui src/auth.py
+```
+
+---
+
+### The Three TUI Screen Modes
+
+1. **Screen 1: Interactive File Browser**
+   - Browse project directories with arrow keys (`Up` / `Down` or `k` / `j`).
+   - Displays file names, sizes, file types, and live header clock.
+   - Press `/` to search/filter files in real time.
+   - Press `Space` to tag multiple files for batch inspection.
+   - Press `B` to star/unstar bookmarks for instant access.
+   - Press `M` to jump directly to the Bookmarks view.
+   - Press `Left` or `Backspace` to navigate up to the parent directory.
+
+2. **Screen 2: Main Action & Feature Menu**
+   - After selecting or tagging files, Cherm opens the main action menu organized into 4 categorized submenus:
+     - **Language / Execution Tools**
+     - **General File Tools**
+     - **Advanced Analysis & Security**
+     - **Connected Software Commands**
+   - Also includes direct actions:
+     - `[*] Cherm MCP Bridge (AI Server)` — Starts FastMCP bridge on stdio.
+     - `Select Different File` — Return to file browser.
+     - `Help & User Manual (?)` — Interactive scrollable user manual.
+     - `Exit` — Gracefully exits Cherm.
+
+3. **Screen 3: Results & Analysis Viewer**
+   - Clean scrollable output with color-coded alerts (Green PASS, Yellow WARN, Red FAIL/CRITICAL).
+   - Press `Up` / `Down` to scroll by line, `PgUp` / `PgDn` to scroll by page.
+   - Press `g` / `Home` to jump to top, `G` / `End` to jump to bottom.
+   - Press `H` after an audit to automatically open the generated visual HTML report in your browser.
+   - Press `Q` or `ESC` to return to the menu.
+
+---
+
+### In-TUI Menu Commands Reference
+
+#### Menu 1: Language / Execution Tools
+* **`Check Syntax (<filename>)`**: Validates code syntax and parses bytecode (e.g. `py_compile`, `node --check`) without executing untrusted code.
+* **`Execute File (<filename>)`**: Safely executes target file inside an isolated shadow copy in `%TEMP%/cherm_shadow`. Your repository files are never locked or modified.
+* **`Speed & Complexity (<filename>)`**: Calculates estimated Big-O time complexity ($O(1)$, $O(N)$, $O(N^2)$, $O(N^k)$), cyclomatic complexity score, and maximum loop nesting depth in real time.
+* **`Scan Functions & Exports (<filename>)`**: Extracts and indexes all declared functions, methods, classes, types, interfaces, and module exports.
+
+#### Menu 2: General File Tools
+* **`Auto-Detect & Test URLs`**: Discovers all HTTP and HTTPS endpoints declared in the file and sends lightweight network probes to verify server responsiveness.
+* **`File Statistics`**: Displays comprehensive file metrics: total lines, physical lines of code (SLOC), blank lines, comment ratio (%), byte size, and vocabulary count.
+* **`View Raw File`**: Opens a scrollable in-terminal file viewer with line numbering, horizontal scrolling, and line jump (`L` key).
+* **`Search in File`**: Performs case-insensitive substring and regex searches within the active file, highlighting line numbers.
+* **`Copy Path to Clipboard`**: Copies the absolute system path of the target file to your operating system clipboard.
+
+#### Menu 3: Advanced Analysis & Security
+* **`Git Command Center`**: Interactive terminal Git runner providing status (`-sb`), commit history (`git log`), branch listing, and diffs.
+* **`Scan for Hardcoded Secrets`**: Shannon entropy and regex signature scanner detecting exposed API keys (AWS, Stripe, GitHub PAT), JWT tokens, and passwords.
+* **`Detect Magic Numbers`**: Scans expressions for unexplained bare numeric literals that should be extracted into named constants.
+* **`Dead Code Detector`**: AST tree inspection identifying functions, variables, and branches that are declared but never invoked across the module.
+* **`Diff Viewer (git / file)`**: Color-coded unified diff viewer comparing the active file against Git HEAD or against another file.
+* **`Security Vulnerability Scan`**: Zero-dependency OWASP static pattern audit checking for SQL Injection, Command Injection (`os.system`, `shell=True`), XSS, Path Traversal, and SSRF.
+* **`Multi-File Batch Checker`**: Executes syntax, secret, and dead code audits simultaneously across all files tagged with `Space` in the file browser.
+* **`FULL PENTEST (Hackproof?)`**: Orchestrates automated penetration testing tools (Bandit for Python AST, Semgrep for polyglot rules, and Safety for vulnerable packages).
+* **`Cherm MCP: Deep AI Audit`**: Full architectural inspection evaluating system design flaws, multi-tap race conditions, and compiling a standalone HTML report.
+
+#### Menu 4: Connected Software Commands
+* **`[Custom Commands]`**: Executes external scripts, custom linters, and developer tools connected via `cherm_commands.json` matching the active file's extension.
+* **`+ Connect New Terminal Command`**: Interactive wizard to register a new external terminal command with template variable placeholders (`{file}`, `{dir}`, `{args}`).
+* **`[?] View Connected Software & Config`**: Displays all registered external software commands, their categories, and active configuration file path.
+* **`[R] Reload Connected Commands`**: Hot-reloads `cherm_commands.json` from disk without restarting Cherm.
+
+---
+
+### Master Keyboard Controls & Shortcuts Cheat Sheet
+
+| Key | Context | Action |
+| :---: | :--- | :--- |
+| `Up` / `Down` (or `k` / `j`) | All screens | Move cursor / selection up or down |
+| `Enter` | File Browser | Open selected file or enter directory |
+| `Enter` | Main Menu | Execute highlighted action command |
+| `Left` / `Backspace` | File Browser | Navigate up to parent directory |
+| `Q` / `q` | Menus & Results | Close results viewer or return to previous menu |
+| `ESC` | All screens | Cancel current action, exit viewer, or exit Cherm |
+| `?` | Global | Open the in-TUI Help Panel & User Manual |
+| `B` | File Browser & Menu | Toggle star bookmark on active file |
+| `M` | File Browser | Jump to Bookmarks menu |
+| `SPACE` | File Browser | Tag / untag file for multi-file batch checking |
+| `/` | File Browser | Search / filter files in active directory |
+| `H` | After Audit | Open generated visual HTML audit report in default browser |
+| `PgUp` / `PgDn` | Results & Viewer | Scroll output one full page |
+| `g` / `Home` | Results & Viewer | Jump to top of output |
+| `G` / `End` | Results & Viewer | Jump to bottom of output |
+| `L` / `l` | Raw File Viewer | Jump directly to a specific line number |
 
 ---
 

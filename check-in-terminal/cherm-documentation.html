@@ -223,6 +223,8 @@
         #p-home:checked ~ .sidebar label[for="p-home"],
         #p-how:checked ~ .sidebar label[for="p-how"],
         #p-quickstart:checked ~ .sidebar label[for="p-quickstart"],
+        #p-download:checked ~ .sidebar label[for="p-download"],
+        #p-tuimanual:checked ~ .sidebar label[for="p-tuimanual"],
         #p-webgui:checked ~ .sidebar label[for="p-webgui"],
         #p-mcp:checked ~ .sidebar label[for="p-mcp"],
         #p-cli:checked ~ .sidebar label[for="p-cli"],
@@ -277,6 +279,8 @@
         #p-home:checked ~ .content #pg-home,
         #p-how:checked ~ .content #pg-how,
         #p-quickstart:checked ~ .content #pg-quickstart,
+        #p-download:checked ~ .content #pg-download,
+        #p-tuimanual:checked ~ .content #pg-tuimanual,
         #p-webgui:checked ~ .content #pg-webgui,
         #p-cli:checked ~ .content #pg-cli,
         #p-ext:checked ~ .content #pg-ext,
@@ -611,10 +615,10 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>About dev</span>
             </a>
-            <a href="http://localhost:3690" target="_blank" rel="noopener noreferrer" class="top-btn" title="Open Localhost GUI">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                <span>Local GUI</span>
-            </a>
+            <label for="p-download" class="top-btn" title="Download Cherm Packages & Tools" style="cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download</span>
+            </label>
             <a href="https://github.com/subhajit-io/Cherm" target="_blank" rel="noopener noreferrer" class="top-btn" title="GitHub Repository">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 <span>GitHub</span>
@@ -631,6 +635,8 @@
     <input type="radio" name="nav" id="p-home" checked>
     <input type="radio" name="nav" id="p-how">
     <input type="radio" name="nav" id="p-quickstart">
+    <input type="radio" name="nav" id="p-download">
+    <input type="radio" name="nav" id="p-tuimanual">
     <input type="radio" name="nav" id="p-webgui">
     <input type="radio" name="nav" id="p-cli">
     <input type="radio" name="nav" id="p-ext">
@@ -670,9 +676,11 @@
         <label for="p-home">What is Cherm?</label>
         <label for="p-how">How It Works</label>
         <label for="p-quickstart">60-Second Quickstart</label>
+        <label for="p-download">📥 Download &amp; Install</label>
 
         <p class="nav-cat">The 3 Modalities &amp; Interfaces</p>
         <label for="p-terminal">Terminal Companion (GUI)</label>
+        <label for="p-tuimanual">📖 TUI Commands User Manual</label>
         <label for="p-webgui">Web GUI (Port 3690)</label>
         <label for="p-cli">Command-Line Engine (CLI)</label>
         <label for="p-mcp">AI FastMCP Server (11 Tools)</label>
@@ -860,6 +868,244 @@
             <p>If you prefer working strictly in your terminal or over SSH:</p>
             <pre><code>python checkinterminal/cherm.py</code></pre>
             <p>Use your arrow keys to navigate files, press <strong>ENTER</strong> to open the action menu, and audit instantly.</p>
+        </div>
+
+        <!-- ================================================================
+             DOWNLOAD & INSTALLATION HUB
+        ================================================================ -->
+        <div id="pg-download" class="page">
+            <h2>Download &amp; Installation</h2>
+            <p class="tagline">Download Cherm for your environment as an instant ZIP, standalone script, or language package.</p>
+
+            <div class="cards-grid" style="margin: 2rem 0;">
+                <div class="card" style="border-top: 3px solid var(--accent);">
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
+                    <div class="card-title">Cherm Complete Bundle (ZIP)</div>
+                    <p class="card-desc">Download full Cherm suite with TUI companion, Web GUI, CLI engine, and MCP server.</p>
+                    <a href="https://github.com/subhajit-io/Cherm/archive/refs/heads/main.zip" class="btn" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download ZIP Archive (.zip)</a>
+                </div>
+
+                <div class="card" style="border-top: 3px solid var(--success);">
+                    <span class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
+                    <div class="card-title">Standalone Script (cherm.py)</div>
+                    <p class="card-desc">Single-file zero-dependency companion script that runs offline with standard Python.</p>
+                    <a href="https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="margin-top: 1rem; display: inline-block; text-decoration: none;" download>Download cherm.py</a>
+                </div>
+            </div>
+
+            <h3>Terminal One-Liners (Install like languages)</h3>
+            <p>Download and run Cherm instantly from your terminal without manual cloning:</p>
+
+            <div class="code-box">
+                <div class="code-label">Linux / macOS / WSL (curl)</div>
+                <pre><code># Download standalone cherm.py and run:
+curl -fsSL -O https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py
+python cherm.py</code></pre>
+            </div>
+
+            <div class="code-box">
+                <div class="code-label">Windows (PowerShell)</div>
+                <pre><code># Download standalone cherm.py in PowerShell:
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/subhajit-io/Cherm/main/check-in-terminal/cherm.py" -OutFile "cherm.py"
+python cherm.py</code></pre>
+            </div>
+
+            <div class="code-box">
+                <div class="code-label">Git Clone (Full Development Suite)</div>
+                <pre><code>git clone https://github.com/subhajit-io/Cherm.git
+cd Cherm/check-in-terminal
+pip install -r requirements_mcp.txt
+python cherm.py</code></pre>
+            </div>
+
+            <h3>Language &amp; Environment Tooling</h3>
+            <p>Cherm performs static AST analysis natively across languages, and can orchestrate external language tools when installed:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Language / Tool</th><th>Install Command</th><th>Cherm Feature Enabled</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Python MCP &amp; ML</strong></td><td><code>pip install -r requirements_mcp.txt</code></td><td>FastMCP AI server, Isolation Forest ML anomaly scoring, Shannon entropy</td></tr>
+                        <tr><td><strong>Node.js &amp; TypeScript</strong></td><td><code>npm install -g typescript eslint</code></td><td><code>tsc --noEmit</code> typecheck, ESLint integration</td></tr>
+                        <tr><td><strong>Python Pentest Suite</strong></td><td><code>pip install bandit semgrep safety</code></td><td>Automated full pentest suite (`python cherm.py pentest`)</td></tr>
+                        <tr><td><strong>Go</strong></td><td><code>go install</code> (Go toolchain)</td><td><code>go vet</code> and Go syntax inspection</td></tr>
+                        <tr><td><strong>Rust</strong></td><td><code>rustup</code> (Rust toolchain)</td><td><code>rustc</code> and <code>cargo check</code> compiler validation</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             TUI COMMANDS USER MANUAL
+        ================================================================ -->
+        <div id="pg-tuimanual" class="page">
+            <h2>📖 Terminal Companion (TUI) User Manual &amp; In-App Commands</h2>
+            <p class="tagline">The complete operational guide for using Cherm inside your terminal with keyboard navigation.</p>
+
+            <p>Cherm's Terminal Companion (TUI) is an interactive, curses-based environment designed to run offline on any terminal or remote SSH session with zero UI lag and shadow-copy safety.</p>
+
+            <div class="code-box">
+                <div class="code-label">How to Launch the TUI</div>
+                <pre><code># 1. Open the interactive file browser (Default):
+python cherm.py
+
+# 2. Open via the gui subcommand:
+python cherm.py gui
+
+# 3. Launch directly targeted at a file:
+python cherm.py gui src/auth.py</code></pre>
+            </div>
+
+            <h3>1. The Three TUI Screen Modes</h3>
+            <div class="step-container">
+                <div class="step-row">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <h4>Screen 1: Interactive File Browser</h4>
+                        <p>Browse your repository directories with arrow keys. Displays file sizes, types, and live clock. Press <code>/</code> to filter files, <code>Space</code> to tag multiple files for batch audits, and <code>B</code> to star bookmarks.</p>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <h4>Screen 2: Main Action &amp; Feature Menu</h4>
+                        <p>When you select a file (or tag files), Cherm presents categorized action menus: Language Tools, General File Tools, Advanced Security, and Connected Software Commands.</p>
+                    </div>
+                </div>
+                <div class="step-row">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <h4>Screen 3: Results &amp; Analysis Viewer</h4>
+                        <p>Scrollable inspection view with color-coded alerts (Green PASS, Yellow WARN, Red FAIL/CRITICAL). Supports page-scrolling, jumping to top/bottom, and line searching.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>2. Complete In-TUI Commands Reference</h3>
+            <p>Here is every menu command available inside the TUI companion and what it does:</p>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-accent">Menu 1: Language / Execution Tools</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>Check Syntax (&lt;filename&gt;)</code></h4>
+                    <p class="flaw-text">Validates code syntax and parses bytecode (e.g. <code>python -m py_compile</code>, <code>node --check</code>) without executing untrusted code.</p>
+
+                    <h4><code>Execute File (&lt;filename&gt;)</code></h4>
+                    <p class="flaw-text">Runs the target file inside an isolated shadow copy in <code>%TEMP%/cherm_shadow</code>. Your working copy is never locked or modified.</p>
+
+                    <h4><code>Speed &amp; Complexity (&lt;filename&gt;)</code></h4>
+                    <p class="flaw-text">Calculates estimated Big-O time complexity ($O(1)$, $O(N)$, $O(N^2)$, $O(N^k)$), cyclomatic complexity score, and maximum loop nesting depth in real-time.</p>
+
+                    <h4><code>Scan Functions &amp; Exports (&lt;filename&gt;)</code></h4>
+                    <p class="flaw-text">Extracts and indexes all declared functions, methods, classes, types, interfaces, and module exports.</p>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-accent">Menu 2: General File Tools</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>Auto-Detect &amp; Test URLs</code></h4>
+                    <p class="flaw-text">Discovers all HTTP and HTTPS endpoints declared in the file and sends lightweight network probes to verify server responsiveness and HTTP status codes.</p>
+
+                    <h4><code>File Statistics</code></h4>
+                    <p class="flaw-text">Displays comprehensive file metrics: total lines, physical lines of code (SLOC), blank lines, comment ratio (%), byte size, and vocabulary count.</p>
+
+                    <h4><code>View Raw File</code></h4>
+                    <p class="flaw-text">Opens a scrollable in-terminal file viewer with line numbering, horizontal scrolling, and line jump (<code>L</code> key).</p>
+
+                    <h4><code>Search in File</code></h4>
+                    <p class="flaw-text">Performs case-insensitive substring and regex searches within the active file, highlighting line numbers.</p>
+
+                    <h4><code>Copy Path to Clipboard</code></h4>
+                    <p class="flaw-text">Copies the absolute system path of the target file to your operating system clipboard.</p>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">Menu 3: Advanced Analysis &amp; Security</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>Git Command Center</code></h4>
+                    <p class="flaw-text">Interactive terminal Git runner providing status (<code>-sb</code>), commit history (<code>git log</code>), branch listing, and diffs.</p>
+
+                    <h4><code>Scan for Hardcoded Secrets</code></h4>
+                    <p class="flaw-text">Shannon entropy and regex signature scanner detecting exposed API keys (AWS, Stripe, GitHub PAT), JWT tokens, and passwords.</p>
+
+                    <h4><code>Detect Magic Numbers</code></h4>
+                    <p class="flaw-text">Scans expressions for unexplained bare numeric literals that should be extracted into named constants.</p>
+
+                    <h4><code>Dead Code Detector</code></h4>
+                    <p class="flaw-text">AST tree inspection identifying functions, variables, and branches that are declared but never invoked across the module.</p>
+
+                    <h4><code>Diff Viewer (git / file)</code></h4>
+                    <p class="flaw-text">Color-coded unified diff viewer comparing the active file against Git HEAD or against another file.</p>
+
+                    <h4><code>Security Vulnerability Scan</code></h4>
+                    <p class="flaw-text">Zero-dependency OWASP static pattern audit checking for SQL Injection, Command Injection (<code>os.system</code>, <code>shell=True</code>), XSS, Path Traversal, and SSRF.</p>
+
+                    <h4><code>Multi-File Batch Checker</code></h4>
+                    <p class="flaw-text">Executes syntax, secret, and dead code audits simultaneously across all files tagged with <code>Space</code> in the file browser.</p>
+
+                    <h4><code>FULL PENTEST (Hackproof?)</code></h4>
+                    <p class="flaw-text">Orchestrates automated penetration testing tools (Bandit for Python AST, Semgrep for polyglot rules, and Safety for vulnerable packages).</p>
+
+                    <h4><code>Cherm MCP: Deep AI Audit</code></h4>
+                    <p class="flaw-text">Full architectural inspection evaluating system design flaws, multi-tap race conditions, and compiling a standalone HTML report.</p>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-warning">Menu 4: Connected Software Commands</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>[Custom Commands]</code></h4>
+                    <p class="flaw-text">Executes external scripts, custom linters, and developer tools connected via <code>cherm_commands.json</code> that match the active file's extension.</p>
+
+                    <h4><code>+ Connect New Terminal Command</code></h4>
+                    <p class="flaw-text">Interactive wizard to register a new external terminal command with template variable placeholders (<code>{file}</code>, <code>{dir}</code>, <code>{args}</code>).</p>
+
+                    <h4><code>[?] View Connected Software &amp; Config</code></h4>
+                    <p class="flaw-text">Displays all registered external software commands, their categories, and active configuration file path.</p>
+
+                    <h4><code>[R] Reload Connected Commands</code></h4>
+                    <p class="flaw-text">Hot-reloads <code>cherm_commands.json</code> from disk without restarting Cherm.</p>
+                </div>
+            </div>
+
+            <h3>3. Master Keyboard Controls &amp; Shortcuts Cheat Sheet</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Key</th><th>Context</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>Up</code> / <code>Down</code> (or <code>k</code> / <code>j</code>)</td><td>All screens</td><td>Move cursor / selection up or down</td></tr>
+                        <tr><td><code>Enter</code></td><td>File Browser</td><td>Open selected file or enter folder</td></tr>
+                        <tr><td><code>Enter</code></td><td>Main Menu</td><td>Execute highlighted action command</td></tr>
+                        <tr><td><code>Left</code> / <code>Backspace</code></td><td>File Browser</td><td>Navigate up to parent directory</td></tr>
+                        <tr><td><code>Q</code> / <code>q</code></td><td>Menus &amp; Results</td><td>Close results viewer or go back to previous menu</td></tr>
+                        <tr><td><code>ESC</code></td><td>All screens</td><td>Cancel current action, exit viewer, or exit Cherm</td></tr>
+                        <tr><td><code>?</code></td><td>Global</td><td>Open the in-TUI Help Panel &amp; User Manual</td></tr>
+                        <tr><td><code>B</code></td><td>File Browser &amp; Menu</td><td>Toggle star bookmark on active file</td></tr>
+                        <tr><td><code>M</code></td><td>File Browser</td><td>Jump to Bookmarks menu</td></tr>
+                        <tr><td><code>SPACE</code></td><td>File Browser</td><td>Tag / untag file for multi-file batch checking</td></tr>
+                        <tr><td><code>/</code></td><td>File Browser</td><td>Search / filter files in active directory</td></tr>
+                        <tr><td><code>H</code></td><td>After Audit</td><td>Open generated visual HTML audit report in default browser</td></tr>
+                        <tr><td><code>PgUp</code> / <code>PgDn</code></td><td>Results &amp; Viewer</td><td>Scroll output one full page</td></tr>
+                        <tr><td><code>g</code> / <code>Home</code></td><td>Results &amp; Viewer</td><td>Jump to top of output</td></tr>
+                        <tr><td><code>G</code> / <code>End</code></td><td>Results &amp; Viewer</td><td>Jump to bottom of output</td></tr>
+                        <tr><td><code>L</code> / <code>l</code></td><td>Raw File Viewer</td><td>Jump directly to a specific line number</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- ================================================================
