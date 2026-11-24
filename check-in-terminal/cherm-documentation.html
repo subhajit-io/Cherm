@@ -16,8 +16,8 @@
             --accent-hover: #0369a1;
             --accent-light: #e0f2fe;
             --card-bg: #ffffff;
-            --code-bg: #0f172a;
-            --code-text: #e2e8f0;
+            --code-bg: #f8fafc;
+            --code-text: #0f172a;
             --tag-bg: #f1f5f9;
             --tag-text: #475569;
             --danger: #ef4444;
@@ -508,23 +508,56 @@
         code {
             background: var(--tag-bg);
             color: var(--accent);
-            padding: 0.2rem 0.4rem;
+            padding: 0.15rem 0.35rem;
             border-radius: 4px;
-            font-family: monospace;
+            font-family: Consolas, Monaco, "Courier New", monospace;
             font-size: 0.9em;
         }
 
         pre {
-            background: var(--code-bg);
-            color: var(--code-text);
+            background: var(--surface);
+            color: var(--text-main);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.2rem 1.4rem;
+            border-radius: 6px;
+            padding: 0.8rem 1.2rem;
             overflow-x: auto;
             font-family: Consolas, Monaco, "Courier New", monospace;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             line-height: 1.6;
-            margin: 1rem 0 1.6rem;
+            margin: 0.8rem 0 1.2rem;
+        }
+
+        pre code {
+            background: transparent !important;
+            color: inherit !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .code-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .code-box pre {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .code-box .code-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            margin-bottom: 0.35rem;
         }
 
         /* Flaw Card */
@@ -1318,10 +1351,7 @@ cherm web --port 3690 --no-browser</code></pre>
             </div>
 
             <h3>Machine-Readable JSON Output</h3>
-            <p>Append <code>--json</code> to any command to receive machine-parsable JSON output suitable for CI/CD pipelines:</p>
-            <pre><code>cherm sec src/auth.py --json
-cherm check ./src --json
-cherm audit ./src --json</code></pre>
+            <p>Append <code>--json</code> to any command (such as <code>cherm sec src/auth.py --json</code>, <code>cherm check ./src --json</code>, or <code>cherm audit ./src --json</code>) to receive structured, machine-parsable JSON output suitable for CI/CD pipelines.</p>
 
             <h3>Command-by-Command Deep Dive</h3>
 
