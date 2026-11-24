@@ -20,10 +20,14 @@
 
 > **A high-speed, local code analysis & system design inspection suite built for developers and AI agents alike — catching architectural flaws, race conditions, IDOR, and code smells before code is ever committed.**
 
-Cherm operates in three seamless modalities:
-1. **Interactive TUI**: Classic curses-based terminal companion with reactive ASCII avatar, AST fuzzer, and security suite.
-2. **MCP Server**: Zero-token FastMCP bridge enabling Claude Desktop, Cursor, Antigravity, and Gemini to execute deep deterministic audits on your code.
-3. **Localhost Web GUI**: Clean, distraction-free drag & drop code auditor running on **`http://localhost:3690`** for instant file inspection and findings.
+Cherm operates across three flexible modalities:
+1. **GUI (Terminal Companion)**: Classic curses-based terminal companion (`cherm gui`) with reactive ASCII avatar, AST fuzzer, and security suite.
+2. **Web (Localhost Dashboard)**: Clean, distraction-free browser dashboard (`cherm web`) running on **`http://localhost:3690`** for visual drag & drop code & folder audits.
+3. **Commands (Structured CLI Engine)**: Dedicated native CLI commands for CI/CD and terminal workflows:
+   * **`check`**: Fast deterministic syntax, OWASP vulnerability, secrets, and dead code checks.
+   * **`audit`**: Deep architecture, concurrency TOCTOU, and IDOR analysis with optional HTML report generation.
+   * **`mcp`**: Zero-token FastMCP bridge for Claude Desktop, Cursor, Antigravity, and Gemini.
+   * **`ext`**: Isolated extension engine for running and registering custom CLI tools and external scripts.
 
 ---
 
@@ -132,42 +136,127 @@ flowchart TD
 
 ---
 
-## ⚡ Quick Start & CLI Usage
+## ⚡ Three Primary Modalities & Quick Start
 
-### Launch Interactive Terminal TUI
+### 1. GUI Mode (Terminal Companion)
+Launch the interactive full-terminal companion:
 ```bash
 # Open interactive file picker
-python cherm.py
+python cherm.py gui
 
-# Or launch targeted directly at a file
-python cherm.py src/auth.py
+# Or launch directly targeted at a file
+python cherm.py gui src/auth.py
 ```
-> *Note: The distracting mini-game has been cleanly removed to ensure fast, continuous, uninterrupted testing.*
 
 ---
 
-### Launch Localhost Web GUI
+### 2. Web Mode (Localhost Browser Dashboard)
 Launch the browser dashboard on port **`3690`** (`http://localhost:3690`):
 ```bash
 # Starts server and automatically opens your default browser
-python cherm.py --gui
+python cherm.py web
 
-# Or run directly on a custom port
-python cherm.py --gui --port 8080
+# Or specify a custom port
+python cherm.py web --port 8080
 ```
-*Or select `[*] Launch Web GUI (localhost:3690)` directly from the TUI main menu!*
 
 ---
 
-### Launch Model Context Protocol (MCP) Server
-Enable AI assistants (Claude, Cursor, Antigravity) to query Cherm's static analyzer:
+### 3. Commands Mode (CLI Engine)
+
+Cherm provides cleanly namespaced commands for deterministic checks, system design audits, and external software extensions:
+
+#### A. Deterministic Code Checks (`check`)
+Fast static checks without IDE overhead or curses UI:
+```bash
+# Run all checks (syntax, security, secrets, dead code) on a file or folder
+python cherm.py check src/auth.py
+python cherm.py check ./src
+
+# Target specific checks
+python cherm.py check src/auth.py --syntax      # Syntax compilation check only
+python cherm.py check src/auth.py --security    # OWASP pattern scanner only
+python cherm.py check src/auth.py --secrets     # Shannon entropy secrets scan only
+python cherm.py check src/auth.py --deadcode    # Python AST dead code detector only
+
+# Output machine-readable JSON for CI/CD
+python cherm.py check src/auth.py --json
+```
+
+#### B. Deep Architecture & System Design Audit (`audit`)
+Deep multi-file analysis testing for TOCTOU race hazards, IDOR/BOLA object leaks, and connection pool exhaustion:
+```bash
+# Audit an entire repository folder or single file
+python cherm.py audit ./src
+
+# Generate standalone visual HTML report (cherm_audit_report.html)
+python cherm.py audit ./src --report
+
+# Output structured JSON
+python cherm.py audit ./src --json
+```
+
+#### C. Model Context Protocol Bridge (`mcp`)
+Start Cherm as an MCP server for AI assistants:
 ```bash
 # Standard stdio mode (for Claude Desktop, Cursor, Antigravity)
-python cherm.py --mcp
+python cherm.py mcp
 
-# Or SSE mode for remote/web access
-python cherm.py --mcp --sse --port 8000
+# SSE mode for web/network integration
+python cherm.py mcp --sse --port 8000
 ```
+
+#### D. Connected Software & Extension Engine (`ext`)
+Isolated container for registering and executing custom CLI tools and external scripts:
+```bash
+# List all registered external commands
+python cherm.py ext list
+
+# Execute a connected command
+python cherm.py ext run file_details_cli src/main.py
+
+# Register a new external CLI tool
+python cherm.py ext add my_linter "Custom Linter" "eslint {file}" ".js,.ts" "Linters"
+
+# Direct alias execution (runs any registered command ID directly)
+python cherm.py my_linter src/main.py
+```
+
+#### E. Dedicated Feature CLI Commands
+Every individual inspection feature in Cherm is also available as a standalone first-class terminal command:
+
+| Category | Command | Description |
+| :--- | :--- | :--- |
+| **Quality** | `python cherm.py syntax <file>` | Validate syntax & compilation without execution |
+| **Quality** | `python cherm.py complexity <file>` | Calculate Big-O time & space, cyclomatic complexity & nesting |
+| **Quality** | `python cherm.py deadcode <file>` | AST detection of uncalled functions & unused variables |
+| **Quality** | `python cherm.py magic <file>` | Scan for bare numeric literals / unexplained magic numbers |
+| **Quality** | `python cherm.py stats <file>` | Line count, code vs comments vs blank ratio, size, words |
+| **Quality** | `python cherm.py scan <file>` | Extract & index all defined functions, classes, exports & types |
+| **Quality** | `python cherm.py fuzz <file>` | CrossCheckV200 dynamic mock injection & input boundary fuzzer |
+| **Security** | `python cherm.py sec <target>` | OWASP static vulnerability detector (SQLi, XSS, Command Injection) |
+| **Security** | `python cherm.py secrets <target>` | Shannon entropy & pattern scanner for API keys, passwords & tokens |
+| **Security** | `python cherm.py pentest <target>` | Security orchestration with Bandit, Semgrep, and Safety |
+| **Security** | `python cherm.py crypto <file>` | SHA-256 integrity check, timing attacks, unsalted password hashes |
+| **Architecture** | `python cherm.py design <target>` | Audit for BOLA/IDOR, pool exhaustion, missing rollback, CORS |
+| **Architecture** | `python cherm.py race <file>` | Concurrency multi-tap & TOCTOU double-spend hazard detector |
+| **Architecture** | `python cherm.py ml <file>` | Machine learning AST structural anomaly scoring & Halstead metrics |
+| **Utilities** | `python cherm.py urls <target>` | Discover HTTP/API endpoints and verify responsiveness |
+| **Utilities** | `python cherm.py diff <f1> [f2]` | Unified terminal diff viewer against Git HEAD or baseline file |
+| **Utilities** | `python cherm.py git [args]` | Terminal Git command center |
+| **Utilities** | `python cherm.py report <target>` | Generate visual standalone HTML audit report dashboard (`--open`) |
+
+#### Template Placeholders Supported in Commands:
+* `{file}`: Full absolute path to target file
+* `{filename}`: File name with extension (e.g. `auth.ts`)
+* `{basename}`: File name without extension (e.g. `auth`)
+* `{ext}`: Extension (e.g. `.ts`)
+* `{dir}`: Directory containing the target file
+* `{cwd}`: Current working directory / project root
+* `{python}`: Current Python interpreter executable path
+* `{args}`: Additional arguments passed to the command
+
+*Configuration is stored in `cherm_commands.json` (or `.cherm/commands.json`) and editable directly or via TUI and Web GUI!*
 
 ---
 
@@ -201,7 +290,7 @@ Add Cherm to your AI assistant's configuration file:
 
 ---
 
-## 🛠️ The 8 Cherm MCP Tools
+## 🛠️ The 11 Cherm MCP Tools
 
 | Tool Name | Scope & Detection Capabilities |
 | :--- | :--- |
@@ -213,6 +302,9 @@ Add Cherm to your AI assistant's configuration file:
 | **`audit_sha256_cryptographic_integrity`** | Cryptographic checks: weak hashing algorithms (MD5/SHA1), ECB block cipher modes, hardcoded IVs/salts, and timing side-channel leaks. |
 | **`audit_ml_defects`** | Machine learning metrics: Halstead software complexity, AST structural anomaly detection via Isolation Forest, and Shannon Entropy secret scanning. |
 | **`generate_html_audit_report`** | Generates a clean, professional, visual HTML report saved at `cherm_audit_report.html`. |
+| **`list_connected_software_commands`** | Lists all custom developer terminal commands and external software connected to Cherm via `cherm_commands.json`. |
+| **`run_connected_software_command`** | Executes an external software CLI command or custom developer script, returning stdout, stderr, exit code, and runtime duration. |
+| **`register_software_command`** | Programmatically registers a new external software terminal command into Cherm's command hub. |
 
 ---
 

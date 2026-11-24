@@ -225,6 +225,8 @@
         #p-quickstart:checked ~ .sidebar label[for="p-quickstart"],
         #p-webgui:checked ~ .sidebar label[for="p-webgui"],
         #p-mcp:checked ~ .sidebar label[for="p-mcp"],
+        #p-cli:checked ~ .sidebar label[for="p-cli"],
+        #p-ext:checked ~ .sidebar label[for="p-ext"],
         #p-terminal:checked ~ .sidebar label[for="p-terminal"],
         #p-concurrency:checked ~ .sidebar label[for="p-concurrency"],
         #p-sysdesign:checked ~ .sidebar label[for="p-sysdesign"],
@@ -276,6 +278,8 @@
         #p-how:checked ~ .content #pg-how,
         #p-quickstart:checked ~ .content #pg-quickstart,
         #p-webgui:checked ~ .content #pg-webgui,
+        #p-cli:checked ~ .content #pg-cli,
+        #p-ext:checked ~ .content #pg-ext,
         #p-mcp:checked ~ .content #pg-mcp,
         #p-terminal:checked ~ .content #pg-terminal,
         #p-concurrency:checked ~ .content #pg-concurrency,
@@ -628,6 +632,8 @@
     <input type="radio" name="nav" id="p-how">
     <input type="radio" name="nav" id="p-quickstart">
     <input type="radio" name="nav" id="p-webgui">
+    <input type="radio" name="nav" id="p-cli">
+    <input type="radio" name="nav" id="p-ext">
     <input type="radio" name="nav" id="p-mcp">
     <input type="radio" name="nav" id="p-terminal">
     <input type="radio" name="nav" id="p-concurrency">
@@ -665,10 +671,12 @@
         <label for="p-how">How It Works</label>
         <label for="p-quickstart">60-Second Quickstart</label>
 
-        <p class="nav-cat">The 3 Modalities</p>
+        <p class="nav-cat">The 3 Modalities &amp; Interfaces</p>
+        <label for="p-terminal">Terminal Companion (GUI)</label>
         <label for="p-webgui">Web GUI (Port 3690)</label>
-        <label for="p-mcp">AI FastMCP Server</label>
-        <label for="p-terminal">Terminal Companion (TUI)</label>
+        <label for="p-cli">Command-Line Engine (CLI)</label>
+        <label for="p-mcp">AI FastMCP Server (11 Tools)</label>
+        <label for="p-ext">Connected Software Engine</label>
 
         <p class="nav-cat">What Cherm Detects</p>
         <label for="p-concurrency">Concurrency &amp; Multi-Tap</label>
@@ -737,31 +745,35 @@
                 </div>
             </div>
 
-            <h3>The 3 Ways to Use Cherm</h3>
+            <h3>The 3 Core Modalities of Cherm</h3>
             <p>Cherm adapts to your preferred developer workflow without forcing you into a single interface:</p>
 
             <div class="step-container">
                 <div class="step-row">
                     <div class="step-num">1</div>
                     <div class="step-body">
-                        <h4>Localhost Web GUI (Port 3690)</h4>
-                        <p>Drag &amp; drop a single file, code snippet, or an <strong>entire project folder</strong> (up to 500 files). Explore the interactive file tree, preview source code, and run a 1-click full audit with Health Grades (Grade A to F).</p>
+                        <h4>Interactive Terminal Companion (GUI / TUI)</h4>
+                        <p>Runs offline in any terminal window or SSH session using <code>curses</code> via <code>python cherm.py gui</code>. Provides keyboard-driven file navigation, an AST fuzzer, interactive security tools, and shadow copy isolation so target files are never modified.</p>
                     </div>
                 </div>
                 <div class="step-row">
                     <div class="step-num">2</div>
                     <div class="step-body">
-                        <h4>AI Model Context Protocol (MCP) Server</h4>
-                        <p>Plugs directly into <strong>Claude Desktop, Cursor, Antigravity, and Gemini</strong>. When an AI agent generates code, it can call Cherm's deterministic local tools to audit the code before writing to disk.</p>
+                        <h4>Localhost Web Dashboard (Port 3690)</h4>
+                        <p>Visual drag &amp; drop code &amp; whole-directory auditor running locally at <code>http://localhost:3690</code> via <code>python cherm.py web</code>. Explore the interactive file tree, preview source code, and run 1-click full audits with Health Grades (Grade A to F).</p>
                     </div>
                 </div>
                 <div class="step-row">
                     <div class="step-num">3</div>
                     <div class="step-body">
-                        <h4>Interactive Terminal Companion (TUI)</h4>
-                        <p>Runs offline in any terminal window or SSH session using <code>curses</code>. Provides keyboard-driven file navigation, an AST fuzzer, and shadow copy isolation so target files are never modified.</p>
+                        <h4>Command-Line Interface (CLI Engine)</h4>
+                        <p>Dedicated first-class terminal commands for every feature (<code>syntax</code>, <code>complexity</code>, <code>deadcode</code>, <code>sec</code>, <code>secrets</code>, <code>race</code>, <code>design</code>, <code>crypto</code>, <code>ml</code>, <code>check</code>, <code>audit</code>) plus the <code>ext</code> connected software engine for external CLI tools.</p>
                     </div>
                 </div>
+            </div>
+
+            <div class="alert" style="margin-top: 1.5rem;">
+                <strong>AI FastMCP Server (11 Tools):</strong> Cherm also runs as a zero-token FastMCP bridge (<code>python cherm.py mcp</code>) for Claude Desktop, Cursor, Antigravity, and Gemini to audit code before writing to disk.
             </div>
 
             <div style="margin-top: 2rem;">
@@ -894,6 +906,145 @@ python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
         </div>
 
         <!-- ================================================================
+             CLI ENGINE (COMMANDS MODE)
+        ================================================================ -->
+        <div id="pg-cli" class="page">
+            <h2>Command-Line Interface (CLI) Engine</h2>
+            <p class="tagline">Dedicated first-class terminal commands for code quality, complexity, security, and architecture audits.</p>
+
+            <p>Every single capability inside Cherm's GUI is available as an independent, deterministic terminal command for CI/CD pipelines, pre-commit hooks, and terminal workflows.</p>
+
+            <div class="code-box">
+                <div class="code-label">General Usage</div>
+                <pre><code>python cherm.py &lt;command&gt; [target] [options]</code></pre>
+            </div>
+
+            <h3>Code Quality &amp; Complexity Commands</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Command</th><th>Target</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>python cherm.py syntax &lt;file&gt;</code></td><td>File or folder</td><td>AST and bytecode compilation validity without code execution.</td></tr>
+                        <tr><td><code>python cherm.py complexity &lt;file&gt;</code></td><td>File or folder</td><td>Big-O time &amp; space estimation, cyclomatic complexity score, nesting depth.</td></tr>
+                        <tr><td><code>python cherm.py deadcode &lt;file&gt;</code></td><td>File or folder</td><td>Detects uncalled functions, unused variables, and unreachable logic branches.</td></tr>
+                        <tr><td><code>python cherm.py magic &lt;file&gt;</code></td><td>File or folder</td><td>Flags bare numeric literals and unassigned magic constants.</td></tr>
+                        <tr><td><code>python cherm.py stats &lt;file&gt;</code></td><td>File or folder</td><td>File metrics: code lines, blank lines, comments percentage, word count.</td></tr>
+                        <tr><td><code>python cherm.py scan &lt;file&gt;</code></td><td>File or folder</td><td>Indexes and lists all declared functions, classes, exports, and types.</td></tr>
+                        <tr><td><code>python cherm.py fuzz &lt;file&gt;</code></td><td>Python file</td><td>CrossCheckV200 dynamic mock injection and boundary input fuzzer.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Security &amp; Penetration Testing Commands</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Command</th><th>Target</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>python cherm.py sec &lt;target&gt;</code></td><td>File or folder</td><td>OWASP static vulnerability scan: SQL Injection, Command Injection, XSS, SSRF, Path Traversal.</td></tr>
+                        <tr><td><code>python cherm.py secrets &lt;target&gt;</code></td><td>File or folder</td><td>Shannon entropy detector for hardcoded API keys, JWT tokens, AWS credentials, and private keys.</td></tr>
+                        <tr><td><code>python cherm.py pentest &lt;target&gt;</code></td><td>File or folder</td><td>Automated security orchestration executing Bandit, Semgrep, and Safety.</td></tr>
+                        <tr><td><code>python cherm.py crypto &lt;file&gt;</code></td><td>File</td><td>Cryptographic audit: SHA-256 checksum, timing attack detection, weak hashing, and unsalted passwords.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Architecture &amp; System Design Commands</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Command</th><th>Target</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>python cherm.py design &lt;target&gt;</code></td><td>File or folder</td><td>System design flaws: BOLA/IDOR, database connection pool exhaustion, missing rollback, CORS wildcards.</td></tr>
+                        <tr><td><code>python cherm.py race &lt;file&gt;</code></td><td>File</td><td>Concurrency multi-tap fuzzer simulating burst clicks to detect TOCTOU race conditions and double-spending.</td></tr>
+                        <tr><td><code>python cherm.py ml &lt;file&gt;</code></td><td>File</td><td>Machine learning AST anomaly detection using Isolation Forest and Halstead volume metrics.</td></tr>
+                        <tr><td><code>python cherm.py check &lt;target&gt;</code></td><td>File or folder</td><td>All-in-one deterministic check across syntax, security, secrets, and deadcode.</td></tr>
+                        <tr><td><code>python cherm.py audit &lt;target&gt;</code></td><td>File or folder</td><td>Deep architectural audit with health grade and optional HTML visual report (<code>--report</code>).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Utility Commands</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Command</th><th>Target</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>python cherm.py urls &lt;target&gt;</code></td><td>File or folder</td><td>Discovers HTTP and API endpoints in source files and checks network connectivity.</td></tr>
+                        <tr><td><code>python cherm.py diff &lt;f1&gt; [f2]</code></td><td>Files</td><td>Terminal unified diff viewer comparing a file against Git HEAD or a secondary file.</td></tr>
+                        <tr><td><code>python cherm.py git [args]</code></td><td>Workspace</td><td>Interactive terminal Git command runner (status, log, diff, commit).</td></tr>
+                        <tr><td><code>python cherm.py report &lt;target&gt;</code></td><td>File or folder</td><td>Compiles comprehensive standalone visual HTML dashboard report (<code>--open</code> to launch in browser).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Machine-Readable JSON Output</h3>
+            <p>Append <code>--json</code> to any command to receive machine-parsable JSON output suitable for CI/CD pipelines:</p>
+            <pre><code>python cherm.py sec src/auth.py --json
+python cherm.py check ./src --json
+python cherm.py audit ./src --json</code></pre>
+        </div>
+
+        <!-- ================================================================
+             CONNECTED SOFTWARE & EXTENSION ENGINE
+        ================================================================ -->
+        <div id="pg-ext" class="page">
+            <h2>Connected Software &amp; Extension Engine</h2>
+            <p class="tagline">Connect and execute your own external CLI commands, tools, and linters seamlessly through Cherm.</p>
+
+            <p>Cherm includes a dedicated extension bridge that lets you bind external binaries, scripts, and software commands without modifying Cherm's core codebase. Commands are stored in a clean configuration file (<code>cherm_commands.json</code>) and can be executed via the CLI, the curses TUI, the Web Dashboard, or AI FastMCP tools.</p>
+
+            <h3>Extension Commands</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Command</th><th>Purpose</th><th>Example</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>python cherm.py ext list</code></td><td>List all registered software commands</td><td><code>python cherm.py ext list</code></td></tr>
+                        <tr><td><code>python cherm.py ext add</code></td><td>Register a new CLI command</td><td><code>python cherm.py ext add my_linter "ESLint" "eslint {file}" ".js,.ts" "Linters"</code></td></tr>
+                        <tr><td><code>python cherm.py ext remove</code></td><td>Unregister a command by its ID</td><td><code>python cherm.py ext remove my_linter</code></td></tr>
+                        <tr><td><code>python cherm.py ext run</code></td><td>Execute a command with target file and arguments</td><td><code>python cherm.py ext run my_linter src/app.js</code></td></tr>
+                        <tr><td><code>python cherm.py &lt;custom_id&gt;</code></td><td>Direct execution alias for any registered command</td><td><code>python cherm.py my_linter src/app.js</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Template Variable Placeholders</h3>
+            <p>Command templates support automatic variable interpolation:</p>
+            <ul>
+                <li><code>{file}</code>: Full absolute path to target file (e.g. <code>C:\project\src\auth.py</code>)</li>
+                <li><code>{filename}</code>: Base file name with extension (e.g. <code>auth.py</code>)</li>
+                <li><code>{basename}</code>: Base file name without extension (e.g. <code>auth</code>)</li>
+                <li><code>{ext}</code>: Target file extension including dot (e.g. <code>.py</code>)</li>
+                <li><code>{dir}</code>: Parent directory of the target file</li>
+                <li><code>{cwd}</code>: Current working directory / workspace root</li>
+                <li><code>{python}</code>: Path to the active Python executable</li>
+                <li><code>{args}</code>: Extra command-line arguments passed after the target</li>
+            </ul>
+
+            <h3>Configuration Schema (<code>cherm_commands.json</code>)</h3>
+            <pre><code>{
+  "commands": [
+    {
+      "id": "my_scanner",
+      "name": "Custom Vulnerability Scanner",
+      "cmd": "python -m scanner {file} --output json",
+      "description": "Runs external security scan on the selected file",
+      "extensions": [".py", ".js", ".ts"],
+      "category": "Security",
+      "mode": "interactive"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <!-- ================================================================
              5. AI FASTMCP SERVER
         ================================================================ -->
         <div id="pg-mcp" class="page">
@@ -902,14 +1053,38 @@ python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
 
             <p>LLMs are notoriously prone to generating subtle concurrency race conditions, unpooled database connections, and event loop bottlenecks. While an LLM might generate code that *looks* right, Cherm gives your AI assistant deterministic local tools to test its own code before showing it to you.</p>
 
-            <h3>Available MCP Tools</h3>
-            <ul>
-                <li><code>run_folder_audit(directory_path, files_data)</code>: Audits an entire project (up to 500 files), returning health grade and prioritized action items.</li>
-                <li><code>stress_test_multitap_vulnerability(file_path, code_content)</code>: Simulates 50 rapid parallel clicks on sensitive operations to detect missing debounce or DB locking.</li>
-                <li><code>audit_system_design_flaws(file_path, code_content)</code>: Scans for IDOR, unpooled connections, unbounded pagination, and CORS issues.</li>
-                <li><code>explain_code_issues(file_path, code_content)</code>: AST code smell reviewer with production impact and exact fix recipes.</li>
-                <li><code>run_ml_audit(code_content)</code>: Shannon entropy secret detector and Halstead software science complexity metrics.</li>
-            </ul>
+            <h3>The 11 FastMCP Tools</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Tool Name</th><th>Scope &amp; Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>run_folder_audit</code></td><td>Full project &amp; directory pipeline: scans entire directories (up to 500 files), calculating project health grade, per-file issue breakdown, and comprehensive HTML report.</td></tr>
+                        <tr><td><code>run_all_in_one_check</code></td><td>Full single-file audit pipeline: checks system design flaws, race conditions, AST code smells, ML defect risk score, and generates standalone HTML report.</td></tr>
+                        <tr><td><code>audit_system_design_flaws</code></td><td>Architectural vulnerabilities: BOLA/IDOR object exposure, database connection pool exhaustion, missing transaction rollbacks, CORS wildcards, and unhandled network timeouts.</td></tr>
+                        <tr><td><code>explain_code_issues</code></td><td>AST anti-patterns: mutable default arguments (state leakage), bare <code>except:</code> clauses swallowing SIGTERM, and silent error suppression with exact fix recipes.</td></tr>
+                        <tr><td><code>stress_test_multitap_vulnerability</code></td><td>Concurrency simulation: checks for Check-Then-Act (TOCTOU) race conditions, double-spend vulnerabilities, and missing row-level locking (<code>SELECT ... FOR UPDATE</code>).</td></tr>
+                        <tr><td><code>audit_sha256_cryptographic_integrity</code></td><td>Cryptographic checks: weak hashing algorithms (MD5/SHA1), ECB block cipher modes, hardcoded IVs/salts, and timing side-channel leaks.</td></tr>
+                        <tr><td><code>audit_ml_defects</code></td><td>Machine learning metrics: Halstead software complexity, AST structural anomaly detection via Isolation Forest, and Shannon Entropy secret scanning.</td></tr>
+                        <tr><td><code>generate_html_audit_report</code></td><td>Generates a clean, professional, visual HTML report saved at <code>cherm_audit_report.html</code>.</td></tr>
+                        <tr><td><code>list_connected_software_commands</code></td><td>Lists all custom developer terminal commands and external software connected to Cherm via <code>cherm_commands.json</code>.</td></tr>
+                        <tr><td><code>run_connected_software_command</code></td><td>Executes an external software CLI command or custom developer script, returning stdout, stderr, exit code, and runtime duration.</td></tr>
+                        <tr><td><code>register_software_command</code></td><td>Programmatically registers a new external software terminal command into Cherm's command hub.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>AI Assistant Setup</h3>
+            <pre><code>// Claude Desktop (claude_desktop_config.json) / Cursor (.cursor/mcp.json)
+{
+  "mcpServers": {
+    "cherm": {
+      "command": "python",
+      "args": ["&lt;path-to-cherm&gt;/cherm.py", "--mcp"]
+    }
+  }
+}</code></pre>
         </div>
 
         <!-- ================================================================

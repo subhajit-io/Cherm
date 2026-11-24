@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "description": "Cherm External Software & Custom Terminal Commands Configuration",
+  "commands": [
+    {
+      "id": "file_details_cli",
+      "name": "File Inspector CLI",
+      "cmd": "python -c \"import os, sys; p = sys.argv[1] if len(sys.argv) > 1 else '.'; print(f'[File Inspector] Target: {p}\\nExists: {os.path.exists(p)}\\nSize: {os.path.getsize(p) if os.path.exists(p) else 0} bytes')\" \"{file}\"",
+      "description": "Inspects target file details using an external Python CLI command",
+      "extensions": [
+        "*"
+      ],
+      "category": "Diagnostics",
+      "mode": "interactive"
+    },
+    {
+      "id": "git_quick_status",
+      "name": "Git Status One-Liner",
+      "cmd": "git status -s",
+      "description": "Run fast git status on current workspace from external Git binary",
+      "extensions": [
+        "*"
+      ],
+      "category": "Git & VCS",
+      "mode": "interactive"
+    },
+    {
+      "id": "external_software_hook",
+      "name": "External Software Hook (Template)",
+      "cmd": "echo [External Software Bridge] Processing '{filename}' from dir '{dir}' with args: '{args}'",
+      "description": "Customizable hook for connecting your own external tools, scanners, or CLI",
+      "extensions": [
+        "*"
+      ],
+      "category": "Connected Software",
+      "mode": "interactive"
+    }
+  ]
+}

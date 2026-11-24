@@ -848,6 +848,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
         <button id="tab-drop" class="tab-btn active" onclick="switchMode('drop')">Drag & Drop (File or Folder)</button>
         <button id="tab-local" class="tab-btn" onclick="switchMode('local')">Local Directory Scanner</button>
         <button id="tab-paste" class="tab-btn" onclick="switchMode('paste')">Paste Snippet</button>
+        <button id="tab-bridge" class="tab-btn" onclick="switchMode('bridge')">Connected Software & CLI</button>
     </div>
 
     <!-- Main Container Card -->
@@ -955,6 +956,79 @@ INDEX_HTML = r"""<!DOCTYPE html>
                     Run Cherm Security Audit
                 </button>
                 <span id="paste-timing" style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);"></span>
+            </div>
+        </div>
+
+        <!-- 4. Connected Software & CLI Bridge Mode -->
+        <div id="bridge-mode" class="local-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                <div>
+                    <div style="font-size: 14px; font-weight: 600;">Connected Software & Custom Terminal Commands</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        Execute external scripts, custom linters, proprietary scanners, or CLI tools through Cherm.
+                    </div>
+                </div>
+                <button type="button" class="btn-browse" onclick="toggleRegisterForm()" style="font-size:12px; padding:6px 12px;">
+                    + Connect New Command
+                </button>
+            </div>
+
+            <!-- Registration Form (Collapsible) -->
+            <div id="bridge-register-box" style="display:none; background:#f8fafc; border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px;">
+                <div style="font-size:13px; font-weight:700; margin-bottom:10px;">Connect External Software Command</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div>
+                        <label style="font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Command ID (slug)</label>
+                        <input type="text" id="reg-cmd-id" placeholder="e.g. my_linter" style="width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Display Name</label>
+                        <input type="text" id="reg-cmd-name" placeholder="e.g. My Custom Linter" style="width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-size:12px;">
+                    </div>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Terminal Shell Command Template (use {file}, {dir}, {filename}, {python})</label>
+                    <input type="text" id="reg-cmd-template" placeholder="e.g. python my_script.py --target {file} or eslint {file}" style="width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); font-size:12px;">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div>
+                        <label style="font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">File Extensions (* for all)</label>
+                        <input type="text" id="reg-cmd-exts" value="*" placeholder="e.g. *, .py, .ts, .js" style="width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Category</label>
+                        <input type="text" id="reg-cmd-cat" value="Connected Software" placeholder="e.g. Linters, Security, Diagnostics" style="width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-size:12px;">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn-browse" onclick="toggleRegisterForm()">Cancel</button>
+                    <button type="button" class="btn-check" style="padding:6px 16px; font-size:12px;" onclick="registerBridgeCommand()">Save & Connect</button>
+                </div>
+            </div>
+
+            <!-- Target File Bar for Execution -->
+            <div style="background:#f1f5f9; border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; gap:10px; font-size:12px; flex-wrap:wrap;">
+                <span style="font-weight:600; color:var(--text-muted);">Target File:</span>
+                <input type="text" id="bridge-target-file" placeholder="Optional file path (e.g. order_controller.py or leave empty for project-level)" style="flex:1; min-width:200px; padding:5px 8px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); font-size:12px; background:#fff;">
+                <button type="button" class="btn-browse" onclick="useCurrentAuditFileForBridge()" style="font-size:11px; padding:4px 8px;">Use Loaded File</button>
+            </div>
+
+            <!-- List of Commands -->
+            <div id="bridge-commands-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                <div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">Loading connected software commands...</div>
+            </div>
+
+            <!-- Live Output Console -->
+            <div id="bridge-console-box" style="display:none; background:#0f172a; border-radius:var(--radius); padding:14px; margin-top:14px; color:#f8fafc; font-family:var(--font-mono); font-size:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #334155; padding-bottom:6px;">
+                    <span id="bridge-console-title" style="font-weight:700; color:#38bdf8;">Command Output</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="bridge-console-status" style="font-size:11px; padding:2px 6px; border-radius:4px; background:#1e293b;"></span>
+                        <span id="bridge-console-time" style="font-size:11px; color:#94a3b8;"></span>
+                        <button type="button" onclick="document.getElementById('bridge-console-box').style.display='none'" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">✕</button>
+                    </div>
+                </div>
+                <pre id="bridge-console-output" style="white-space:pre-wrap; word-break:break-all; max-height:260px; overflow-y:auto; line-height:1.4; color:#e2e8f0;"></pre>
             </div>
         </div>
 
@@ -1073,10 +1147,17 @@ INDEX_HTML = r"""<!DOCTYPE html>
         document.getElementById('tab-drop').classList.toggle('active', mode === 'drop');
         document.getElementById('tab-local').classList.toggle('active', mode === 'local');
         document.getElementById('tab-paste').classList.toggle('active', mode === 'paste');
+        const tabBridge = document.getElementById('tab-bridge');
+        if (tabBridge) tabBridge.classList.toggle('active', mode === 'bridge');
 
         document.getElementById('drop-mode').style.display = (mode === 'drop') ? 'block' : 'none';
         document.getElementById('local-mode').classList.toggle('active', mode === 'local');
         document.getElementById('paste-mode').classList.toggle('active', mode === 'paste');
+        const bridgeMode = document.getElementById('bridge-mode');
+        if (bridgeMode) {
+            bridgeMode.style.display = (mode === 'bridge') ? 'block' : 'none';
+            if (mode === 'bridge') loadBridgeCommands();
+        }
     }
 
     function formatBytes(bytes) {
@@ -1773,6 +1854,167 @@ INDEX_HTML = r"""<!DOCTYPE html>
             renderFileResultsList(latestFolderResults.file_results, type);
         }
     }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function toggleRegisterForm() {
+        const box = document.getElementById('bridge-register-box');
+        if (box) box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+    }
+
+    function useCurrentAuditFileForBridge() {
+        const targetInput = document.getElementById('bridge-target-file');
+        if (currentLoadedFile && currentLoadedFile.name) {
+            targetInput.value = currentLoadedFile.name;
+        } else if (latestFolderResults && latestFolderResults.folder_name) {
+            targetInput.value = latestFolderResults.folder_name;
+        } else {
+            alert('No file currently loaded. Drop or select a file first.');
+        }
+    }
+
+    async function loadBridgeCommands() {
+        const listEl = document.getElementById('bridge-commands-list');
+        if (!listEl) return;
+        try {
+            const res = await fetch('/api/commands');
+            const data = await res.json();
+            const cmds = data.commands || [];
+            if (cmds.length === 0) {
+                listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:16px;">No external software commands connected yet. Click "+ Connect New Command" above.</div>';
+                return;
+            }
+            let html = '';
+            cmds.forEach(c => {
+                const exts = (c.extensions || ['*']).join(', ');
+                const cat = c.category || 'Connected Software';
+                html += `
+                <div style="background:#ffffff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:240px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                            <span style="font-size:10px; font-weight:700; text-transform:uppercase; padding:2px 6px; border-radius:4px; background:#e0f2fe; color:#0369a1;">${escapeHtml(cat)}</span>
+                            <span style="font-size:13px; font-weight:600; color:var(--text-main);">${escapeHtml(c.name || c.id)}</span>
+                            <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">[id: ${escapeHtml(c.id)}]</span>
+                        </div>
+                        <div style="font-size:11px; font-family:var(--font-mono); color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:3px;">
+                            ${escapeHtml(c.cmd || '')}
+                        </div>
+                        <div style="font-size:11px; color:var(--text-muted);">
+                            <span>Files: <code>${escapeHtml(exts)}</code></span>
+                            ${c.description ? `<span style="margin-left:8px;">• ${escapeHtml(c.description)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn-check" style="padding:6px 14px; font-size:12px;" onclick="runBridgeCommand('${escapeHtml(c.id)}')">
+                            ⚡ Run Command
+                        </button>
+                    </div>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+        } catch (err) {
+            listEl.innerHTML = '<div style="color:var(--danger); font-size:12px; padding:12px;">Failed to load connected commands: ' + err + '</div>';
+        }
+    }
+
+    async function runBridgeCommand(cmdId) {
+        const targetInput = document.getElementById('bridge-target-file');
+        const targetFile = targetInput ? targetInput.value.trim() : '';
+        const consoleBox = document.getElementById('bridge-console-box');
+        const consoleTitle = document.getElementById('bridge-console-title');
+        const consoleStatus = document.getElementById('bridge-console-status');
+        const consoleTime = document.getElementById('bridge-console-time');
+        const consoleOutput = document.getElementById('bridge-console-output');
+
+        if (consoleBox) consoleBox.style.display = 'block';
+        if (consoleTitle) consoleTitle.textContent = `Running: ${cmdId}...`;
+        if (consoleStatus) {
+            consoleStatus.textContent = 'RUNNING';
+            consoleStatus.style.background = '#0284c7';
+        }
+        if (consoleOutput) consoleOutput.textContent = 'Executing command in background...\n';
+
+        try {
+            const res = await fetch('/api/commands/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    command_id: cmdId,
+                    file_path: targetFile
+                })
+            });
+            const data = await res.json();
+            if (consoleTitle) consoleTitle.textContent = data.cmd || cmdId;
+            if (consoleTime) consoleTime.textContent = (data.duration_ms || 0) + ' ms';
+            if (consoleStatus) {
+                if (data.success) {
+                    consoleStatus.textContent = 'EXIT: 0 (OK)';
+                    consoleStatus.style.background = '#16a34a';
+                } else {
+                    consoleStatus.textContent = `EXIT: ${data.exit_code} (FAIL)`;
+                    consoleStatus.style.background = '#dc2626';
+                }
+            }
+            let outText = '';
+            if (data.stdout) outText += data.stdout;
+            if (data.stderr) outText += (outText ? '\n[STDERR]\n' : '') + data.stderr;
+            if (!outText) outText = '[Process completed with no console output]';
+            if (consoleOutput) consoleOutput.textContent = outText;
+        } catch (err) {
+            if (consoleStatus) {
+                consoleStatus.textContent = 'ERROR';
+                consoleStatus.style.background = '#dc2626';
+            }
+            if (consoleOutput) consoleOutput.textContent = 'Request failed: ' + err;
+        }
+    }
+
+    async function registerBridgeCommand() {
+        const id = document.getElementById('reg-cmd-id').value.trim();
+        const name = document.getElementById('reg-cmd-name').value.trim();
+        const cmd = document.getElementById('reg-cmd-template').value.trim();
+        const exts = document.getElementById('reg-cmd-exts').value.trim();
+        const cat = document.getElementById('reg-cmd-cat').value.trim();
+
+        if (!name || !cmd) {
+            alert('Please provide at least a Display Name and Command Template.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/commands/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: id,
+                    name: name,
+                    cmd: cmd,
+                    extensions: exts || '*',
+                    category: cat || 'Connected Software'
+                })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                toggleRegisterForm();
+                document.getElementById('reg-cmd-id').value = '';
+                document.getElementById('reg-cmd-name').value = '';
+                document.getElementById('reg-cmd-template').value = '';
+                loadBridgeCommands();
+            } else {
+                alert('Registration failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Failed to connect command: ' + err);
+        }
+    }
 </script>
 </body>
 </html>
@@ -1788,7 +2030,12 @@ class ChermRequestHandler(BaseHTTPRequestHandler):
         pass
 
     def send_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self.headers.get("Origin", "")
+        # Secure origin checking: only allow localhost / 127.0.0.1 (block external web drive-by requests)
+        if origin and ("localhost" in origin or "127.0.0.1" in origin or "[::1]" in origin):
+            self.send_header("Access-Control-Allow-Origin", origin)
+        else:
+            self.send_header("Access-Control-Allow-Origin", "http://localhost:3690")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
@@ -1846,10 +2093,33 @@ class ChermRequestHandler(BaseHTTPRequestHandler):
             })
             return
 
+        elif path in ("/api/commands", "/api/custom-commands"):
+            try:
+                import cherm_bridge
+                cmds = cherm_bridge.load_custom_commands()
+                cfg_path = cherm_bridge.find_commands_config_path()
+                self._send_json({
+                    "status": "success",
+                    "config_file": cfg_path,
+                    "count": len(cmds),
+                    "commands": cmds
+                })
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+            return
+
         else:
             self._send_bytes(b"Not Found", "text/plain", 404)
 
     def do_POST(self):
+        # Prevent drive-by web CSRF from untrusted external websites
+        origin = self.headers.get("Origin", "")
+        if origin:
+            parsed_origin = urlparse(origin)
+            if parsed_origin.hostname not in ("localhost", "127.0.0.1", "::1", None):
+                self._send_json({"error": "Forbidden: Untrusted Cross-Origin Request Blocked."}, 403)
+                return
+
         parsed = urlparse(self.path)
         path = parsed.path
 
@@ -1974,6 +2244,46 @@ class ChermRequestHandler(BaseHTTPRequestHandler):
                 "abs_path": abs_dir,
                 "files": collected
             })
+            return
+
+        elif path in ("/api/commands/run", "/api/custom-commands/run"):
+            length = int(self.headers.get("Content-Length", 0))
+            if length == 0:
+                self._send_json({"error": "Empty request body"}, 400)
+                return
+            body_str = self.rfile.read(length).decode("utf-8", errors="replace")
+            try:
+                data = json.loads(body_str)
+                import cherm_bridge
+                res = cherm_bridge.run_command_headless(
+                    data.get("command_id") or data.get("cmd") or "",
+                    filepath=data.get("file_path") or data.get("filepath") or "",
+                    extra_args=data.get("extra_args") or "",
+                    timeout=int(data.get("timeout", 60))
+                )
+                self._send_json(res)
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+            return
+
+        elif path in ("/api/commands/register", "/api/custom-commands/register"):
+            length = int(self.headers.get("Content-Length", 0))
+            if length == 0:
+                self._send_json({"error": "Empty request body"}, 400)
+                return
+            body_str = self.rfile.read(length).decode("utf-8", errors="replace")
+            try:
+                data = json.loads(body_str)
+                import cherm_bridge
+                saved = cherm_bridge.add_or_update_command(data)
+                cfg_path = cherm_bridge.find_commands_config_path()
+                self._send_json({
+                    "status": "success",
+                    "config_file": cfg_path,
+                    "command": saved
+                })
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
             return
 
         self._send_bytes(b"Not Found", "text/plain", 404)

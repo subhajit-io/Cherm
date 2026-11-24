@@ -112,6 +112,16 @@ if BASE_DIR not in sys.path:
 BOOKMARKS_FILE = os.path.join(BASE_DIR, "cherm_bookmarks.json")
 CONFIG_FILE = os.path.join(BASE_DIR, "cherm_config.json")
 
+try:
+    import cherm_bridge
+except ImportError:
+    cherm_bridge = None
+
+try:
+    import cherm_cli
+except ImportError:
+    cherm_cli = None
+
 START_TIME = time.time()
 
 _SHADOW_REGISTRY: dict = {}
@@ -3558,7 +3568,7 @@ def run_mcp_server(args: list):
         sys.path.insert(0, BASE_DIR)
 
     transport = "stdio"
-    host = "0.0.0.0"
+    host = "127.0.0.1"  # Secure loopback default (use --host 0.0.0.0 only when intentionally exposing to LAN)
     port = 8000
 
     i = 0
@@ -3638,6 +3648,84 @@ def launch_gui_from_tui(win):
     except Exception as e:
         show_results(win, False, "Cherm Web GUI", "ERROR", f"Failed to start local GUI server:\n{e}")
 
+# This function is for: Executes a connected custom command in the TUI.
+def run_custom_command_in_tui(stdscr, cmd_id: str, cmd_template: str, filepath: str):
+    if not cherm_bridge:
+        show_results(stdscr, False, "Custom Command", "ERR", "cherm_bridge module not available.")
+        return
+    cmd_entry = cherm_bridge.get_command_by_id(cmd_id) if cmd_id else None
+    template = cmd_entry.get("cmd") if cmd_entry else cmd_template
+    if not template:
+        show_results(stdscr, False, "Custom Command", "ERR", f"Command not found: {cmd_id}")
+        return
+    interpolated, _ = cherm_bridge.interpolate_command(template, filepath)
+    execute_command(stdscr, interpolated)
+
+# This function is for: Interactively registers a new external terminal command.
+def add_custom_command_in_tui(stdscr, filepath: str):
+    if not cherm_bridge:
+        show_results(stdscr, False, "Add Command", "ERR", "cherm_bridge module not available.")
+        return
+    name = _git_prompt(stdscr, "Enter Command Name (e.g. My Linter / API Tester):")
+    if not name:
+        return
+    cmd_str = _git_prompt(stdscr, "Enter Command (use {file}, {dir}, {filename}):")
+    if not cmd_str:
+        return
+    exts_str = _git_prompt(stdscr, "Supported Extensions (e.g. * or .py,.js [default: *]):")
+    exts = [e.strip() for e in exts_str.split(",") if e.strip()] if exts_str else ["*"]
+    entry = {
+        "name": name,
+        "cmd": cmd_str,
+        "extensions": exts,
+        "description": "User-registered custom terminal command",
+        "category": "Connected Software"
+    }
+    saved = cherm_bridge.add_or_update_command(entry)
+    cfg_path = cherm_bridge.find_commands_config_path()
+    msg = (
+        f"[ OK ] Successfully connected terminal command!\n\n"
+        f"ID:          {saved['id']}\n"
+        f"Name:        {saved['name']}\n"
+        f"Command:     {saved['cmd']}\n"
+        f"Extensions:  {', '.join(saved['extensions'])}\n\n"
+        f"Saved to:    {cfg_path}\n"
+        f"You can now run this command on matching files directly inside Cherm!"
+    )
+    show_results(stdscr, True, "Command Connected", "SAVED", msg)
+
+# This function is for: Displays all connected commands and configuration.
+def view_custom_commands_in_tui(stdscr):
+    if not cherm_bridge:
+        show_results(stdscr, False, "Connected Software", "ERR", "cherm_bridge module not available.")
+        return
+    cmds = cherm_bridge.load_custom_commands()
+    cfg_path = cherm_bridge.find_commands_config_path()
+    out = [
+        "=== CONNECTED SOFTWARE & TERMINAL COMMANDS ===",
+        f"Config File: {cfg_path}\n",
+        f"Total Commands: {len(cmds)}\n"
+    ]
+    for c in cmds:
+        out.append(f"• [{c.get('id')}] {c.get('name')}")
+        out.append(f"  Command:    {c.get('cmd')}")
+        out.append(f"  Files:      {', '.join(c.get('extensions', ['*']))}")
+        out.append(f"  Category:   {c.get('category', 'Custom')}")
+        if c.get("description"):
+            out.append(f"  Info:       {c.get('description')}")
+        out.append("")
+    out.append("Placeholders available: {file}, {filename}, {basename}, {ext}, {dir}, {cwd}, {python}, {args}")
+    show_results(stdscr, True, "Connected Software", f"{len(cmds)} CMDS", "\n".join(out))
+
+# This function is for: Reloads connected commands from disk.
+def reload_custom_commands_in_tui(stdscr):
+    if not cherm_bridge:
+        show_results(stdscr, False, "Reload Commands", "ERR", "cherm_bridge module not available.")
+        return
+    cmds = cherm_bridge.load_custom_commands()
+    cfg_path = cherm_bridge.find_commands_config_path()
+    show_results(stdscr, True, "Reload Commands", "RELOADED", f"[ OK ] Reloaded {len(cmds)} connected commands from:\n{cfg_path}")
+
 # This function is for: Builds the main action menu for a file.
 def build_menu(filepath) -> list:
     if isinstance(filepath, list):
@@ -3672,16 +3760,45 @@ def build_menu(filepath) -> list:
         {"name": "<-- Back to Main Menu",          "action": "back",       "cmd": None},
     ]
 
+    custom_items = []
+    if cherm_bridge:
+        try:
+            all_cmds = cherm_bridge.load_custom_commands()
+            target_f = filepath if isinstance(filepath, str) else None
+            filtered_cmds = cherm_bridge.filter_commands_for_file(all_cmds, target_f)
+            for c in filtered_cmds:
+                cat_tag = f"[{c.get('category', 'CMD')[:4].upper()}]"
+                custom_items.append({
+                    "name": f"{cat_tag} {c.get('name', 'Custom Command')}",
+                    "action": "custom_cmd",
+                    "cmd": c.get("id"),
+                    "cmd_template": c.get("cmd"),
+                    "file": filepath
+                })
+        except Exception:
+            pass
+
+    if not custom_items:
+        custom_items.append({"name": "No commands match current file", "action": "separator", "cmd": None})
+
+    custom_items.append({"name": "-" * 32, "action": "separator", "cmd": None})
+    custom_items.append({"name": "+ Connect New Terminal Command", "action": "add_custom_cmd", "cmd": filepath})
+    custom_items.append({"name": "[?] View Connected Software & Config", "action": "view_custom_cmds", "cmd": filepath})
+    custom_items.append({"name": "[R] Reload Connected Commands", "action": "reload_custom_cmds", "cmd": filepath})
+    custom_items.append({"name": "-" * 32, "action": "separator", "cmd": None})
+    custom_items.append({"name": "<-- Back to Main Menu", "action": "back", "cmd": None})
+
     main_menu = [
-        {"name": "Language / Execution Tools",     "action": "submenu",    "items": lang_items},
-        {"name": "General File Tools",             "action": "submenu",    "items": gen_items},
-        {"name": "Advanced Analysis & Security",   "action": "submenu",    "items": sec_items},
-        {"name": "[*] Cherm MCP Bridge (AI Server)", "action": "mcp",      "cmd": filepath},
-        {"name": "[*] Launch Web GUI (localhost:3690)", "action": "gui",   "cmd": filepath},
-        {"name": "-" * 32,                        "action": "separator",  "cmd": None},
-        {"name": "Select Different File",          "action": "file",       "cmd": None},
-        {"name": "Help  (?)",                      "action": "help",       "cmd": None},
-        {"name": "Exit",                           "action": "exit",       "cmd": None},
+        {"name": "Language / Execution Tools",       "action": "submenu",    "items": lang_items},
+        {"name": "General File Tools",               "action": "submenu",    "items": gen_items},
+        {"name": "Advanced Analysis & Security",     "action": "submenu",    "items": sec_items},
+        {"name": "[>] Connected Software Commands",   "action": "submenu",    "items": custom_items},
+        {"name": "[*] Cherm MCP Bridge (AI Server)", "action": "mcp",        "cmd": filepath},
+        {"name": "[*] Launch Web GUI (localhost:3690)", "action": "gui",     "cmd": filepath},
+        {"name": "-" * 32,                          "action": "separator",  "cmd": None},
+        {"name": "Select Different File",            "action": "file",       "cmd": None},
+        {"name": "Help  (?)",                        "action": "help",       "cmd": None},
+        {"name": "Exit",                             "action": "exit",       "cmd": None},
     ]
     return main_menu
 
@@ -4008,6 +4125,14 @@ def main(stdscr):
                 elif action == "code":  execute_command(app_win, scmd)
                 elif action == "copy":  copy_path_to_clipboard(app_win, scmd)
                 elif action == "git":   git_command_center(app_win, scmd)
+                elif action == "custom_cmd":
+                    run_custom_command_in_tui(app_win, item.get("cmd"), item.get("cmd_template"), shadow_sfile)
+                elif action == "add_custom_cmd":
+                    add_custom_command_in_tui(app_win, shadow_sfile)
+                elif action == "view_custom_cmds":
+                    view_custom_commands_in_tui(app_win)
+                elif action == "reload_custom_cmds":
+                    reload_custom_commands_in_tui(app_win)
                 elif action == "multibatch":
                     if isinstance(target_filepath, list): _run_multi_file_check(app_win, target_filepath)
                     else: multi_file_checker(app_win)
@@ -4043,56 +4168,492 @@ def check_permissions():
         print("Starting Cherm...\n")
         time.sleep(1)
 
-if __name__ == "__main__":
-    raw_args = sys.argv[1:]
+# -------------------------------------------------------------
+# Cherm Structured CLI Engine (gui / web / commands)
+# -------------------------------------------------------------
 
-    # Check for help flag
-    if any(a in ("-h", "--help", "help") for a in raw_args):
-        print("""Cherm — Interactive Terminal Companion & MCP Code Analyzer
+def print_cherm_help():
+    if cherm_cli and hasattr(cherm_cli, "print_cherm_help"):
+        cherm_cli.print_cherm_help()
+        return
+
+    print("""Cherm — Static Architecture & Code Inspection Suite
 
 Usage:
-  python cherm.py [FILE]                  Launch Cherm interactive TUI
-  python cherm.py --mcp                   Start Cherm as an MCP server (stdio transport for AI agents)
-  python cherm.py --mcp --sse             Start Cherm MCP server in SSE mode (default port 8000)
-  python cherm.py --mcp --port <port>     Specify custom port for SSE transport
-  python cherm.py --gui                   Launch Localhost Web GUI in browser (default port 3690)
-  python cherm.py --gui --port <port>     Specify custom port for Web GUI
-  python cherm.py --help                  Show this help message
+  python cherm.py <command> [target] [options]
 
-In TUI Mode:
-  Select '[*] Cherm MCP Bridge (AI Server)' to inspect tools and run deep audits.
-  Select '[*] Launch Web GUI (localhost:3690)' to launch the browser interface.
+Core Modalities:
+  gui [file]                   Launch interactive Terminal Companion (TUI) [Default]
+  web [--port <port>]          Launch Localhost Web Dashboard (default port: 3690)
+  mcp [--sse] [--port <port>]  Start FastMCP server for Claude Desktop, Cursor, Antigravity
+
+Code Quality & Complexity Commands:
+  syntax <file>                Check syntax & compilation validity
+  complexity <file>            Big-O time & space, cyclomatic complexity, nesting depth
+  deadcode <file>              Find uncalled functions, unused variables, dead branches
+  magic <file>                 Scan for bare magic numbers / hardcoded numeric literals
+  stats <file>                 Lines of code, blank lines, comment ratio, size, words
+  scan <file>                  Extract & list all defined functions, classes, exports, types
+  fuzz <file>                  CrossCheckV200 dynamic mock injection & edge-case fuzzer
+
+Security & Penetration Testing Commands:
+  sec <file|dir>               OWASP static vulnerability scan (SQLi, XSS, Command Injection)
+  secrets <file|dir>           Shannon entropy & pattern detector for credentials & API keys
+  pentest <file|dir>           Automated security orchestration (Bandit + Semgrep + Safety)
+  crypto <file>                Cryptographic integrity audit (weak hashes, ECB, timing)
+
+Architecture & System Design Commands:
+  design <file|dir>            System design flaws (IDOR/BOLA, pool exhaustion, rollback, CORS)
+  race <file>                  Multi-tap / TOCTOU race hazard detector & double-spend simulation
+  ml <file>                    Machine learning structural anomaly detector (Isolation Forest, Halstead)
+  audit <file|dir>             All-in-one deep architecture audit (IDOR, race conditions, ML risk)
+  check <file|dir>             All-in-one deterministic check (syntax, security, secrets, deadcode)
+
+Utilities:
+  urls <file>                  Auto-detect API endpoints / URLs and test responsiveness
+  diff <file1> [file2]         Terminal side-by-side diff (against git HEAD or another file)
+  git [args...]                Terminal Git command center
+  report <file|dir> [--open]   Generate visual HTML audit report dashboard
+
+Connected Software & Extension Engine:
+  ext list                     List all connected external software commands
+  ext run <id> [file] [args]   Execute a connected external software command
+  ext add <id> <name> <cmd>    Register new external software / CLI command
+  ext remove <id>              Unregister an external software command
+  <custom_id> [args]           Direct execution alias for any registered external command
 """)
+
+
+def check_single_file_headless(filepath: str, check_types: set = None) -> dict:
+    if not os.path.isfile(filepath):
+        return {"file": filepath, "error": "File not found", "passed": False, "issues": []}
+
+    ext = os.path.splitext(filepath)[1].lower()
+    check_all = not check_types or "all" in check_types
+
+    issues = []
+    syntax_status = "SKIPPED"
+
+    # 1. Syntax check
+    if check_all or "syntax" in check_types:
+        if ext == ".py":
+            import py_compile
+            try:
+                py_compile.compile(filepath, doraise=True)
+                syntax_status = "PASS"
+            except py_compile.PyCompileError as err:
+                syntax_status = "FAIL"
+                issues.append({"type": "Syntax", "line": getattr(err, 'lineno', 1) or 1, "msg": str(err).splitlines()[-1], "severity": "FATAL"})
+            except Exception as err:
+                syntax_status = "FAIL"
+                issues.append({"type": "Syntax", "line": 1, "msg": str(err), "severity": "FATAL"})
+        elif ext == ".json":
+            try:
+                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                    json.load(f)
+                syntax_status = "PASS"
+            except Exception as err:
+                syntax_status = "FAIL"
+                issues.append({"type": "Syntax", "line": 1, "msg": f"JSON parse error: {err}", "severity": "FATAL"})
+        else:
+            syntax_status = "OK"
+
+    # Read content
+    try:
+        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+    except Exception as e:
+        return {"file": filepath, "error": str(e), "passed": False, "issues": []}
+
+    # 2. Security Patterns (_VULN_PATTERNS)
+    if check_all or "security" in check_types:
+        for i, line in enumerate(lines, 1):
+            s = line.strip()
+            if s.startswith(("#", "//", "/*", "*", "<!--", "--")):
+                continue
+            for vuln_name, pattern, severity in _VULN_PATTERNS:
+                if re.search(pattern, line):
+                    issues.append({
+                        "type": "Security",
+                        "line": i,
+                        "msg": vuln_name,
+                        "severity": severity,
+                        "snippet": s[:72]
+                    })
+                    break
+
+    # 3. Secret Patterns (_SECRET_PATTERNS)
+    if check_all or "secrets" in check_types:
+        for i, line in enumerate(lines, 1):
+            s = line.strip()
+            if s.startswith(("#", "//", "/*", "*", "<!--", "--")):
+                continue
+            for pattern, secret_type, severity in _SECRET_PATTERNS:
+                if re.search(pattern, line):
+                    redacted = re.sub(r'["\'][^"\']{3,}["\']', '"[REDACTED]"', s)
+                    issues.append({
+                        "type": "Secret",
+                        "line": i,
+                        "msg": f"Hardcoded {secret_type}",
+                        "severity": severity,
+                        "snippet": redacted[:72]
+                    })
+                    break
+
+    # 4. Dead Code (for Python AST)
+    if (check_all or "deadcode" in check_types) and ext == ".py":
+        try:
+            content = "".join(lines)
+            tree = _ast_mod.parse(content, filename=filepath)
+            defined = {}
+            for node in _ast_mod.walk(tree):
+                if isinstance(node, (_ast_mod.FunctionDef, _ast_mod.AsyncFunctionDef)):
+                    defined[node.name] = node.lineno
+            called = set()
+            for node in _ast_mod.walk(tree):
+                if isinstance(node, _ast_mod.Call):
+                    if isinstance(node.func, _ast_mod.Name):
+                        called.add(node.func.id)
+                    elif isinstance(node.func, _ast_mod.Attribute):
+                        called.add(node.func.attr)
+                elif isinstance(node, _ast_mod.Name) and isinstance(node.ctx, _ast_mod.Load):
+                    called.add(node.id)
+            always_live = {
+                "main", "__init__", "__str__", "__repr__", "__len__", "__eq__",
+                "__enter__", "__exit__", "run", "start", "handle", "execute"
+            }
+            called |= always_live
+            dead = [(name, lineno) for name, lineno in defined.items() if name not in called]
+            for name, lineno in dead[:25]:
+                issues.append({
+                    "type": "DeadCode",
+                    "line": lineno,
+                    "msg": f"Function '{name}' defined but never called",
+                    "severity": "LOW",
+                    "snippet": f"def {name}(...)"
+                })
+        except Exception:
+            pass
+
+    fatal_count = sum(1 for is_ in issues if is_.get("severity") in ("CRITICAL", "FATAL"))
+    return {
+        "file": filepath,
+        "lines": len(lines),
+        "syntax": syntax_status,
+        "issues": issues,
+        "issue_count": len(issues),
+        "fatal_count": fatal_count,
+        "passed": (fatal_count == 0 and syntax_status != "FAIL")
+    }
+
+
+def run_cli_check(args: list):
+    check_types = set()
+    output_json = "--json" in args
+    target = None
+
+    for a in args:
+        if a.startswith("--"):
+            t = a[2:].lower()
+            if t in ("syntax", "security", "secrets", "deadcode", "all"):
+                check_types.add(t)
+        elif target is None and not a.startswith("-"):
+            target = a
+
+    if not check_types:
+        check_types.add("all")
+
+    target = target or "."
+    target_abs = os.path.abspath(target)
+
+    supported_exts = {".py", ".js", ".ts", ".jsx", ".tsx", ".json", ".go", ".sql", ".html", ".css"}
+    files_to_check = []
+
+    if os.path.isfile(target_abs):
+        files_to_check.append(target_abs)
+    elif os.path.isdir(target_abs):
+        ignore_dirs = {".git", "node_modules", "__pycache__", ".next", "dist", "build", ".venv", "venv"}
+        for root, dirs, files in os.walk(target_abs):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.startswith(".")]
+            for f in files:
+                if os.path.splitext(f)[1].lower() in supported_exts:
+                    files_to_check.append(os.path.join(root, f))
+            if len(files_to_check) >= 300:
+                break
+    else:
+        print(f"Error: Target '{target}' not found.", file=sys.stderr)
+        sys.exit(1)
+
+    file_results = []
+    total_issues = 0
+    total_fatal = 0
+
+    for fp in files_to_check:
+        res = check_single_file_headless(fp, check_types)
+        file_results.append(res)
+        total_issues += res.get("issue_count", 0)
+        total_fatal += res.get("fatal_count", 0)
+
+    overall_pass = total_fatal == 0
+
+    if output_json:
+        out_dict = {
+            "target": target,
+            "passed": overall_pass,
+            "total_files": len(files_to_check),
+            "total_issues": total_issues,
+            "fatal_issues": total_fatal,
+            "files": file_results
+        }
+        print(json.dumps(out_dict, indent=2))
+        sys.exit(0 if overall_pass else 1)
+
+    sep = "─" * 68
+    print(f"\n{sep}")
+    print(f"  CHERM CODE CHECK: {target} ({len(files_to_check)} files)")
+    print(f"{sep}\n")
+
+    for r in file_results:
+        f_rel = os.path.relpath(r["file"], os.getcwd()) if r["file"].startswith(os.getcwd()) else r["file"]
+        status_tag = "[PASS]" if r["passed"] else "[FAIL]"
+        print(f" {status_tag} {f_rel} ({r['lines']} lines)")
+        if r["issues"]:
+            for issue in r["issues"][:8]:
+                sev = issue.get("severity", "INFO")
+                print(f"        • Line {issue['line']}: {issue['msg']} [{sev}]")
+            if len(r["issues"]) > 8:
+                print(f"        • ... and {len(r['issues']) - 8} more issues")
+            print()
+
+    print(f"{sep}")
+    summary_label = "[PASSED]" if overall_pass else "[FAILED]"
+    print(f"  RESULT: {summary_label} • Files: {len(files_to_check)} | Total Issues: {total_issues} | Fatal: {total_fatal}")
+    print(f"{sep}\n")
+    sys.exit(0 if overall_pass else 1)
+
+
+def run_cli_audit(args: list):
+    output_json = "--json" in args
+    gen_report = "--report" in args
+    target = None
+
+    for a in args:
+        if not a.startswith("-") and target is None:
+            target = a
+
+    target = target or "."
+    target_abs = os.path.abspath(target)
+
+    try:
+        import cherm_mcp
+    except ImportError as e:
+        print(f"Error loading Cherm Audit engine: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    sep = "─" * 68
+    if not output_json:
+        print(f"\n{sep}")
+        print(f"  CHERM DEEP ARCHITECTURE & SYSTEM DESIGN AUDIT: {target}")
+        print(f"{sep}\n")
+
+    if os.path.isdir(target_abs):
+        res = cherm_mcp.run_folder_audit(directory_path=target_abs, auto_generate_html=gen_report)
+    else:
+        res = cherm_mcp.run_all_in_one_check(file_path=target_abs, auto_generate_html=gen_report)
+
+    if output_json:
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("success", False) else 1)
+
+    grade = res.get("health_grade") or ("PASS" if res.get("success") else "NEEDS REVIEW")
+    status = res.get("overall_status") or "COMPLETE"
+    summary = res.get("summary") or {}
+
+    print(f"  HEALTH GRADE : [ {grade} ]  (Status: {status})")
+    if summary:
+        print(f"  Files Scanned: {summary.get('total_files_scanned', 1)} | Clean: {summary.get('clean_files_count', 0)} | Issues: {summary.get('total_issues_found', 0)}")
+        print(f"  • Fatal Architectural Flaws:    {summary.get('fatal_critical_flaws', 0)}")
+        print(f"  • Concurrency & Race Hazards:   {summary.get('multitap_concurrency_flaws', 0)}")
+        print(f"  • System Design Defects:        {summary.get('system_design_flaws', 0)}")
+        print(f"  • Code Smells & Anti-patterns:  {summary.get('code_smells_and_antipatterns', 0)}")
+    
+    report_file = res.get("html_dashboard_report")
+    if report_file and os.path.isfile(report_file):
+        print(f"\n  [ OK ] Visual HTML Report saved: {report_file}")
+
+    print(f"\n{sep}\n")
+    sys.exit(0)
+
+
+def run_cli_ext(args: list):
+    import cherm_bridge
+    sub = args[0].lower() if args else "list"
+
+    if sub in ("list", "--list", "-l"):
+        cmds = cherm_bridge.load_custom_commands()
+        cfg = cherm_bridge.find_commands_config_path()
+        if "--json" in args or not sys.stdout.isatty():
+            print(json.dumps({"config_file": cfg, "count": len(cmds), "commands": cmds}, indent=2))
+        else:
+            print(f"\n=== Cherm Connected Software Commands ===")
+            print(f"Config: {cfg}\n")
+            for c in cmds:
+                print(f" • [{c.get('id')}] {c.get('name')}")
+                print(f"   Command:     {c.get('cmd')}")
+                print(f"   Files:       {', '.join(c.get('extensions', ['*']))}")
+                print(f"   Category:    {c.get('category', 'Custom')}\n")
+            print("Run:      python cherm.py ext run <id> [file]")
+            print("Register: python cherm.py ext add <id> <name> <cmd> [exts]\n")
         sys.exit(0)
 
-    # Check for Web GUI mode
-    if any(a in ("--gui", "-g", "gui", "--web", "-w", "web") for a in raw_args):
-        gui_port = 3690
-        for i, a in enumerate(raw_args):
-            if a in ("--port", "-p") and i + 1 < len(raw_args) and raw_args[i + 1].isdigit():
-                gui_port = int(raw_args[i + 1])
-            elif a.isdigit():
-                gui_port = int(a)
-        import cherm_gui
-        cherm_gui.start_gui_server(port=gui_port, open_browser=True, in_background=False)
+    elif sub == "add":
+        rem = [a for a in args[1:] if not a.startswith("--")]
+        if len(rem) < 3:
+            print("Error: 'ext add' requires: <id> <name> <cmd> [exts] [category]", file=sys.stderr)
+            sys.exit(1)
+        entry = {
+            "id": rem[0],
+            "name": rem[1],
+            "cmd": rem[2],
+            "extensions": [e.strip() for e in rem[3].split(",") if e.strip()] if len(rem) > 3 else ["*"],
+            "category": rem[4] if len(rem) > 4 else "Connected Software"
+        }
+        saved = cherm_bridge.add_or_update_command(entry)
+        print(f"[Cherm] Successfully registered command '{saved['id']}' ({saved['name']}).")
         sys.exit(0)
 
-    # Check for MCP mode
-    if any(a in ("--mcp", "-m", "mcp") for a in raw_args):
-        mcp_args = [a for a in raw_args if a not in ("--mcp", "-m", "mcp")]
-        run_mcp_server(mcp_args)
-        sys.exit(0)
+    elif sub == "remove":
+        if len(args) < 2:
+            print("Error: 'ext remove' requires: <id>", file=sys.stderr)
+            sys.exit(1)
+        cid = args[1]
+        ok = cherm_bridge.remove_command(cid)
+        if ok:
+            print(f"[Cherm] Removed command '{cid}'.")
+        else:
+            print(f"[Cherm] Command '{cid}' not found.", file=sys.stderr)
+        sys.exit(0 if ok else 1)
 
-    # Otherwise, run interactive TUI
+    elif sub == "run":
+        if len(args) < 2:
+            print("Error: 'ext run' requires: <id> [file] [args...]", file=sys.stderr)
+            sys.exit(1)
+        cid = args[1]
+        target_f = args[2] if len(args) > 2 and not args[2].startswith("-") else None
+        extra = " ".join(args[3:]) if len(args) > 3 else ""
+        res = cherm_bridge.run_command_headless(cid, filepath=target_f, extra_args=extra, allow_adhoc=True)
+        if res.get("stdout"):
+            print(res["stdout"], end="")
+        if res.get("stderr"):
+            sys.stderr.write(res["stderr"])
+        sys.exit(res.get("exit_code", 0))
+
+    else:
+        print(f"Unknown extension command: '{sub}'. Available: list, add, remove, run", file=sys.stderr)
+        sys.exit(1)
+
+
+def launch_interactive_tui(target_file=None):
     check_permissions()
     t = threading.Thread(target=companion_thread)
     t.daemon = True
     t.start()
-    
     try:
         curses.wrapper(main)
     except KeyboardInterrupt:
         pass
     except Exception as e:
         print(f"\n[cherm] Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def launch_web_gui(raw_args=None):
+    raw = raw_args or []
+    gui_port = 3690
+    for i, a in enumerate(raw):
+        if a in ("--port", "-p") and i + 1 < len(raw) and raw[i + 1].isdigit():
+            gui_port = int(raw[i + 1])
+        elif a.isdigit():
+            gui_port = int(a)
+    open_browser = not any(a in ("--no-browser", "-n") for a in raw)
+    import cherm_gui
+    cherm_gui.start_gui_server(port=gui_port, open_browser=open_browser, in_background=False)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    raw_args = sys.argv[1:]
+
+    if not raw_args:
+        launch_interactive_tui()
+
+    first = raw_args[0].lower()
+
+    # 1. Help
+    if first in ("-h", "--help", "help"):
+        print_cherm_help()
+        sys.exit(0)
+
+    # 2. Modality 1: GUI (Interactive Terminal Companion)
+    elif first in ("gui", "tui"):
+        target_f = raw_args[1] if len(raw_args) > 1 and not raw_args[1].startswith("-") else None
+        launch_interactive_tui(target_f)
+
+    # 3. Modality 2: WEB (Localhost Browser Dashboard)
+    elif first in ("web", "--web", "gui-web"):
+        launch_web_gui(raw_args[1:])
+
+    # 4. Modality 3A: CHECK (Cherm's Native Deterministic Code Checks)
+    elif first == "check":
+        run_cli_check(raw_args[1:])
+
+    # 5. Modality 3B: AUDIT (Cherm's Deep System Design & Concurrency Audit)
+    elif first == "audit":
+        run_cli_audit(raw_args[1:])
+
+    # 6. Modality 3C: MCP (AI Agent Protocol Server)
+    elif first in ("mcp", "--mcp", "-m"):
+        mcp_args = [a for a in raw_args[1:] if a not in ("mcp", "--mcp", "-m")]
+        run_mcp_server(mcp_args)
+
+    # 7. Modality 3D: EXT (Connected External Software & Command Extensions)
+    elif first in ("ext", "plugin"):
+        run_cli_ext(raw_args[1:])
+
+    # 8. First-class Feature Commands (syntax, complexity, deadcode, magic, stats, scan, fuzz, sec, secrets, pentest, crypto, design, race, ml, urls, diff, git, report)
+    elif cherm_cli and first in cherm_cli.CLI_COMMANDS:
+        cherm_cli.CLI_COMMANDS[first](raw_args[1:])
+
+    # Backward compatibility flags
+    elif first in ("--commands", "--list-commands", "-c"):
+        run_cli_ext(["list"] + raw_args[1:])
+    elif first in ("--exec", "-x"):
+        if len(raw_args) > 1:
+            run_cli_ext(["run"] + raw_args[1:])
+        else:
+            print("Error: Missing command ID for --exec.", file=sys.stderr)
+            sys.exit(1)
+    elif first in ("--add-cmd", "--register-cmd"):
+        run_cli_ext(["add"] + raw_args[1:])
+    elif first in ("--gui", "-g"):
+        launch_web_gui(raw_args[1:])
+
+    # Direct Command Alias (e.g. `python cherm.py abc file.txt`)
+    elif cherm_bridge and cherm_bridge.get_command_by_id(first):
+        target_file = raw_args[1] if len(raw_args) > 1 and not raw_args[1].startswith("-") else None
+        extra = " ".join(raw_args[2:]) if len(raw_args) > 2 else ""
+        res = cherm_bridge.run_command_headless(first, filepath=target_file, extra_args=extra, allow_adhoc=True)
+        if res.get("stdout"):
+            print(res["stdout"], end="")
+        if res.get("stderr"):
+            sys.stderr.write(res["stderr"])
+        sys.exit(res.get("exit_code", 0))
+
+    # If first argument is an existing file or directory, open it directly in GUI
+    elif os.path.exists(raw_args[0]):
+        launch_interactive_tui(raw_args[0])
+
+    else:
+        print(f"Unknown command: '{raw_args[0]}'\n")
+        print_cherm_help()
         sys.exit(1)

@@ -1706,5 +1706,100 @@ def run_folder_audit(
     }
 
 
+@mcp.tool()
+def list_connected_software_commands() -> Dict[str, Any]:
+    """
+    Lists all external software and custom terminal commands connected to Cherm via cherm_commands.json.
+    Enables AI agents and external orchestration to discover available developer CLI tools.
+    """
+    try:
+        import cherm_bridge
+        cmds = cherm_bridge.load_custom_commands()
+        cfg_path = cherm_bridge.find_commands_config_path()
+        return {
+            "status": "success",
+            "config_file": cfg_path,
+            "count": len(cmds),
+            "commands": cmds
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "commands": []
+        }
+
+
+@mcp.tool()
+def run_connected_software_command(
+    command_id: str,
+    file_path: Optional[str] = None,
+    custom_args: Optional[str] = None,
+    timeout_seconds: int = 60
+) -> Dict[str, Any]:
+    """
+    Executes an external software terminal command or CLI script registered in Cherm.
+    Supports placeholder interpolation ({file}, {dir}, {filename}, {python}, etc.).
+    """
+    try:
+        import cherm_bridge
+        return cherm_bridge.run_command_headless(
+            command_id,
+            filepath=file_path,
+            extra_args=custom_args or "",
+            timeout=timeout_seconds
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "exit_code": 1,
+            "stdout": "",
+            "stderr": f"Bridge execution error: {e}",
+            "duration_ms": 0.0,
+            "cmd": command_id
+        }
+
+
+@mcp.tool()
+def register_software_command(
+    command_id: str,
+    name: str,
+    command_template: str,
+    description: str = "",
+    file_extensions: str = "*",
+    category: str = "Connected Software"
+) -> Dict[str, Any]:
+    """
+    Registers or updates an external software command in Cherm's cherm_commands.json configuration.
+    """
+    try:
+        import cherm_bridge
+        exts = [e.strip() for e in file_extensions.split(",") if e.strip()]
+        if not exts:
+            exts = ["*"]
+        cmd_entry = {
+            "id": command_id,
+            "name": name,
+            "cmd": command_template,
+            "description": description,
+            "extensions": exts,
+            "category": category,
+            "mode": "interactive"
+        }
+        saved = cherm_bridge.add_or_update_command(cmd_entry)
+        cfg_path = cherm_bridge.find_commands_config_path()
+        return {
+            "status": "success",
+            "message": f"Successfully registered command '{command_id}'",
+            "config_file": cfg_path,
+            "command": saved
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to register command: {e}"
+        }
+
+
 if __name__ == "__main__":
     mcp.run()
