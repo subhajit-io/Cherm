@@ -615,6 +615,10 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>About dev</span>
             </a>
+            <label for="p-cli" class="top-btn" title="View All Cherm Terminal Commands" style="cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                <span>All Commands</span>
+            </label>
             <label for="p-download" class="top-btn" title="Download Cherm Packages & Tools" style="cursor: pointer;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Download</span>
@@ -674,6 +678,7 @@
 
         <p class="nav-cat">Start Here</p>
         <label for="p-home">What is Cherm?</label>
+        <label for="p-cli" style="color: var(--accent); font-weight: 700;">⚡ All Commands List</label>
         <label for="p-how">How It Works</label>
         <label for="p-quickstart">60-Second Quickstart</label>
         <label for="p-download">📥 Download &amp; Install</label>
@@ -784,6 +789,45 @@
                 <strong>AI FastMCP Server (11 Tools):</strong> Cherm also runs as a zero-token FastMCP bridge (<code>python cherm.py mcp</code>) for Claude Desktop, Cursor, Antigravity, and Gemini to audit code before writing to disk.
             </div>
 
+            <h3>⚡ Complete Terminal Commands Reference (Direct Execution)</h3>
+            <p>Every single check and feature in Cherm runs directly from your terminal. No local web dashboard, background server, or browser redirects are required:</p>
+
+            <div class="table-container" style="margin: 1.5rem 0;">
+                <table>
+                    <thead>
+                        <tr><th>Category</th><th>Command</th><th>Target</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py syntax &lt;target&gt;</code></td><td>File / Dir</td><td>Validate AST and compilation syntax without executing untrusted code.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py complexity &lt;file&gt;</code></td><td>File</td><td>Big-O time &amp; space ($O(1)..O(N^k)$), cyclomatic complexity score, nesting depth.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py deadcode &lt;target&gt;</code></td><td>File / Dir</td><td>AST detection of uncalled functions, unused variables, and dead branches.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py magic &lt;target&gt;</code></td><td>File / Dir</td><td>Scan for bare numeric literals / unexplained magic numbers.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py stats &lt;target&gt;</code></td><td>File / Dir</td><td>Line count, SLOC, blank lines, comment ratio (%), byte sizes, words.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py scan &lt;target&gt;</code></td><td>File / Dir</td><td>Extract &amp; index all declared functions, classes, exports, and types.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py cp &lt;file&gt;</code></td><td>File</td><td>Competitive Programming (CP) test runner: validates stdin/stdout against inX.txt / outX.txt.</td></tr>
+                        <tr><td><span class="badge badge-accent">Quality</span></td><td><code>python cherm.py fuzz &lt;file&gt;</code></td><td>Python file</td><td>CrossCheckV200 dynamic mock injection &amp; boundary input fuzzer.</td></tr>
+                        <tr><td><span class="badge badge-danger">Security</span></td><td><code>python cherm.py sec &lt;target&gt;</code></td><td>File / Dir</td><td>OWASP static vulnerability scan (SQLi, CMDi, XSS, SSRF, Path Traversal).</td></tr>
+                        <tr><td><span class="badge badge-danger">Security</span></td><td><code>python cherm.py secrets &lt;target&gt;</code></td><td>File / Dir</td><td>Shannon entropy &amp; pattern scanner for API keys, passwords, JWT tokens.</td></tr>
+                        <tr><td><span class="badge badge-danger">Security</span></td><td><code>python cherm.py pentest &lt;target&gt;</code></td><td>File / Dir</td><td>Automated security orchestration executing Bandit, Semgrep, and Safety.</td></tr>
+                        <tr><td><span class="badge badge-danger">Security</span></td><td><code>python cherm.py crypto &lt;file&gt;</code></td><td>File</td><td>SHA-256 integrity check, timing attacks, unsalted password hashes.</td></tr>
+                        <tr><td><span class="badge badge-warning">Architecture</span></td><td><code>python cherm.py design &lt;target&gt;</code></td><td>File / Dir</td><td>Audit for BOLA/IDOR, DB connection pool leaks, missing rollbacks, CORS.</td></tr>
+                        <tr><td><span class="badge badge-warning">Architecture</span></td><td><code>python cherm.py race &lt;file&gt;</code></td><td>File</td><td>Concurrency multi-tap &amp; TOCTOU double-spend hazard detector.</td></tr>
+                        <tr><td><span class="badge badge-warning">Architecture</span></td><td><code>python cherm.py ml &lt;file&gt;</code></td><td>File</td><td>Machine learning AST structural anomaly scoring (Isolation Forest) &amp; Halstead metrics.</td></tr>
+                        <tr><td><span class="badge badge-warning">Architecture</span></td><td><code>python cherm.py check &lt;target&gt;</code></td><td>File / Dir</td><td>Deterministic all-in-one check (syntax, security, secrets, deadcode).</td></tr>
+                        <tr><td><span class="badge badge-warning">Architecture</span></td><td><code>python cherm.py audit &lt;target&gt;</code></td><td>File / Dir</td><td>Deep architectural &amp; concurrency audit with project Health Grade (--report).</td></tr>
+                        <tr><td><span class="badge badge-neutral">Utilities</span></td><td><code>python cherm.py urls &lt;target&gt;</code></td><td>File / Dir</td><td>Discover HTTP/API endpoints and verify network connectivity.</td></tr>
+                        <tr><td><span class="badge badge-neutral">Utilities</span></td><td><code>python cherm.py diff &lt;f1&gt; [f2]</code></td><td>Files</td><td>Terminal unified diff viewer against Git HEAD or baseline file.</td></tr>
+                        <tr><td><span class="badge badge-neutral">Utilities</span></td><td><code>python cherm.py git [args]</code></td><td>Workspace</td><td>Interactive terminal Git command center (status, log, diff, commit).</td></tr>
+                        <tr><td><span class="badge badge-neutral">Utilities</span></td><td><code>python cherm.py report &lt;target&gt;</code></td><td>File / Dir</td><td>Generate visual standalone HTML audit report dashboard (--open).</td></tr>
+                        <tr><td><span class="badge badge-success">Extensions</span></td><td><code>python cherm.py ext list</code></td><td>Global</td><td>List all connected external CLI tools and software commands.</td></tr>
+                        <tr><td><span class="badge badge-success">Extensions</span></td><td><code>python cherm.py ext run &lt;id&gt; [file]</code></td><td>Target</td><td>Execute connected external tool with template variable interpolation.</td></tr>
+                        <tr><td><span class="badge badge-success">Extensions</span></td><td><code>python cherm.py &lt;custom_id&gt; [args]</code></td><td>Target</td><td>Run any registered external tool directly as a top-level command alias.</td></tr>
+                        <tr><td><span class="badge badge-accent">AI Bridge</span></td><td><code>python cherm.py mcp</code></td><td>Stdio</td><td>Start FastMCP AI server for Claude Desktop, Cursor, Antigravity.</td></tr>
+                        <tr><td><span class="badge badge-neutral">TUI</span></td><td><code>python cherm.py gui [file]</code></td><td>File / Dir</td><td>Launch interactive curses Terminal Companion with keyboard navigation.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div style="margin-top: 2rem;">
                 <label for="p-how" class="btn">See How It Works →</label>
                 <label for="p-quickstart" class="btn btn-outline" style="margin-left: 0.5rem;">60-Second Quickstart</label>
@@ -850,7 +894,7 @@
             <h3>2. Launch the Web GUI (Recommended)</h3>
             <p>Start the minimalist Web GUI on port 3690:</p>
             <pre><code>python checkinterminal/cherm_gui.py --port 3690</code></pre>
-            <p>Open <a href="http://localhost:3690" target="_blank"><strong>http://localhost:3690</strong></a> in your browser. Drag and drop any project folder or single file to view the instant health audit.</p>
+            <p>Start the local dashboard with <code>python cherm.py web</code>, which automatically opens <code>http://localhost:3690</code> in your default browser. Drag and drop any project folder or single file to view the instant health audit.</p>
 
             <h3>3. Connect to Claude Desktop or Cursor (MCP)</h3>
             <p>Add Cherm to your <code>claude_desktop_config.json</code> or Cursor MCP settings:</p>
@@ -866,7 +910,10 @@
 
             <h3>4. Run the Terminal Companion (TUI)</h3>
             <p>If you prefer working strictly in your terminal or over SSH:</p>
-            <pre><code>python checkinterminal/cherm.py</code></pre>
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Launch Command</div>
+                <pre><code>python cherm.py gui [file]</code></pre>
+            </div>
             <p>Use your arrow keys to navigate files, press <strong>ENTER</strong> to open the action menu, and audit instantly.</p>
         </div>
 
@@ -1143,12 +1190,12 @@ python cherm.py gui src/auth.py</code></pre>
                 </div>
             </div>
 
-            <h3>Running the GUI</h3>
+            <h3>Running the Dashboard</h3>
             <pre><code># Start on default port 3690:
-python checkinterminal/cherm_gui.py
+python cherm.py web
 
 # Specify a custom port or headless mode:
-python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
+python cherm.py web --port 3690 --no-browser</code></pre>
         </div>
 
         <!-- ================================================================
@@ -1418,6 +1465,15 @@ python cherm.py git log -n 5 --oneline</code></pre>
             <h2>AI Model Context Protocol (MCP) Server</h2>
             <p class="tagline">Turn Claude, Cursor, Antigravity, and Gemini into rigorous code quality auditors.</p>
 
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Launch Command</div>
+                <pre><code># Standard stdio mode (for Claude Desktop, Cursor, Antigravity)
+python cherm.py mcp
+
+# Network SSE mode
+python cherm.py mcp --sse --port 8000</code></pre>
+            </div>
+
             <p>LLMs are notoriously prone to generating subtle concurrency race conditions, unpooled database connections, and event loop bottlenecks. While an LLM might generate code that *looks* right, Cherm gives your AI assistant deterministic local tools to test its own code before showing it to you.</p>
 
             <h3>The 11 FastMCP Tools</h3>
@@ -1471,7 +1527,10 @@ python cherm.py git log -n 5 --oneline</code></pre>
                 <li><strong>Shadow Copy Sandbox:</strong> All executions and tests run inside isolated temporary files, protecting your original code.</li>
             </ul>
 
-            <pre><code>python checkinterminal/cherm.py</code></pre>
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Launch Command</div>
+                <pre><code>python cherm.py gui [file]</code></pre>
+            </div>
         </div>
 
         <!-- ================================================================
@@ -1480,6 +1539,11 @@ python cherm.py git log -n 5 --oneline</code></pre>
         <div id="pg-concurrency" class="page">
             <h2>Concurrency &amp; Multi-Tap Attacks</h2>
             <p class="tagline">How Cherm detects double-spending, inventory depletion, and duplicate mutation vulnerabilities.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py race &lt;file&gt; [--json]</code></pre>
+            </div>
 
             <div class="flaw-box">
                 <div class="flaw-header">
@@ -1509,6 +1573,11 @@ python cherm.py git log -n 5 --oneline</code></pre>
         <div id="pg-sysdesign" class="page">
             <h2>System Design &amp; Scaling Flaws</h2>
             <p class="tagline">Catches architectural bottlenecks that work in development but crash in production under load.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py design &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="flaw-box">
                 <div class="flaw-header">
@@ -1553,6 +1622,14 @@ engine = create_engine(url, pool_size=20, max_overflow=10)</code></pre>
             <h2>Node.js &amp; Next.js Antipatterns</h2>
             <p class="tagline">Dedicated static analysis for modern JavaScript, TypeScript, and Next.js full-stack applications.</p>
 
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Commands</div>
+                <pre><code># Run complete security &amp; architecture audit across Next.js / Node.js
+python cherm.py check ./src
+python cherm.py sec ./src
+python cherm.py audit ./src --report</code></pre>
+            </div>
+
             <div class="flaw-box">
                 <div class="flaw-header">
                     <span class="badge badge-danger">[NODEJS-PERF] Event Loop Starvation</span>
@@ -1594,6 +1671,11 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
             <h2>Shannon Entropy Secret Scanner</h2>
             <p class="tagline">Mathematical entropy analysis to discover exposed API keys, private tokens, and credentials.</p>
 
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py secrets &lt;file|dir&gt; [--json]</code></pre>
+            </div>
+
             <p>Traditional regex-based secret scanners look for patterns like <code>api_key = "..."</code>. But developers frequently name secrets <code>token</code>, <code>hash</code>, <code>auth</code>, or pass them bare into function calls.</p>
 
             <p>Cherm uses <strong>Shannon Information Entropy</strong> to measure the unpredictability of every string literal in your code:</p>
@@ -1623,8 +1705,12 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
     ================================================================ -->
         <div id="pg-shadow" class="page">
             <h2>Shadow Copy Architecture</h2>
-            <p class="tagline">How Cherm silently protects your original source code during every analysis operation.
-            </p>
+            <p class="tagline">How Cherm silently protects your original source code during every analysis operation.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">Isolated Companion Sandbox</div>
+                <pre><code>python cherm.py gui [file]</code></pre>
+            </div>
 
             <h3>The Problem: Why Analysis Tools Need Isolation</h3>
             <p>When you run any external analysis tool on a file, you are trusting that tool to be perfectly
@@ -1811,8 +1897,12 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
     ================================================================ -->
         <div id="pg-speed" class="page">
             <h2>Speed &amp; Complexity Test</h2>
-            <p class="tagline">A two-phase analysis estimating algorithmic Big-O complexity through AST analysis,
-                combined with a real runtime execution benchmark.</p>
+            <p class="tagline">A two-phase analysis estimating algorithmic Big-O complexity through AST analysis, combined with a real runtime execution benchmark.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py complexity &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2046,9 +2136,18 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
          CROSSCHECK V200
     ================================================================ -->
         <div id="pg-crosscheck" class="page">
-            <h2>CrossCheckV200 Test Engine</h2>
-            <p class="tagline">Automated function-level fuzz testing — finds edge-case crashes in your Python functions
-                without you writing a single test case.</p>
+            <h2>CrossCheckV200 Test Engine &amp; CP Runner</h2>
+            <p class="tagline">Automated function-level fuzz testing and Competitive Programming (CP) testcase verification.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Commands</div>
+                <pre><code># Competitive Programming (CP) test runner with inX.txt / outX.txt
+python cherm.py cp solution.cpp
+python cherm.py cp solution.py
+
+# Function boundary fuzzer with dynamic mock arguments
+python cherm.py fuzz src/parser.py</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2247,8 +2346,12 @@ def parse_age(text: str) -> int:
     ================================================================ -->
         <div id="pg-deadcode" class="page">
             <h2>Find Dead Code</h2>
-            <p class="tagline">Detect variables, functions, and logic blocks that exist in your file but can never be
-                reached or used.</p>
+            <p class="tagline">Detect variables, functions, and logic blocks that exist in your file but can never be reached or used.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py deadcode &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2391,8 +2494,12 @@ def helper_v2():  # The current implementation
     ================================================================ -->
         <div id="pg-magic" class="page">
             <h2>Detect Magic Numbers</h2>
-            <p class="tagline">Find raw numerical constants embedded in logic that should be extracted into named,
-                self-documenting constant variables.</p>
+            <p class="tagline">Find raw numerical constants embedded in logic that should be extracted into named, self-documenting constant variables.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py magic &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2530,8 +2637,12 @@ IMPAIRED_MOVE_SPEED  = 2.0   # units per frame when low health</pre>
     ================================================================ -->
         <div id="pg-stats" class="page">
             <h2>View File Statistics</h2>
-            <p class="tagline">Instant quantitative metrics on file size, line density, and documentation health — a
-                fast health check for any source file.</p>
+            <p class="tagline">Instant quantitative metrics on file size, line density, and documentation health — a fast health check for any source file.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py stats &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2628,8 +2739,12 @@ IMPAIRED_MOVE_SPEED  = 2.0   # units per frame when low health</pre>
     ================================================================ -->
         <div id="pg-pentest" class="page">
             <h2>Full Security Pentest</h2>
-            <p class="tagline">An orchestrated multi-tool security sweep using Bandit, Semgrep, and Safety — the
-                professional Python security toolkit.</p>
+            <p class="tagline">An orchestrated multi-tool security sweep using Bandit, Semgrep, and Safety — the professional Python security toolkit.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py pentest &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2759,8 +2874,12 @@ IMPAIRED_MOVE_SPEED  = 2.0   # units per frame when low health</pre>
     ================================================================ -->
         <div id="pg-owasp" class="page">
             <h2>Security Audit (OWASP)</h2>
-            <p class="tagline">A zero-dependency, instant regex-based audit for the most critical web application
-                vulnerability patterns — no pip installs required.</p>
+            <p class="tagline">A zero-dependency, instant regex-based audit for the most critical web application vulnerability patterns — no pip installs required.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py sec &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -2915,8 +3034,12 @@ def hash_pw(password):
     ================================================================ -->
         <div id="pg-secrets" class="page">
             <h2>Scan for Secrets</h2>
-            <p class="tagline">Detect hardcoded API keys, passwords, and credentials in source code before they are
-                committed to version control.</p>
+            <p class="tagline">Detect hardcoded API keys, passwords, and credentials in source code before they are committed to version control.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py secrets &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3124,8 +3247,12 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-exec" class="page">
             <h2>Execute File / Run</h2>
-            <p class="tagline">Run your code directly from the Cherm file browser with full interactive terminal support
-                — no context switching required.</p>
+            <p class="tagline">Run your code directly from the Cherm file browser with full interactive terminal support — no context switching required.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py &lt;file&gt;</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3274,8 +3401,12 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-api" class="page">
             <h2>API Status Scanner</h2>
-            <p class="tagline">Extract every URL from your source file and fire concurrent HTTP health checks to verify
-                which endpoints are alive and responsive.</p>
+            <p class="tagline">Extract every URL from your source file and fire concurrent HTTP health checks to verify which endpoints are alive and responsive.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Command</div>
+                <pre><code>python cherm.py urls &lt;file|dir&gt; [--json]</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3380,8 +3511,14 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-view" class="page">
             <h2>View Raw File</h2>
-            <p class="tagline">A lightweight, integrated terminal pager for reading any text file directly within the
-                Cherm UI without invoking an external editor.</p>
+            <p class="tagline">A lightweight, integrated terminal pager for reading any text file directly within the Cherm UI without invoking an external editor.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">TUI &amp; Terminal Usage</div>
+                <pre><code># Inside TUI: Select file -> General File Tools -> View Raw File
+# Or inspect unified differences via CLI:
+python cherm.py diff &lt;file&gt;</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3467,8 +3604,12 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-copy" class="page">
             <h2>Copy Path to Clipboard</h2>
-            <p class="tagline">Instantly copy the absolute path of any file to your OS clipboard directly from the Cherm
-                file browser.</p>
+            <p class="tagline">Instantly copy the absolute path of any file to your OS clipboard directly from the Cherm file browser.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">TUI Usage</div>
+                <pre><code># Inside TUI: Select file -> General File Tools -> Copy Path to Clipboard (or press B to bookmark)</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3576,8 +3717,14 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-gitcmd" class="page">
             <h2>Git Command Center</h2>
-            <p class="tagline">Stage files, write commit messages, and restore changes — directly from the Cherm file
-                browser without opening a separate terminal.</p>
+            <p class="tagline">Stage files, write commit messages, and restore changes — directly from the Cherm file browser without opening a separate terminal.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Commands</div>
+                <pre><code>python cherm.py git status -s
+python cherm.py git log -n 5 --oneline
+python cherm.py git diff</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
@@ -3702,8 +3849,19 @@ ANOTHER  = config.get("api.key")</pre>
     ================================================================ -->
         <div id="pg-diff" class="page">
             <h2>File Diff Viewer</h2>
-            <p class="tagline">Review exactly what changed in a file compared to the last commit — a visual pre-commit
-                code review tool built into Cherm.</p>
+            <p class="tagline">Review exactly what changed in a file compared to the last commit — a visual pre-commit code review tool built into Cherm.</p>
+
+            <div class="code-box" style="margin: 1.5rem 0;">
+                <div class="code-label">CLI Terminal Commands</div>
+                <pre><code># Compare file against Git HEAD
+python cherm.py diff &lt;file&gt;
+
+# Compare two arbitrary files side-by-side
+python cherm.py diff &lt;file1&gt; &lt;file2&gt;
+
+# Full git repository working tree diff
+python cherm.py diff</code></pre>
+            </div>
 
             <div class="prereq-box">
                 <h4>What you must understand before using this</h4>
