@@ -31,7 +31,7 @@ Cherm operates across three flexible modalities:
 
 ---
 
-## 📸 Snapshots & UI Tour
+## Snapshots & UI Tour
 
 ### 1. Interactive Terminal Companion (TUI)
 *Runs fully offline inside your terminal with zero IDE lag, instant keyboard navigation, and shadow copy safety.*
@@ -71,15 +71,15 @@ Cherm operates across three flexible modalities:
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐     │
-│                     [ 📁 Drag & Drop File OR Full Folder ]                   │
+│                     [ Drag & Drop File OR Full Folder ]                   │
 │                                                                              │
 │             Drop any single file or drag an entire project folder            │
-│            [ 📄 Browse Single File ]     [ 📁 Browse Full Folder ]           │
+│            [ Browse Single File ]     [ Browse Full Folder ]           │
 │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘     │
 │                                                                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│  📁 PROJECT: my-next-app (16 code files • 2,410 lines • 120 KB)              │
-│  [ ⚡ Run Full Project Audit (16 files) ]                                     │
+│  PROJECT: my-next-app (16 code files • 2,410 lines • 120 KB)              │
+│  [ Run Full Project Audit (16 files) ]                                     │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  PROJECT GRADE: [ GRADE A ]   Status: 16/16 Files Clean • PASS               │
 │  • Files Audited: 16     • Vulnerable Files: 0     • Total Issues: 0         │
@@ -94,7 +94,7 @@ Cherm operates across three flexible modalities:
 
 ---
 
-## 🧠 The 3-Stage Hybrid Review Pipeline
+## The 3-Stage Hybrid Review Pipeline
 
 Cherm combines deterministic static rules with external AI agent verification through the **Model Context Protocol (MCP)**:
 
@@ -135,7 +135,7 @@ flowchart TD
 
 ---
 
-## ⚡ Three Primary Modalities & Quick Start
+## Three Primary Modalities & Quick Start
 
 ### 1. GUI Mode (Terminal Companion)
 Launch the interactive full-terminal companion:
@@ -146,7 +146,7 @@ python cherm.py gui
 # Or launch directly targeted at a file
 python cherm.py gui src/auth.py
 ```
-*(For complete keyboard shortcuts, screen walkthroughs, and in-app menu breakdowns, see the [Terminal Companion (TUI) User Manual](#️-terminal-companion-tui-user-manual--in-app-commands) below.)*
+*(For complete keyboard shortcuts, screen walkthroughs, and in-app menu breakdowns, see the [Terminal Companion (TUI) User Manual](#-terminal-companion-tui-user-manual--in-app-commands) below.)*
 
 ---
 
@@ -251,7 +251,7 @@ Every individual inspection feature in Cherm is available as a standalone first-
 
 ---
 
-### 📖 Complete Command Reference Manual
+### Complete Command Reference Manual
 
 #### 1. Code Quality & Complexity Commands
 
@@ -511,7 +511,7 @@ Any registered command ID can also be run directly as a top-level command alias:
 
 ---
 
-## 🤖 MCP AI Agent Configuration
+## MCP AI Agent Configuration
 
 Add Cherm to your AI assistant's configuration file:
 
@@ -541,7 +541,7 @@ Add Cherm to your AI assistant's configuration file:
 
 ---
 
-## 🛠️ The 11 Cherm MCP Tools
+## The 11 Cherm MCP Tools
 
 | Tool Name | Scope & Detection Capabilities |
 | :--- | :--- |
@@ -559,7 +559,7 @@ Add Cherm to your AI assistant's configuration file:
 
 ---
 
-## 🛡️ Core Analysis Features
+## Core Analysis Features
 
 ### Security & Penetration Testing
 * **Full Pentest Suite:** Orchestrates `bandit` (Python deep scan), `semgrep` (multi-language security rules), and `safety` (dependency CVE check).
@@ -584,7 +584,7 @@ Add Cherm to your AI assistant's configuration file:
 
 ---
 
-## 🌐 Supported Languages & Ecosystems
+## Supported Languages & Ecosystems
 
 Cherm provides native syntax validation, structure mapping, AST inspection, and security checks across:
 * **Python**: Python 3.8+ (`.py`, `.pyw`) with AST parsing, Bandit, Semgrep, and Dead Code detection.
@@ -595,7 +595,7 @@ Cherm provides native syntax validation, structure mapping, AST inspection, and 
 
 ---
 
-## 📥 Download & Installation (Install Like a Language Package)
+## Download & Installation (Install Like a Language Package)
 
 Cherm can be installed or downloaded in multiple ways depending on your development workflow:
 
@@ -643,7 +643,7 @@ Cherm operates fully offline with native AST inspection. When language tools are
 
 ---
 
-## 🖥️ Terminal Companion (TUI) User Manual & In-App Commands
+## Terminal Companion (TUI) User Manual & In-App Commands
 
 Cherm's Terminal Companion (TUI) is an interactive, curses-based developer environment engineered to run offline in any terminal or remote SSH session with zero UI lag and shadow-copy safety.
 
@@ -750,7 +750,7 @@ python cherm.py gui src/auth.py
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the **MIT License**. See `LICENSE` for details.
-Built with ❤️ by [Subhajit Das](https://github.com/subhajit-io).
+Built with dedication by [Subhajit Das](https://github.com/subhajit-io).

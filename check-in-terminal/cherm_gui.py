@@ -891,7 +891,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
                             <div id="file-stats" class="file-stats">0 Bytes • 0 lines</div>
                         </div>
                     </div>
-                    <button class="btn-clear" onclick="clearLoadedTarget()">✕ Remove</button>
+                    <button class="btn-clear" onclick="clearLoadedTarget()">Remove</button>
                 </div>
 
                 <div class="preview-box" id="code-preview"></div>
@@ -914,7 +914,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
                             <div id="folder-stats" class="file-stats">0 files • 0 lines</div>
                         </div>
                     </div>
-                    <button class="btn-clear" onclick="clearLoadedTarget()">✕ Remove</button>
+                    <button class="btn-clear" onclick="clearLoadedTarget()">Remove</button>
                 </div>
 
                 <div class="folder-toolbar">
@@ -1025,7 +1025,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span id="bridge-console-status" style="font-size:11px; padding:2px 6px; border-radius:4px; background:#1e293b;"></span>
                         <span id="bridge-console-time" style="font-size:11px; color:#94a3b8;"></span>
-                        <button type="button" onclick="document.getElementById('bridge-console-box').style.display='none'" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">✕</button>
+                        <button type="button" onclick="document.getElementById('bridge-console-box').style.display='none'" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">&times;</button>
                     </div>
                 </div>
                 <pre id="bridge-console-output" style="white-space:pre-wrap; word-break:break-all; max-height:260px; overflow-y:auto; line-height:1.4; color:#e2e8f0;"></pre>
@@ -1815,7 +1815,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
             body.id = 'file-detail-' + idx;
 
             if (!f.findings || f.findings.length === 0) {
-                body.innerHTML = '<div style="color:var(--success); font-size:12px;">✓ Clean file — no architectural flaws or code smells found.</div>';
+                body.innerHTML = '<div style="color:var(--success); font-size:12px;">Clean file — no architectural flaws or code smells found.</div>';
             } else {
                 f.findings.forEach(find => {
                     const item = document.createElement('div');
@@ -1914,7 +1914,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
                     </div>
                     <div>
                         <button type="button" class="btn-check" style="padding:6px 14px; font-size:12px;" onclick="runBridgeCommand('${escapeHtml(c.id)}')">
-                            ⚡ Run Command
+                            Run Command
                         </button>
                     </div>
                 </div>`;

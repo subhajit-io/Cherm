@@ -678,14 +678,14 @@
 
         <p class="nav-cat">Start Here</p>
         <label for="p-home">What is Cherm?</label>
-        <label for="p-cli" style="color: var(--accent); font-weight: 700;">⚡ All Commands List</label>
+        <label for="p-cli" style="color: var(--accent); font-weight: 700;">All Commands List</label>
         <label for="p-how">How It Works</label>
         <label for="p-quickstart">60-Second Quickstart</label>
-        <label for="p-download">📥 Download &amp; Install</label>
+        <label for="p-download">Download &amp; Install</label>
 
         <p class="nav-cat">The 3 Modalities &amp; Interfaces</p>
         <label for="p-terminal">Terminal Companion (GUI)</label>
-        <label for="p-tuimanual">📖 TUI Commands User Manual</label>
+        <label for="p-tuimanual">TUI Commands User Manual</label>
         <label for="p-webgui">Web GUI (Port 3690)</label>
         <label for="p-cli">Command-Line Engine (CLI)</label>
         <label for="p-mcp">AI FastMCP Server (11 Tools)</label>
@@ -789,7 +789,7 @@
                 <strong>AI FastMCP Server (11 Tools):</strong> Cherm also runs as a zero-token FastMCP bridge (<code>python cherm.py mcp</code>) for Claude Desktop, Cursor, Antigravity, and Gemini to audit code before writing to disk.
             </div>
 
-            <h3>⚡ Complete Terminal Commands Reference (Direct Execution)</h3>
+            <h3>Complete Terminal Commands Reference (Direct Execution)</h3>
             <p>Every single check and feature in Cherm runs directly from your terminal. No local web dashboard, background server, or browser redirects are required:</p>
 
             <div class="table-container" style="margin: 1.5rem 0;">
@@ -988,7 +988,7 @@ python cherm.py</code></pre>
              TUI COMMANDS USER MANUAL
         ================================================================ -->
         <div id="pg-tuimanual" class="page">
-            <h2>📖 Terminal Companion (TUI) User Manual &amp; In-App Commands</h2>
+            <h2>Terminal Companion (TUI) User Manual &amp; In-App Commands</h2>
             <p class="tagline">The complete operational guide for using Cherm inside your terminal with keyboard navigation.</p>
 
             <p>Cherm's Terminal Companion (TUI) is an interactive, curses-based environment designed to run offline on any terminal or remote SSH session with zero UI lag and shadow-copy safety.</p>
@@ -1820,72 +1820,72 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
                 <tbody>
                     <tr>
                         <td>Security Scan (OWASP)</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>Read-only analysis. Shadow protects original.</td>
                     </tr>
                     <tr>
                         <td>Full Security Pentest</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>External tools (Bandit etc.) run on shadow path.</td>
                     </tr>
                     <tr>
                         <td>CrossCheckV200</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>Dynamic import runs on shadow to avoid locking original.</td>
                     </tr>
                     <tr>
                         <td>Speed &amp; Complexity</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>AST parsing on shadow. Runtime test also uses shadow path.</td>
                     </tr>
                     <tr>
                         <td>Dead Code Detector</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>AST parsing only, shadow used.</td>
                     </tr>
                     <tr>
                         <td>Scan Functions</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>AST parsing only, shadow used.</td>
                     </tr>
                     <tr>
                         <td>Scan for Secrets</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>Text scan on shadow.</td>
                     </tr>
                     <tr>
                         <td>API Status Scanner</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>Text scan on shadow.</td>
                     </tr>
                     <tr>
                         <td>View Raw File</td>
-                        <td>❌ No</td>
+                        <td>No</td>
                         <td>Read-only display of original. No risk.</td>
                     </tr>
                     <tr>
                         <td>File Statistics</td>
-                        <td>✅ Yes</td>
+                        <td>Yes</td>
                         <td>Line counting on shadow.</td>
                     </tr>
                     <tr>
                         <td>Execute File</td>
-                        <td>❌ No</td>
+                        <td>No</td>
                         <td>Must run the real file. Relative imports and data files need original's location.</td>
                     </tr>
                     <tr>
                         <td>Git Operations</td>
-                        <td>❌ No</td>
+                        <td>No</td>
                         <td>Git tracks the real path. Operating on shadow would corrupt the repo.</td>
                     </tr>
                     <tr>
                         <td>File Diff Viewer</td>
-                        <td>❌ No</td>
+                        <td>No</td>
                         <td>Git comparison needs the real path for <code>git show HEAD:[path]</code>.</td>
                     </tr>
                     <tr>
                         <td>Copy Path to Clipboard</td>
-                        <td>❌ No</td>
+                        <td>No</td>
                         <td>You want the real path on your clipboard, not the temp path.</td>
                     </tr>
                 </tbody>
@@ -2109,7 +2109,7 @@ const secret = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY;</code></pre>
                 debugging — simpler code is faster to debug and safer to modify.</p>
 
             <div class="alert alert-warn">
-                <strong>⚠️ Key Limitation: Only Worst-Case Structural Depth is Measured</strong>
+                <strong>[Warning] Key Limitation: Only Worst-Case Structural Depth is Measured</strong>
                 Cherm counts loop nesting depth by AST structure. It does not analyze what the loop bound evaluates to
                 at runtime. A nested loop where the inner loop runs exactly 3 times regardless of input size will still
                 be flagged as O(N²) because structurally it has 2 levels of nesting. You must apply your own reasoning
@@ -2308,7 +2308,7 @@ def parse_age(text: str) -> int:
             </ul>
 
             <div class="alert alert-warn">
-                <strong>⚠️ Critical Limitation: Crash Detection, Not Correctness</strong>
+                <strong>[Warning] Critical Limitation: Crash Detection, Not Correctness</strong>
                 CrossCheckV200 verifies that your functions don't <em>crash</em>. It does NOT verify they return
                 <em>correct</em> results. A function that always returns <code>42</code> regardless of input will pass
                 all 202 test cases because it never raises an exception. A sorting function that sorts in reverse order
@@ -2464,7 +2464,7 @@ def helper_v2():  # The current implementation
             </ol>
 
             <div class="alert alert-danger">
-                <strong>⚠️ HIGH FALSE POSITIVE RISK — Always Search Across All Files First</strong>
+                <strong>[Warning] HIGH FALSE POSITIVE RISK — Always Search Across All Files First</strong>
                 The dead code detector only analyzes the current file. It has no visibility into other files in your
                 project. A function defined in <code>utils.py</code> that is imported and used in <code>app.py</code>,
                 <code>tests.py</code>, and <code>handlers.py</code> will still be flagged as "never called" because
@@ -2975,7 +2975,7 @@ def hash_pw(password):
             </div>
 
             <div class="alert alert-warn">
-                <strong>⚠️ Regex Limitations — Understand False Positives and Negatives</strong>
+                <strong>[Warning] Regex Limitations — Understand False Positives and Negatives</strong>
                 The OWASP audit uses regex to match text patterns. It does NOT understand code context.
                 <br><br>
                 <strong>False Positive example:</strong> <code>query = "SELECT " + column_name</code> where
@@ -3199,7 +3199,7 @@ ANOTHER  = config.get("api.key")</pre>
             </ol>
 
             <div class="alert alert-danger">
-                <strong>⚠️ IF THE SECRET WAS ALREADY PUSHED TO GITHUB — ROTATE IMMEDIATELY</strong>
+                <strong>[Warning] IF THE SECRET WAS ALREADY PUSHED TO GITHUB — ROTATE IMMEDIATELY</strong>
                 Deleting the secret from your current file and committing the deletion is NOT sufficient. Git history
                 preserves every version of every file. Anyone who knows to look can find the secret using
                 <code>git log -p</code> or by browsing to an old commit on GitHub. The only correct response is:
@@ -3360,7 +3360,7 @@ ANOTHER  = config.get("api.key")</pre>
             </p>
 
             <div class="alert alert-info">
-                <strong>ℹ️ Execution Uses the REAL file, not the shadow copy</strong>
+                <strong>[Note] Execution Uses the REAL file, not the shadow copy</strong>
                 Unlike all analysis tools, the Execute feature runs your original source file directly, not the shadow
                 copy. This is correct behavior — your program needs to be in its real location on disk so that relative
                 file paths, local imports, and configuration file references all resolve correctly. Shadow copies are in
@@ -3498,7 +3498,7 @@ ANOTHER  = config.get("api.key")</pre>
             </ul>
 
             <div class="alert alert-warn">
-                <strong>⚠️ Authentication-Protected Endpoints</strong>
+                <strong>[Warning] Authentication-Protected Endpoints</strong>
                 The scanner fires unauthenticated GET requests. Endpoints that require API keys in headers or JWT tokens
                 in Authorization headers will return 401 or 403. These are not broken — they are correctly rejecting an
                 unauthorized request. A 401 from an API endpoint is actually a positive health signal: it confirms the
@@ -3574,7 +3574,7 @@ python cherm.py diff &lt;file&gt;</code></pre>
                 within the file at all times.</p>
 
             <div class="alert alert-info">
-                <strong>ℹ️ Binary Files Will Display Garbage</strong>
+                <strong>[Note] Binary Files Will Display Garbage</strong>
                 If you accidentally open a compiled binary, a compressed archive, an image, or any other non-text file
                 with the Raw File Viewer, the terminal will display the binary data interpreted as text characters —
                 mostly garbled noise and control characters. This is harmless (it won't crash Cherm or corrupt
@@ -3817,7 +3817,7 @@ python cherm.py git diff</code></pre>
             </ul>
 
             <div class="alert alert-warn">
-                <strong>⚠️ The file must be inside a Git repository</strong>
+                <strong>[Warning] The file must be inside a Git repository</strong>
                 All Git operations require a <code>.git</code> directory to exist in the file's directory or any parent
                 directory in the path. If you run a Git operation on a file outside of a Git repository, the
                 <code>git</code> command will fail and Cherm will display the error output from Git. Initialize a
