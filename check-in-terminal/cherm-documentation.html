@@ -988,6 +988,121 @@ python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
             <pre><code>python cherm.py sec src/auth.py --json
 python cherm.py check ./src --json
 python cherm.py audit ./src --json</code></pre>
+
+            <h3>Command-by-Command Deep Dive</h3>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-accent">Code Quality &amp; Complexity</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>syntax &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Compiles Python bytecode with <code>py_compile</code> and parses JSON/AST without running code. Returns exit code <code>0</code> on success and <code>1</code> if any file contains syntax errors.</p>
+                    <pre><code>python cherm.py syntax src/main.py
+python cherm.py syntax ./src --json</code></pre>
+
+                    <h4><code>complexity &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Estimates Big-O time complexity ($O(1), O(N), O(N^2), O(N^k)$) by tracking loop nesting depth, cyclomatic score, and heap allocation patterns.</p>
+                    <pre><code>python cherm.py complexity src/algorithms.py</code></pre>
+
+                    <h4><code>deadcode &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">AST tree inspection identifying functions, variables, and branches that are declared but never invoked across the module.</p>
+                    <pre><code>python cherm.py deadcode src/utils.py</code></pre>
+
+                    <h4><code>magic &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Scans expressions for bare numeric literals and unassigned magic constants that harm readability and maintainability.</p>
+                    <pre><code>python cherm.py magic src/pricing.py</code></pre>
+
+                    <h4><code>stats &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Reports physical lines, code lines, blank lines, comment ratio (%), byte sizes, and vocabulary density.</p>
+                    <pre><code>python cherm.py stats src/main.py</code></pre>
+
+                    <h4><code>scan &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Extracts and indexes all declared functions, classes, interfaces, types, and module exports.</p>
+                    <pre><code>python cherm.py scan src/models.py</code></pre>
+
+                    <h4><code>fuzz &lt;file.py&gt;</code></h4>
+                    <p class="flaw-text">CrossCheckV200 input boundary fuzzer injecting mock edge-case values (null, extremes, floats, overflows) against function parameter signatures.</p>
+                    <pre><code>python cherm.py fuzz src/parser.py</code></pre>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-danger">Security &amp; Penetration Testing</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>sec &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Zero-dependency OWASP vulnerability scanner checking SQL Injection, Command Injection (<code>os.system</code>, <code>shell=True</code>), XSS, Path Traversal, SSRF, and Insecure Deserialization.</p>
+                    <pre><code>python cherm.py sec src/api/endpoints.py
+python cherm.py sec ./src --json</code></pre>
+
+                    <h4><code>secrets &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Detects hardcoded secrets, private keys, AWS access keys, GitHub tokens, and JWT credentials using Shannon entropy and pattern matching.</p>
+                    <pre><code>python cherm.py secrets src/config.py</code></pre>
+
+                    <h4><code>pentest &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Automated security orchestration executing Bandit (Python AST scan), Semgrep (multi-language rules), and Safety (CVE package checks).</p>
+                    <pre><code>python cherm.py pentest ./src</code></pre>
+
+                    <h4><code>crypto &lt;file&gt;</code></h4>
+                    <p class="flaw-text">Cryptographic auditor computing deterministic SHA-256 checksums, verifying tamper baselines, and flagging timing attack hazards or weak ciphers.</p>
+                    <pre><code>python cherm.py crypto src/auth.py</code></pre>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-warning">Architecture &amp; System Design</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>design &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Scans for system design flaws: BOLA/IDOR object exposure, connection pool exhaustion, missing transaction rollbacks, and CORS wildcards.</p>
+                    <pre><code>python cherm.py design src/controllers/order.py</code></pre>
+
+                    <h4><code>race &lt;file&gt;</code></h4>
+                    <p class="flaw-text">Simulates rapid parallel multi-tapping (50 simultaneous clicks in 1.0s) against state mutations to detect TOCTOU race conditions and missing DB locks.</p>
+                    <pre><code>python cherm.py race src/payment_processor.py</code></pre>
+
+                    <h4><code>ml &lt;file&gt;</code></h4>
+                    <p class="flaw-text">Machine learning AST structural anomaly scoring using Isolation Forest, Halstead software metrics, and defect propensity prediction.</p>
+                    <pre><code>python cherm.py ml src/core.py</code></pre>
+
+                    <h4><code>check &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">All-in-one deterministic check combining syntax, security, secrets, and deadcode checks in a single rapid pass.</p>
+                    <pre><code>python cherm.py check src/auth.py
+python cherm.py check ./src --syntax --security</code></pre>
+
+                    <h4><code>audit &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Deep multi-file architecture audit assessing overall project Health Grades (Grade A to F), fatal architectural flaws, and generating HTML reports.</p>
+                    <pre><code>python cherm.py audit ./src --report</code></pre>
+                </div>
+            </div>
+
+            <div class="flaw-box">
+                <div class="flaw-header">
+                    <span class="badge badge-accent">Utilities &amp; Diagnostics</span>
+                </div>
+                <div class="flaw-body">
+                    <h4><code>urls &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Extracts all API endpoints and URLs from source files and verifies server responsiveness with concurrent HTTP probes.</p>
+                    <pre><code>python cherm.py urls src/services/api_client.py</code></pre>
+
+                    <h4><code>diff [file1] [file2]</code></h4>
+                    <p class="flaw-text">Unified terminal diff viewer against Git HEAD or comparing two local files side-by-side.</p>
+                    <pre><code>python cherm.py diff src/auth.py
+python cherm.py diff file1.py file2.py</code></pre>
+
+                    <h4><code>git [args...]</code></h4>
+                    <p class="flaw-text">Direct terminal Git command center for fast workspace status, diffs, and commits.</p>
+                    <pre><code>python cherm.py git status -s
+python cherm.py git log -n 5 --oneline</code></pre>
+
+                    <h4><code>report &lt;file|dir&gt;</code></h4>
+                    <p class="flaw-text">Generates standalone visual HTML audit report dashboard (<code>cherm_audit_report.html</code>) with <code>--open</code> flag to launch directly in browser.</p>
+                    <pre><code>python cherm.py report ./src --open</code></pre>
+                </div>
+            </div>
         </div>
 
         <!-- ================================================================

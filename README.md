@@ -223,28 +223,267 @@ python cherm.py my_linter src/main.py
 ```
 
 #### E. Dedicated Feature CLI Commands
-Every individual inspection feature in Cherm is also available as a standalone first-class terminal command:
+Every individual inspection feature in Cherm is available as a standalone first-class terminal command:
 
-| Category | Command | Description |
-| :--- | :--- | :--- |
-| **Quality** | `python cherm.py syntax <file>` | Validate syntax & compilation without execution |
-| **Quality** | `python cherm.py complexity <file>` | Calculate Big-O time & space, cyclomatic complexity & nesting |
-| **Quality** | `python cherm.py deadcode <file>` | AST detection of uncalled functions & unused variables |
-| **Quality** | `python cherm.py magic <file>` | Scan for bare numeric literals / unexplained magic numbers |
-| **Quality** | `python cherm.py stats <file>` | Line count, code vs comments vs blank ratio, size, words |
-| **Quality** | `python cherm.py scan <file>` | Extract & index all defined functions, classes, exports & types |
-| **Quality** | `python cherm.py fuzz <file>` | CrossCheckV200 dynamic mock injection & input boundary fuzzer |
-| **Security** | `python cherm.py sec <target>` | OWASP static vulnerability detector (SQLi, XSS, Command Injection) |
-| **Security** | `python cherm.py secrets <target>` | Shannon entropy & pattern scanner for API keys, passwords & tokens |
-| **Security** | `python cherm.py pentest <target>` | Security orchestration with Bandit, Semgrep, and Safety |
-| **Security** | `python cherm.py crypto <file>` | SHA-256 integrity check, timing attacks, unsalted password hashes |
-| **Architecture** | `python cherm.py design <target>` | Audit for BOLA/IDOR, pool exhaustion, missing rollback, CORS |
-| **Architecture** | `python cherm.py race <file>` | Concurrency multi-tap & TOCTOU double-spend hazard detector |
-| **Architecture** | `python cherm.py ml <file>` | Machine learning AST structural anomaly scoring & Halstead metrics |
-| **Utilities** | `python cherm.py urls <target>` | Discover HTTP/API endpoints and verify responsiveness |
-| **Utilities** | `python cherm.py diff <f1> [f2]` | Unified terminal diff viewer against Git HEAD or baseline file |
-| **Utilities** | `python cherm.py git [args]` | Terminal Git command center |
-| **Utilities** | `python cherm.py report <target>` | Generate visual standalone HTML audit report dashboard (`--open`) |
+| Category | Command | Target | Description |
+| :--- | :--- | :--- | :--- |
+| **Quality** | `python cherm.py syntax <file>` | File or dir | Validate syntax & compilation without execution |
+| **Quality** | `python cherm.py complexity <file>` | File or dir | Calculate Big-O time & space, cyclomatic complexity & nesting |
+| **Quality** | `python cherm.py deadcode <file>` | File or dir | AST detection of uncalled functions & unused variables |
+| **Quality** | `python cherm.py magic <file>` | File or dir | Scan for bare numeric literals / unexplained magic numbers |
+| **Quality** | `python cherm.py stats <file>` | File or dir | Line count, code vs comments vs blank ratio, size, words |
+| **Quality** | `python cherm.py scan <file>` | File or dir | Extract & index all defined functions, classes, exports & types |
+| **Quality** | `python cherm.py fuzz <file>` | Python file | CrossCheckV200 dynamic mock injection & input boundary fuzzer |
+| **Security** | `python cherm.py sec <target>` | File or dir | OWASP static vulnerability detector (SQLi, XSS, Command Injection) |
+| **Security** | `python cherm.py secrets <target>` | File or dir | Shannon entropy & pattern scanner for API keys, passwords & tokens |
+| **Security** | `python cherm.py pentest <target>` | File or dir | Security orchestration with Bandit, Semgrep, and Safety |
+| **Security** | `python cherm.py crypto <file>` | File | SHA-256 integrity check, timing attacks, unsalted password hashes |
+| **Architecture** | `python cherm.py design <target>` | File or dir | Audit for BOLA/IDOR, pool exhaustion, missing rollback, CORS |
+| **Architecture** | `python cherm.py race <file>` | File | Concurrency multi-tap & TOCTOU double-spend hazard detector |
+| **Architecture** | `python cherm.py ml <file>` | File | Machine learning AST structural anomaly scoring & Halstead metrics |
+| **Architecture** | `python cherm.py check <target>` | File or dir | Deterministic all-in-one check (syntax, security, secrets, deadcode) |
+| **Architecture** | `python cherm.py audit <target>` | File or dir | Deep architectural & concurrency audit with optional `--report` |
+| **Utilities** | `python cherm.py urls <target>` | File or dir | Discover HTTP/API endpoints and verify responsiveness |
+| **Utilities** | `python cherm.py diff <f1> [f2]` | Files | Unified terminal diff viewer against Git HEAD or baseline file |
+| **Utilities** | `python cherm.py git [args]` | Workspace | Terminal Git command center |
+| **Utilities** | `python cherm.py report <target>` | File or dir | Generate visual standalone HTML audit report dashboard (`--open`) |
+
+---
+
+### 📖 Complete Command Reference Manual
+
+#### 1. Code Quality & Complexity Commands
+
+##### `syntax` — Syntax & Bytecode Compilation Check
+Validates code syntax and parses AST without executing untrusted code.
+* **Usage:** `python cherm.py syntax <file|dir> [--json]`
+* **Supported files:** Python (`.py`), JSON (`.json`), JavaScript, TypeScript, Go, SQL.
+* **Example:**
+  ```bash
+  python cherm.py syntax src/server.py
+  python cherm.py syntax ./src --json
+  ```
+
+##### `complexity` — Algorithmic Time, Space & Cyclomatic Complexity
+Estimates Big-O time and space complexity, cyclomatic branching score, and maximum loop/nesting depth.
+* **Usage:** `python cherm.py complexity <file|dir> [--json]`
+* **Metrics:** Big-O Time (`O(1)`, `O(N)`, `O(N²)`, `O(N^k)`), Space complexity, Cyclomatic Score, Verdict (`Clean`, `Moderate`, `High Complexity`).
+* **Example:**
+  ```bash
+  python cherm.py complexity src/algorithms.py
+  ```
+
+##### `deadcode` — Unused Function & Dead Branch Detector
+Uses AST inspection to discover functions and variables that are defined but never invoked across the module.
+* **Usage:** `python cherm.py deadcode <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py deadcode src/utils.py
+  ```
+
+##### `magic` — Magic Numbers Scanner
+Detects bare, unexplained numeric literals in expressions that should be extracted into named constants for maintainability.
+* **Usage:** `python cherm.py magic <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py magic src/pricing_engine.py
+  ```
+
+##### `stats` — Source Code Metrics & Ratios
+Reports total lines, physical lines of code (SLOC), blank lines, comment ratio (%), byte size, and vocabulary size.
+* **Usage:** `python cherm.py stats <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py stats src/main.py
+  ```
+
+##### `scan` — Declaration & Symbol Indexer
+Scans code and extracts all function signatures, classes, types, interfaces, and module exports.
+* **Usage:** `python cherm.py scan <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py scan src/models.py
+  ```
+
+##### `fuzz` — CrossCheckV200 Dynamic Mock Injection
+Simulates edge-case inputs (null, empty strings, negative numbers, floats, integer overflows, boundary arrays) on functions to verify input contracts.
+* **Usage:** `python cherm.py fuzz <file.py> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py fuzz src/parser.py
+  ```
+
+---
+
+#### 2. Security & Penetration Testing Commands
+
+##### `sec` — OWASP Static Vulnerability Scanner
+Scans source files for top OWASP vulnerability patterns without requiring cloud or network connectivity.
+* **Vulnerabilities checked:** SQL Injection (f-strings, concatenation), Command Injection (`os.system`, `subprocess(shell=True)`), Code Injection (`eval`, `exec`), Path Traversal, XSS (`innerHTML`, `dangerouslySetInnerHTML`), SSRF (`urlopen`, `requests.get`), Insecure Deserialization (`pickle.loads`, `yaml.load`), Weak Cryptography (MD5, SHA1), and CORS wildcards (`*`).
+* **Usage:** `python cherm.py sec <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py sec src/api/endpoints.py
+  python cherm.py sec ./src --json
+  ```
+
+##### `secrets` — Shannon Entropy & Hardcoded Credential Detector
+Scans code using high-entropy mathematics and regular expression signatures to find exposed secrets before they reach git.
+* **Secrets detected:** AWS Access Key IDs, GitHub Personal Access Tokens (PAT), JWT tokens, Stripe secret keys, hardcoded passwords, Bearer tokens, and Private Key blocks (`BEGIN PRIVATE KEY`).
+* **Usage:** `python cherm.py secrets <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py secrets src/config.py
+  ```
+
+##### `pentest` — Automated Security Tool Orchestration
+Orchestrates static analysis and security linters (Bandit for Python, Semgrep for polyglot rules, Safety for vulnerable packages).
+* **Usage:** `python cherm.py pentest <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py pentest ./src
+  ```
+
+##### `crypto` — SHA-256 Cryptographic Integrity & Cipher Audit
+Calculates deterministic SHA-256 checksums, verifies tamper baselines, and inspects code for cryptographic anti-patterns.
+* **Checks:** Non-constant-time comparisons (Timing Attacks), raw unsalted SHA-256 password hashing, weak hashing algorithms, and ECB block cipher modes.
+* **Usage:** `python cherm.py crypto <file> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py crypto src/auth.py
+  ```
+
+---
+
+#### 3. Architecture & System Design Commands
+
+##### `design` — System Design & Scaling Flaw Auditor
+Scans for architectural vulnerabilities that bypass unit tests but crash production servers or leak data.
+* **Flaws audited:** Broken Object Level Authorization (BOLA/IDOR), database connection pool exhaustion (missing pool close/release), unhandled transaction rollbacks, CORS wildcard permissions, and unbounded query pagination.
+* **Usage:** `python cherm.py design <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py design src/controllers/order.py
+  ```
+
+##### `race` — Multi-Tap & TOCTOU Race Condition Simulator
+Simulates rapid parallel requests (50 simultaneous taps in 1.0s) against critical financial and state-mutation endpoints to detect Check-Then-Act (TOCTOU) race conditions and double-spending vulnerabilities.
+* **Checks:** Missing frontend button debounce/disabling, missing backend `Idempotency-Key` headers, and missing database row-level locking (`SELECT ... FOR UPDATE`).
+* **Usage:** `python cherm.py race <file> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py race src/payment_processor.py
+  ```
+
+##### `ml` — Machine Learning AST Structural Anomaly & Defect Risk
+Applies local machine learning algorithms (Isolation Forest for structural AST anomaly detection, Halstead software science metrics, and Shannon entropy) to calculate an aggregate defect propensity score (0-100).
+* **Usage:** `python cherm.py ml <file> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py ml src/core.py
+  ```
+
+##### `check` — All-In-One Deterministic Code Checker
+Fast, lightweight check covering syntax, OWASP vulnerabilities, secrets, and dead code in a single command.
+* **Usage:** `python cherm.py check <file|dir> [--syntax] [--security] [--secrets] [--deadcode] [--json]`
+* **Example:**
+  ```bash
+  python cherm.py check src/auth.py
+  python cherm.py check ./src --syntax --security
+  ```
+
+##### `audit` — Deep Full-System Architectural Audit
+Full-scale architectural audit producing overall project Health Grades (Grade A to F), categorized issue counts, and optional standalone visual HTML report generation.
+* **Usage:** `python cherm.py audit <file|dir> [--report] [--json]`
+* **Example:**
+  ```bash
+  python cherm.py audit ./src
+  python cherm.py audit ./src --report    # Generates cherm_audit_report.html
+  ```
+
+---
+
+#### 4. Utilities & Diagnostics
+
+##### `urls` — API Endpoints & URL Connectivity Checker
+Discovers all HTTP and HTTPS endpoints declared in source files and sends concurrent lightweight HEAD/GET probes to verify server responsiveness.
+* **Usage:** `python cherm.py urls <file|dir> [--json]`
+* **Example:**
+  ```bash
+  python cherm.py urls src/services/api_client.py
+  ```
+
+##### `diff` — Terminal Side-by-Side Unified Diff Viewer
+Provides formatted unified diff output against Git HEAD or compares two arbitrary files directly in the terminal.
+* **Usage:**
+  - Compare file against git HEAD: `python cherm.py diff <file>`
+  - Compare two files: `python cherm.py diff <file1> <file2>`
+  - Git working tree diff: `python cherm.py diff`
+* **Example:**
+  ```bash
+  python cherm.py diff src/auth.py
+  python cherm.py diff version1.py version2.py
+  ```
+
+##### `git` — Interactive Git Command Center
+Runs arbitrary Git operations directly through Cherm's unified CLI runner.
+* **Usage:** `python cherm.py git [status|diff|log|branch|...]`
+* **Example:**
+  ```bash
+  python cherm.py git status -s
+  python cherm.py git log -n 5 --oneline
+  ```
+
+##### `report` — Visual Standalone HTML Dashboard Generator
+Compiles an interactive, standalone HTML audit report (`cherm_audit_report.html`) complete with metrics, flaw breakdowns, and fix recommendations.
+* **Usage:** `python cherm.py report <file|dir> [--open]`
+* **Example:**
+  ```bash
+  python cherm.py report ./src --open     # Generates report and opens default browser
+  ```
+
+---
+
+#### 5. Connected Software & Extension Engine (`ext`)
+
+Cherm enables developers to integrate external tools, custom scripts, and third-party linters cleanly via `cherm_commands.json`:
+
+##### `ext list` — List Connected Software Commands
+Displays all registered tools, their command templates, target file extensions, and categories.
+* **Usage:** `python cherm.py ext list [--json]`
+
+##### `ext add` — Register an External Tool
+Adds or updates a custom tool command definition in the configuration registry.
+* **Usage:** `python cherm.py ext add <id> <name> <cmd_template> [extensions] [category]`
+* **Example:**
+  ```bash
+  python cherm.py ext add py_black "Black Formatter" "black {file}" ".py" "Formatters"
+  python cherm.py ext add es_lint "ESLint" "npx eslint {file}" ".js,.ts,.tsx" "Linters"
+  ```
+
+##### `ext remove` — Unregister an External Tool
+Removes a command ID from the configuration registry.
+* **Usage:** `python cherm.py ext remove <id>`
+* **Example:**
+  ```bash
+  python cherm.py ext remove py_black
+  ```
+
+##### `ext run` — Execute an External Command
+Runs a connected command using Cherm's secure execution runner with variable interpolation.
+* **Usage:** `python cherm.py ext run <id> [file] [extra_args...]`
+* **Example:**
+  ```bash
+  python cherm.py ext run py_black src/server.py
+  ```
+
+##### Direct Command Alias (Top-Level Execution)
+Any registered command ID can also be run directly as a top-level command alias:
+* **Example:**
+  ```bash
+  python cherm.py py_black src/server.py
+  python cherm.py es_lint src/App.tsx --fix
+  ```
 
 #### Template Placeholders Supported in Commands:
 * `{file}`: Full absolute path to target file
