@@ -4189,6 +4189,7 @@ Code Quality & Complexity Commands:
   stats <file>                 Lines of code, blank lines, comment ratio, size, words
   scan <file>                  Extract & list all defined functions, classes, exports, types
   fuzz <file>                  CrossCheckV200 dynamic mock injection & edge-case fuzzer
+  cp <file>                    Competitive Programming (CP) test runner & in/out validator
 
 Security & Penetration Testing Commands:
   sec <file|dir>               OWASP static vulnerability scan (SQLi, XSS, Command Injection)

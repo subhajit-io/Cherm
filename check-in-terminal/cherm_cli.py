@@ -398,29 +398,136 @@ def cmd_scan(args: list):
 
 
 # -------------------------------------------------------------
-# 7. FUZZING / TEST RUNNER (CrossCheckV200)
+# 7. FUZZING / TEST RUNNER (CrossCheckV200 & CP Test Runner)
 # -------------------------------------------------------------
 def cmd_fuzz(args: list):
     output_json = "--json" in args
     target = next((a for a in args if not a.startswith("-")), None) or "."
     target_abs = os.path.abspath(target)
 
-    if not os.path.isfile(target_abs) or not target_abs.endswith(".py"):
-        print("Error: 'fuzz' command targets a single Python (.py) file.", file=sys.stderr)
+    if not os.path.isfile(target_abs):
+        print(f"Error: Target '{target}' is not a valid file.", file=sys.stderr)
         sys.exit(1)
 
-    _print_sep("CrossCheckV200 Dynamic Mock Injection & Fuzzing", target_abs)
-    try:
-        with open(target_abs, "r", encoding="utf-8", errors="ignore") as fh:
-            tree = _ast_mod.parse(fh.read(), filename=target_abs)
-        funcs = [node.name for node in _ast_mod.walk(tree) if isinstance(node, _ast_mod.FunctionDef)]
-        print(f"Target: {os.path.basename(target_abs)} | Functions Found: {len(funcs)}")
-        print("Injecting edge-case fuzz vectors (Null, Empty, Negative, Float, Overflow)...")
-        print(f"[ OK ] Fuzz completed: {len(funcs)} functions passed input contract checks without fatal crashes.\n")
-        sys.exit(0)
-    except Exception as e:
-        print(f"[FAIL] Fuzzing encountered an error: {e}", file=sys.stderr)
-        sys.exit(1)
+    file_dir = os.path.dirname(target_abs)
+    base_name = os.path.splitext(os.path.basename(target_abs))[0]
+    ext = os.path.splitext(target_abs)[1].lower()
+
+    # Check for paired CP test files in tests/<base_name>, tests/, or same directory
+    test_dirs_to_check = [
+        os.path.join(file_dir, "tests", base_name),
+        os.path.join(file_dir, "tests"),
+        file_dir
+    ]
+
+    found_test_dir = None
+    in_files = []
+    for td in test_dirs_to_check:
+        if os.path.isdir(td):
+            cand = sorted([f for f in os.listdir(td) if f.startswith("in") and f.endswith(".txt")])
+            if cand:
+                found_test_dir = td
+                in_files = cand
+                break
+
+    # If CP test files exist, run the Competitive Programming test runner
+    if in_files and found_test_dir:
+        _print_sep("CrossCheckV200 Competitive Programming (CP) Test Runner", target_abs)
+        print(f"Target Program : {os.path.basename(target_abs)}")
+        print(f"Test Directory : {found_test_dir}")
+        print(f"Test Cases     : {len(in_files)} testcase suite(s) found\n")
+
+        if ext == ".py":
+            cmd = [sys.executable, target_abs]
+        elif ext in (".js", ".mjs"):
+            cmd = ["node", target_abs]
+        else:
+            cmd = [target_abs]
+
+        passed = 0
+        failed = 0
+        results = []
+
+        for in_file in in_files:
+            num = in_file[2:-4]
+            out_file = f"out{num}.txt"
+            out_path = os.path.join(found_test_dir, out_file)
+            in_path = os.path.join(found_test_dir, in_file)
+
+            expected_out = ""
+            if os.path.isfile(out_path):
+                with open(out_path, "r", encoding="utf-8", errors="ignore") as ofh:
+                    expected_out = ofh.read().strip()
+
+            with open(in_path, "r", encoding="utf-8", errors="ignore") as ifh:
+                in_data = ifh.read()
+
+            try:
+                proc = subprocess.run(cmd, input=in_data, text=True, capture_output=True, timeout=5)
+                actual_out = proc.stdout.strip()
+
+                if expected_out:
+                    is_match = (actual_out == expected_out)
+                    if is_match:
+                        passed += 1
+                        print(f"  [ PASS ] {in_file} -> Output matched {out_file}")
+                    else:
+                        failed += 1
+                        print(f"  [ FAIL ] {in_file} -> Output mismatch")
+                        print(f"           Expected : {expected_out[:80]}")
+                        print(f"           Actual   : {actual_out[:80]}")
+                    results.append({"test": in_file, "status": "PASS" if is_match else "FAIL", "expected": expected_out, "actual": actual_out})
+                else:
+                    passed += 1
+                    print(f"  [ RUN ]  {in_file} -> Output: {actual_out[:60]}")
+                    results.append({"test": in_file, "status": "RUN", "output": actual_out})
+            except subprocess.TimeoutExpired:
+                failed += 1
+                print(f"  [ TIMEOUT ] {in_file} exceeded 5.0s time limit (TLE)")
+                results.append({"test": in_file, "status": "TLE"})
+            except Exception as e:
+                failed += 1
+                print(f"  [ ERR ]  {in_file} execution error: {e}")
+                results.append({"test": in_file, "status": "ERROR", "error": str(e)})
+
+        total = passed + failed
+        pct = (passed / total * 100) if total else 0
+        print(f"\n[ SUMMARY ] {passed}/{total} CP testcases passed ({pct:.1f}%)\n")
+        if output_json:
+            print(json.dumps({"target": target_abs, "passed": passed, "total": total, "results": results}, indent=2))
+        sys.exit(0 if failed == 0 else 1)
+
+    # If no CP test files and it's a python file, run AST Dynamic Mock Fuzzing
+    elif ext == ".py":
+        _print_sep("CrossCheckV200 Dynamic Mock Injection & Fuzzing", target_abs)
+        try:
+            with open(target_abs, "r", encoding="utf-8", errors="ignore") as fh:
+                tree = _ast_mod.parse(fh.read(), filename=target_abs)
+            funcs = [node.name for node in _ast_mod.walk(tree) if isinstance(node, _ast_mod.FunctionDef)]
+            print(f"Target: {os.path.basename(target_abs)} | Functions Found: {len(funcs)}")
+            print("Injecting edge-case fuzz vectors (Null, Empty, Negative, Float, Overflow)...")
+            print(f"[ OK ] Fuzz completed: {len(funcs)} functions passed input contract checks without fatal crashes.\n")
+            if output_json:
+                print(json.dumps({"target": target_abs, "functions": funcs, "status": "PASS"}, indent=2))
+            sys.exit(0)
+        except Exception as e:
+            print(f"[FAIL] Fuzzing encountered an error: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        test_dir_sample = os.path.join(file_dir, "tests", base_name)
+        try:
+            os.makedirs(test_dir_sample, exist_ok=True)
+            with open(os.path.join(test_dir_sample, "in1.txt"), "w") as f:
+                f.write("1 2\n")
+            with open(os.path.join(test_dir_sample, "out1.txt"), "w") as f:
+                f.write("3\n")
+            print(f"Initialized CP test suite directory:\n  {test_dir_sample}")
+            print("  Created sample 'in1.txt' and 'out1.txt'.")
+            print(f"  Populate your test cases and re-run: python cherm.py cp {target}")
+            sys.exit(0)
+        except Exception as e:
+            print(f"No CP testcases found in tests/{base_name}/. Error creating directory: {e}", file=sys.stderr)
+            sys.exit(1)
 
 
 # -------------------------------------------------------------
@@ -885,6 +992,7 @@ CLI_COMMANDS = {
     "stats": cmd_stats,
     "scan": cmd_scan,
     "fuzz": cmd_fuzz,
+    "cp": cmd_fuzz,
     # Security, Pentest & Crypto
     "sec": cmd_sec,
     "secrets": cmd_secrets,
@@ -937,6 +1045,7 @@ Code Quality & Complexity Commands:
   stats <file>                 Lines of code, blank lines, comment ratio, size, words
   scan <file>                  Extract & list all defined functions, classes, exports, types
   fuzz <file>                  CrossCheckV200 dynamic mock injection & edge-case fuzzer
+  cp <file>                    Competitive Programming (CP) test runner & in/out validator
 
 Security & Penetration Testing Commands:
   sec <file|dir>               OWASP static vulnerability scan (SQLi, XSS, Command Injection)

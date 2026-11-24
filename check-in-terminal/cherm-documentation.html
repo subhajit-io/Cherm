@@ -1178,6 +1178,7 @@ python checkinterminal/cherm_gui.py --port 3690 --no-browser</code></pre>
                         <tr><td><code>python cherm.py magic &lt;file&gt;</code></td><td>File or folder</td><td>Flags bare numeric literals and unassigned magic constants.</td></tr>
                         <tr><td><code>python cherm.py stats &lt;file&gt;</code></td><td>File or folder</td><td>File metrics: code lines, blank lines, comments percentage, word count.</td></tr>
                         <tr><td><code>python cherm.py scan &lt;file&gt;</code></td><td>File or folder</td><td>Indexes and lists all declared functions, classes, exports, and types.</td></tr>
+                        <tr><td><code>python cherm.py cp &lt;file&gt;</code></td><td>Any code file</td><td>Competitive Programming (CP) test runner: validates stdin/stdout against inX.txt / outX.txt testcases.</td></tr>
                         <tr><td><code>python cherm.py fuzz &lt;file&gt;</code></td><td>Python file</td><td>CrossCheckV200 dynamic mock injection and boundary input fuzzer.</td></tr>
                     </tbody>
                 </table>
@@ -1266,6 +1267,11 @@ python cherm.py syntax ./src --json</code></pre>
                     <h4><code>scan &lt;file|dir&gt;</code></h4>
                     <p class="flaw-text">Extracts and indexes all declared functions, classes, interfaces, types, and module exports.</p>
                     <pre><code>python cherm.py scan src/models.py</code></pre>
+
+                    <h4><code>cp &lt;file&gt;</code></h4>
+                    <p class="flaw-text">Competitive Programming (CP) automated testcase runner. Feeds stdin test inputs (<code>in1.txt</code>, <code>in2.txt</code>) to solutions across languages and verifies expected stdout (<code>out1.txt</code>, <code>out2.txt</code>) with TLE detection.</p>
+                    <pre><code>python cherm.py cp solution.cpp
+python cherm.py cp solution.py</code></pre>
 
                     <h4><code>fuzz &lt;file.py&gt;</code></h4>
                     <p class="flaw-text">CrossCheckV200 input boundary fuzzer injecting mock edge-case values (null, extremes, floats, overflows) against function parameter signatures.</p>

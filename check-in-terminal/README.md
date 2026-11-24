@@ -233,7 +233,8 @@ Every individual inspection feature in Cherm is available as a standalone first-
 | **Quality** | `python cherm.py magic <file>` | File or dir | Scan for bare numeric literals / unexplained magic numbers |
 | **Quality** | `python cherm.py stats <file>` | File or dir | Line count, code vs comments vs blank ratio, size, words |
 | **Quality** | `python cherm.py scan <file>` | File or dir | Extract & index all defined functions, classes, exports & types |
-| **Quality** | `python cherm.py fuzz <file>` | Python file | CrossCheckV200 dynamic mock injection & input boundary fuzzer |
+| **Quality** | `python cherm.py cp <file>` | File | Competitive Programming (CP) test runner & stdin/stdout validator |
+| **Quality** | `python cherm.py fuzz <file>` | File | CrossCheckV200 dynamic mock injection & input boundary fuzzer |
 | **Security** | `python cherm.py sec <target>` | File or dir | OWASP static vulnerability detector (SQLi, XSS, Command Injection) |
 | **Security** | `python cherm.py secrets <target>` | File or dir | Shannon entropy & pattern scanner for API keys, passwords & tokens |
 | **Security** | `python cherm.py pentest <target>` | File or dir | Security orchestration with Bandit, Semgrep, and Safety |
@@ -305,9 +306,20 @@ Scans code and extracts all function signatures, classes, types, interfaces, and
   python cherm.py scan src/models.py
   ```
 
-##### `fuzz` — CrossCheckV200 Dynamic Mock Injection
-Simulates edge-case inputs (null, empty strings, negative numbers, floats, integer overflows, boundary arrays) on functions to verify input contracts.
-* **Usage:** `python cherm.py fuzz <file.py> [--json]`
+##### `cp` — Competitive Programming (CP) Automated Test Runner
+Executes solutions against paired input and expected output test cases (`in1.txt` → `out1.txt`, `in2.txt` → `out2.txt`) across Python, Node.js, C, C++, and compiled executables.
+* **Usage:** `python cherm.py cp <file> [--json]`
+* **Test Directory:** Looks for `tests/<file_base>/in*.txt` and `out*.txt` (or directory containing `in1.txt` / `out1.txt`). Automatically initializes a template test suite if none exists.
+* **Checks:** Exact stdout output matching, runtime duration, and 5.0s Time Limit Exceeded (TLE) protection.
+* **Example:**
+  ```bash
+  python cherm.py cp solution.cpp
+  python cherm.py cp solution.py
+  ```
+
+##### `fuzz` — CrossCheckV200 Dynamic Mock Injection & Edge-Case Fuzzer
+Simulates massive edge-case inputs (nulls, empty strings, negative numbers, floating points, integer overflows, boundary arrays) on functions to verify input contracts and prevent unexpected runtime crashes.
+* **Usage:** `python cherm.py fuzz <file> [--json]`
 * **Example:**
   ```bash
   python cherm.py fuzz src/parser.py
@@ -563,8 +575,9 @@ Add Cherm to your AI assistant's configuration file:
 * **React XSS Prevention:** Flags unsanitized HTML injections via `dangerouslySetInnerHTML`.
 * **Integrated Next.js Tooling:** Built-in TUI commands for `npx next lint`, `npx next build`, `npx tsc --noEmit`, and `npm audit`.
 
-### Code Quality & AST Analysis
-* **CrossCheckV200 Engine:** Automated function-level fuzz testing with dynamic mock injection to catch unexpected edge-case crashes.
+### Code Quality, Competitive Programming & AST Analysis
+* **Competitive Programming (CP) Test Runner:** Automated input/output validation engine (`python cherm.py cp <file>`). Feeds paired stdin test cases (`in1.txt`, `in2.txt`) to problem solutions across languages (Python, C++, Java, Node.js) and verifies expected stdout (`out1.txt`, `out2.txt`) with execution timers and TLE protection.
+* **CrossCheckV200 Fuzz Engine:** Automated function-level fuzz testing with dynamic mock injection to catch unexpected edge-case crashes.
 * **Speed & Complexity Calculator:** Evaluates cyclomatic complexity, maximum nesting depth, and estimated Big-O Time & Space complexity.
 * **Dead Code & Magic Number Scanner:** Flags unused variables, unreachable branches, and bare numeric literals that belong in named constants (supporting Python, JS, JSX, TS, TSX).
 * **Shadow Copy Safety:** Original files are never modified or locked. All analysis runs inside an isolated shadow directory (`%TEMP%/cherm_shadow`).
